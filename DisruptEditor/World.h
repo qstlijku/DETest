@@ -4,6 +4,7 @@
 #include <map>
 #include "tinyxml2.h"
 #include "wluFile.h"
+#include "CSector.h"
 
 class World {
 public:
@@ -13,7 +14,10 @@ public:
 	float loadingProgress = 1.f;
 	std::string loadingStatus;
 
+	Vector<CSector> sectors;
+
 	static void loadWLUAsync();
+	static void loadSectors();
 };
 
 extern World world;

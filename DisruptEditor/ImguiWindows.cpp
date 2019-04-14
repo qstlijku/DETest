@@ -15,9 +15,9 @@ void UI::displayTopMenu() {
 		windows["EntityLibrary"] ^= true;
 	if (ImGui::MenuItem("CBatch"))
 		windows["CBATCH"] ^= true;
-	/*if (ImGui::MenuItem("Terrain"))
-		windows["Terrain"] ^= true;
-	if (ImGui::MenuItem("Domino"))
+	if (ImGui::MenuItem("Sector"))
+		windows["Sector"] ^= true;
+	/*if (ImGui::MenuItem("Domino"))
 		windows["Domino"] ^= true;*/
 	if (ImGui::MenuItem("DARE"))
 		windows["DARE"] ^= true;

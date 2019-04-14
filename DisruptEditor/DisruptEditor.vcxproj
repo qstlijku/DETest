@@ -227,6 +227,7 @@
     <ClCompile Include="spkFile.cpp" />
     <ClCompile Include="sqlite3.c" />
     <ClCompile Include="stb_vorbis.c" />
+    <ClCompile Include="SectorWindow.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
     <ClCompile Include="Types.cpp" />
     <ClCompile Include="wluFile.cpp" />

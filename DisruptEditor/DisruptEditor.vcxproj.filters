@@ -203,6 +203,9 @@
     <ClCompile Include="ImGradient.cpp">
       <Filter>Externals</Filter>
     </ClCompile>
+    <ClCompile Include="SectorWindow.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">

@@ -56,16 +56,12 @@ int main(int argc, char **argv) {
 
 	SDL_Window* window = SDL_CreateWindow("Disrupt Editor v" DE_VERSIONSTR, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, settings.windowSize.x, settings.windowSize.y, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 	if (window == NULL) {
-		SDL_Log("Could not create window: %s\n", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create window", SDL_GetError(), NULL);
 		return 1;
 	}
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
 	if (glcontext == NULL) {
-		SDL_Log("Could not create context: %s\n", SDL_GetError());
-		return 1;
-	}
-	if (SDL_GL_MakeCurrent(window, glcontext) != 0) {
-		SDL_Log("Could not create context: %s\n", SDL_GetError());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create gl context", SDL_GetError(), window);
 		return 1;
 	}
 	SDL_GL_SetSwapInterval(1);
@@ -85,25 +81,84 @@ int main(int argc, char **argv) {
 	//Debug
 #if _DEBUG
 	{
-		DARE::instance().addSoundResource(0x0012a611);
+		FH::Init();
+
+		Vector<FileInfo> files;// = FH::getFileList("soundbinary", "spk");
+		//FILE* fpa = fopen("res/dare.txt", "ab");
+		for (auto it : files) {
+			it.name[8] = '\0';
+			//SDL_Log("Loading %s", file.name);
+
+			uint32_t objID;
+			sscanf(it.name.c_str(), "%08x", &objID);
+
+			DARE::instance().reset();
+			DARE::instance().addSoundResource(objID);
+
+			/*for (auto ita : DARE::instance().atomicObjects) {
+				fprintf(fpa, "%u,%u\n", objID, ita.first);
+				fflush(fpa);
+			}*/
+
+			/*for (auto it : DARE::instance().atomicObjects) {
+				sbaoFile &sbao = it.second.ao;
+				std::string typeName = sbao.type.getReverseName();
+				if (typeName != "ResourceDescriptor") continue;
+
+				BaseResourceDescriptor &brd = sbao.resourceDescriptor->pResourceDesc;
+
+				typeName = brd.type.getReverseName();
+				if (typeName == "SampleResourceDescriptor") {
+					if (brd.sampleResourceDescriptor->CompressionFormat == 2 || brd.sampleResourceDescriptor->CompressionFormat == 1 || (brd.sampleResourceDescriptor->stToolSourceFormat.bStream && brd.sampleResourceDescriptor->stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId != 0xFFFFFFFF)) {
+						uint32_t spkID = it.second.spkFile;
+						uint32_t sbaoID = brd.sampleResourceDescriptor->getHelpfulId();
+
+						char buffer[160];
+						snprintf(buffer, sizeof(buffer), "C:\\Users\\Jonathan\\Desktop\\english_sbao\\%08x_%08x_%u.wav", spkID, sbaoID, brd.sampleResourceDescriptor->CompressionFormat);
+						try {
+							brd.sampleResourceDescriptor->saveDecoded(buffer);
+						}
+						catch (...) {
+							int a = 0;
+						}
+
+					}
+				}
+				else if(typeName == "MultiTrackResourceDescriptor") {
+					int a = 1;
+				}
+				else if (typeName == "GranularResourceDescriptor") {
+					/*uint32_t spkID = it.second.spkFile;
+					uint32_t sbaoID = brd.granularResourceDescriptor->getHelpfulId();
+
+					char buffer[160];
+					snprintf(buffer, sizeof(buffer), "C:\\Users\\Jonathan\\Desktop\\gran_sbao\\%08x_%08x_%u.wav", spkID, sbaoID, brd.granularResourceDescriptor->m_compression);
+					try {
+						brd.granularResourceDescriptor->saveDecoded(buffer);
+					}
+					catch (...) {
+						int a = 0;
+					}*/
+				/*}
+			}*/
+
+			/*for (auto it : DARE::instance().atomicObjects) {
+				sbaoFile &sbao = *it.second.ao;
+				uint32_t spkID = it.second.spkFile;
+				uint32_t sbaoID = it.first;
+
+				char buffer[160];
+				snprintf(buffer, sizeof(buffer), "C:\\Users\\Jonathan\\Desktop\\spk_windy_city\\%08x_%08x.spk.xml", spkID, sbaoID);
+
+				std::string xml = serializeToXML(sbao);
+				FILE *fp = fopen(buffer, "wb");
+				fwrite(xml.c_str(), 1, xml.size(), fp);
+				fclose(fp);
+			}*/
+		}
 
 		//locFile loc;
 		//loc.open("Z:\\scratch\\bin\\common\\languages\\main_english.loc");
-
-		/*auto b = fromHexString("10 ae 2346");
-		auto c = fromHexString("10AE2346");
-
-		temp2 = std::to_string(Hash::getHash("SBatchedSoundPointBreakable"));*/
-
-		char buffer[255];
-		snprintf(buffer, sizeof(buffer), "graphics\\Terrain\\Water\\AnimatedCaustics_%03d.xbt", 0);
-
-		uint32_t d = Hash::getFilenameHash(buffer);
-
-		CStringID temp;
-		temp.id = 0x1D072E66;
-		std::string temp2 = temp.getReverseName();
-		FH::Init();
 
 		/*tfDIR dir;
 		tfDirOpen(&dir, "C:\\Users\\Jonathan\\Desktop\\WD_materials_BIN");
@@ -131,19 +186,19 @@ int main(int argc, char **argv) {
 		tfDirClose(&dir);*/
 
 		{
-			xbgFile xbg;
+			/*xbgFile xbg;
 			SDL_RWops *fp = SDL_RWFromFile("C:\\Users\\Jonathan\\Desktop\\char01.xbg", "rb");
 			CBinaryArchiveReader reader(fp);
 			xbg.open(reader);
-			SDL_RWclose(fp);
+			SDL_RWclose(fp);*/
 		}
 
 		batchFile bf;
 		try {
-			SDL_RWops* fp = SDL_RWFromFile("C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c2_i0_xn0767_yp0513_xn0641_yp0639_compound.cbatch", "rb");
-			CBinaryArchiveReader reader(fp);
+			//SDL_RWops* fp = SDL_RWFromFile("C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c2_i0_xn0767_yp0513_xn0641_yp0639_compound.cbatch", "rb");
+			//CBinaryArchiveReader reader(fp);
 			//bf.open(reader);
-			SDL_RWclose(fp);
+			//SDL_RWclose(fp);
 
 			//bf.componentMBP.batchProcessors.clear();
 			//bf.physicsFile.id = -1;
@@ -175,42 +230,6 @@ int main(int argc, char **argv) {
 			tfDirNext(&dir);
 		}
 		tfDirClose(&dir);*/
-
-		//tfDirOpen(&dir, "D:\\Desktop\\bin\\sound\\soundbinary");
-		//tfDirOpen(&dir, "D:\\Desktop\\bin\\sound\\__UNKNOWN/sfx");
-		/*tfDirOpen(&dir, "D:\\Desktop\\bin\\windy_city\\soundbinary");
-		SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
-		while (dir.has_next) {
-			tfFILE file;
-			tfReadFile(&dir, &file);
-
-			if (!file.is_dir && strstr(file.name, ".spk") != NULL) {
-				SDL_Log("Loading %s\n", file.name);
-
-				spkFile bf;
-				bf.open(file.path);
-			}
-
-			tfDirNext(&dir);
-		}
-		tfDirClose(&dir);*/
-		
-
-		/*tfDirOpen(&dir, "C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds/windy_city/generated/sdat");
-		while (dir.has_next) {
-			tfFILE file;
-			tfReadFile(&dir, &file);
-
-			if (!file.is_dir && strstr(file.name, ".sdhr") != NULL) {
-				SDL_Log("Loading %s\n", file.name);
-
-				CSectorHighRes spk;
-				spk.open(file.path);
-			}
-
-			tfDirNext(&dir);
-		}
-		tfDirClose(&dir);*/
 	}
 #endif
 
@@ -229,11 +248,15 @@ int main(int argc, char **argv) {
 		loadingScreen->setTitle("Loading Language Files");
 		//Dialog::instance();
 
-		SDL_PumpEvents();
+		/*SDL_PumpEvents();
 		loadingScreen->setTitle("Loading Particle Library");
-		world.particles = loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml"));
+		world.particles = loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml"));*/
 
 		world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
+
+		SDL_PumpEvents();
+		loadingScreen->setTitle("Loading Sectors");
+		world.loadSectors();
 
 		std::thread wluThread(world.loadWLUAsync);
 		wluThread.detach();
@@ -512,6 +535,9 @@ int main(int argc, char **argv) {
 			}
 			ImGui::End();
 		}
+
+		for (auto it : world.sectors)
+			it.draw();
 
 		if (!ImGui::IsAnyWindowHovered())
 			camera.update(delta);

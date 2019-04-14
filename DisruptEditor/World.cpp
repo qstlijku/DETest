@@ -1,6 +1,8 @@
 #include "World.h"
 
 #include "FileHandler.h"
+#include "IBinaryArchive.h"
+#include <SDL.h>
 
 World world;
 
@@ -15,5 +17,28 @@ void World::loadWLUAsync() {
 		world.wlus[file.name] = wlu;
 		++i;
 		world.loadingProgress = (float)i / files.size();
+	}
+}
+
+void World::loadSectors() {
+	//This is hardcoded!
+	for (uint32_t x = 0; x < 64; x += 4) {
+		for (uint32_t y = 0; y < 80; y += 4) {
+			uint32_t offset = (y * 64) + x;
+			SDL_Log("Loading Sector %u", offset);
+
+			CSector& sector = world.sectors.emplace_back();
+			sector.xPos = x;
+			sector.yPos = y;
+			sector.sectorID = offset;
+
+			char filename[80];
+			snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdat", offset);
+			SDL_RWops* fp = FH::openFile(filename);
+			SDL_assert_release(fp);
+			CBinaryArchiveReader reader(fp);
+			sector.open(reader);
+			SDL_RWclose(fp);
+		}
 	}
 }
