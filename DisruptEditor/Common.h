@@ -8,6 +8,7 @@
 #include "glad.h"
 #include <SDL_rwops.h>
 #include <SDL_keycode.h>
+#include <memory>
 
 class xbgFile;
 class materialFile;
@@ -60,7 +61,7 @@ xbgFile& loadXBG(uint32_t path);
 
 materialFile& loadMaterial(const std::string &path);
 
-xbtFile& loadTexture(const std::string &path);
+std::shared_ptr<xbtFile> loadTexture(const char *path);
 
 GLuint loadResTexture(const std::string &path);
 

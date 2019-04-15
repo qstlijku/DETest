@@ -1,0 +1,48 @@
+<shader>
+	<uniform name="MVP" type="mat4" />
+	<uniform name="UVOffset" type="vec2" />
+	<uniform name="color" type="sampler2D" />
+	<uniform name="diffuse" type="sampler2D" />
+	<uniform name="mask" type="sampler2D" />
+	<vertex>
+#version 330
+layout(location = 0) in vec3 Position;
+
+out vec2 uv;
+
+uniform mat4 MVP;
+uniform vec2 UVOffset;
+
+uniform sampler2D color;
+uniform sampler2D diffuse;
+uniform sampler2D mask;
+
+void main(){
+	gl_Position = MVP * vec4(Position,1);
+	uv = ((Position.xy / vec2(68.0)) / vec2(4.0)) + UVOffset;
+	gl_PointSize = 1.0;
+
+	/*if(texture(mask, uv).a == 0.0)//Hole punch
+		gl_Position /= 0.0;*/
+}
+	</vertex>
+
+	<fragment>
+#version 330
+in vec3 pos;
+in vec2 uv;
+
+//G Buffers
+layout (location = 0) out vec4 gAlbedoSpec;
+
+uniform sampler2D color;
+uniform sampler2D diffuse;
+uniform sampler2D mask;
+
+void main() {
+	gAlbedoSpec = vec4(texture(diffuse, uv));
+}
+	</fragment>
+</shader>
+
+

@@ -14,10 +14,10 @@ namespace FH {
 	Vector<FileInfo> getFileList(const std::string &dir, const std::string &extFilter = std::string());
 	Vector<FileInfo> getFileListFromAbsDir(const std::string &dir, const std::string &extFilter = std::string());
 
-	std::string getAbsoluteFilePath(const std::string &path);
+	std::string getAbsoluteFilePath(const char *path);
 	std::string getAbsoluteFilePath(uint32_t path);
 
-	SDL_RWops* openFile(const std::string& path);
+	SDL_RWops* openFile(const char *path);
 	SDL_RWops* openFileWrite(const std::string &path);
 	SDL_RWops* openFile(uint32_t path);
 

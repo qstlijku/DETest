@@ -2,6 +2,7 @@
 
 #include <SDL_assert.h>
 #include "stb_image_write.h"
+#include <SDL_mutex.h>
 
 RenderInterface::RenderInterface() {
 	lines = loadShaders("res/gldd.xml");
@@ -12,6 +13,8 @@ RenderInterface::RenderInterface() {
 	texBuffer = createVertexBuffer(NULL, 0, BUFFER_STREAM);
 
 	model = loadShaders("res/model.xml");
+
+	terrain = loadShaders("res/terrain.xml");
 
 	glGenVertexArrays(1, &VertexArrayID);
 
@@ -184,7 +187,6 @@ dd::GlyphTextureHandle RenderInterface::createGlyphTexture(int width, int height
 void RenderInterface::destroyGlyphTexture(dd::GlyphTextureHandle glyphTex) {
 	glDeleteTextures(1, (GLuint*)&glyphTex);
 }
-
 
 void RenderInterface::saveFBO(const char *filename) {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);

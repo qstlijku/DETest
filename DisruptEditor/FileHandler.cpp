@@ -74,8 +74,9 @@ static int mem_close(SDL_RWops * context) {
 	return 0;
 }
 
-SDL_RWops * FH::openFile(const std::string & path) {
-	SDL_RWops *fp = SDL_RWFromFile(getAbsoluteFilePath(path).c_str(), "rb");
+SDL_RWops * FH::openFile(const char *path) {
+	std::string fullPath = getAbsoluteFilePath(path);
+	SDL_RWops *fp = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (!fp) return NULL;
 	size_t size = SDL_RWsize(fp);
 	void *data = malloc(size);
@@ -165,13 +166,13 @@ static std::unordered_map<uint32_t, std::string> genListOfUnknown(const std::str
 
 static std::unordered_map<std::string, std::unordered_map<uint32_t, std::string> > unknownFileMap;
 
-std::string FH::getAbsoluteFilePath(const std::string &path) {
+std::string FH::getAbsoluteFilePath(const char *path) {
 	char fullPath[512];
-	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path.c_str());
+	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
 	if (PathFileExistsA(fullPath))
 		return fullPath;
 	for (const std::string &base : settings.searchPaths) {
-		snprintf(fullPath, sizeof(fullPath), "%s%s", base.c_str(), path.c_str());
+		snprintf(fullPath, sizeof(fullPath), "%s%s", base.c_str(), path);
 		if (PathFileExistsA(fullPath))
 			return fullPath;
 	}
@@ -195,7 +196,7 @@ std::string FH::getAbsoluteFilePath(const std::string &path) {
 std::string FH::getAbsoluteFilePath(uint32_t path) {
 	auto itb = DB::instance().getFileByHash(path);
 	if (itb)
-		return getAbsoluteFilePath(itb->path);
+		return getAbsoluteFilePath(itb->path.c_str());
 
 	//Search Unknown Files
 	uint32_t hash = path;

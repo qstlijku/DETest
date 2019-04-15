@@ -72,8 +72,11 @@ int main(int argc, char **argv) {
 	ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
 	ImGui_ImplOpenGL3_Init("#version 130");
 	ImGui::StyleColorsDark(NULL);
+	RenderInterface::instance().window = window;
+	RenderInterface::instance().context = glcontext;
+	dd::initialize(&RenderInterface::instance());
 
-	Camera camera;
+	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
 	camera.near_plane = 0.25f;
 	camera.far_plane = 6500.f;
@@ -81,7 +84,11 @@ int main(int argc, char **argv) {
 	//Debug
 #if _DEBUG
 	{
-		FH::Init();
+		//FH::Init();
+
+		Node root = readFCB(SDL_RWFromFile("Z:\\scratch\\bin\\windy_city\\worlds\\windy_city\\generated\\watersplines.fcb", "rb"));
+		tinyxml2::XMLPrinter printer;
+		root.serializeXML(printer);
 
 		Vector<FileInfo> files;// = FH::getFileList("soundbinary", "spk");
 		//FILE* fpa = fopen("res/dare.txt", "ab");
@@ -254,13 +261,16 @@ int main(int argc, char **argv) {
 
 		world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
 
-		SDL_PumpEvents();
-		loadingScreen->setTitle("Loading Sectors");
-		world.loadSectors();
+		std::thread sectorThread(world.loadSectors);
+		sectorThread.detach();
 
 		std::thread wluThread(world.loadWLUAsync);
 		wluThread.detach();
 	}
+
+	/*for (auto& it : world.sectors)
+		it.save();
+	int a = 1;*/
 
 	/*{
 		FILE *out = fopen("out.txt", "w");
@@ -318,7 +328,6 @@ int main(int argc, char **argv) {
 	uint64_t frameCount = 0;
 	std::shared_ptr<wluFile> currentWlu;
 
-	dd::initialize(&RenderInterface::instance());
 	if (settings.maximized)
 		SDL_MaximizeWindow(window);
 	SDL_ShowWindow(window);
@@ -536,14 +545,16 @@ int main(int argc, char **argv) {
 			ImGui::End();
 		}
 
-		for (auto it : world.sectors)
-			it.draw();
+		glBindVertexArray(RenderInterface::instance().VertexArrayID);
+		CHECK_GL_ERROR();
+		RenderInterface::instance().terrain.use();
+		size_t maxSectors = world.sectors.size();
+		for (size_t i = 0; i < maxSectors; ++i)
+			world.sectors[i].draw();
 
 		if (!ImGui::IsAnyWindowHovered())
 			camera.update(delta);
 
-		glBindVertexArray(RenderInterface::instance().VertexArrayID);
-		dd::xzSquareGrid(-50.0f, 50.0f, -1.0f, 1.7f, green);
 		dd::flush(0);
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

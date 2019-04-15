@@ -8,6 +8,9 @@
 #include <SDL.h>
 #include "FileHandler.h"
 #include "debug_draw.hpp"
+#include "DDRenderInterface.h"
+#include "glm/gtc/matrix_transform.hpp"
+#include "Common.h"
 
 void CSectorHighRes::open(IBinaryArchive &fp) {
 	uint32_t magic = 1397901394;
@@ -129,8 +132,45 @@ std::shared_ptr<VertexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::get
 	static std::shared_ptr<VertexBuffer> indexBuffer;
 	if (!indexBuffer) {
 		Vector<uint16_t> data;
+		
+		unsigned int x = 0, y = 0;
+		bool yadvance = true, xforward = true;
+		unsigned char xadvance = 0;
+		do {
+			data.push_back((y * 65) + x);
 
-		indexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC);
+			if (yadvance)
+				++y;
+			else
+				--y;
+			yadvance = !yadvance;
+
+			++xadvance;
+
+			if (xadvance == 2) {
+				xadvance = 0;
+				if (xforward)
+					++x;
+				else
+					--x;
+			}
+
+			if (x == 65) {
+				x -= 1;
+				y += 2;
+				yadvance = false;
+				xforward = false;
+				xadvance = 1;
+			} else if (x == -1) {
+				x = 0;
+				y += 2;
+				yadvance = false;
+				xforward = true;
+				xadvance = 1;
+			}
+		} while (y < 65);
+
+		indexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
 	}
 	return indexBuffer;
 }
@@ -168,26 +208,56 @@ void CSector::draw() {
 	float xOffset = xPos * 64;
 	float yOffset = yPos * 64;
 
-	for (int x = 0; x < 64 * 2; ++x) {
-		for (int y = 0; y < 64 * 2; ++y) {
-			int xSectorOffset = x / 32;
-			int ySectorOffset = y / 32;
-			int xSectorInnerOffset = x % 32;
-			int ySectorInnerOffset = y % 32;
+	glActiveTexture(GL_TEXTURE0);
+	CHECK_GL_ERROR();
+	glBindTexture(GL_TEXTURE_2D, getColorTexture()->id);
+	CHECK_GL_ERROR();
 
-			auto map = hiRes->getMap(xSectorOffset, ySectorOffset);
-			for (int sx = 0; sx < 32; ++sx) {
-				for (int sy = 0; sy < 32; ++sy) {
-					/*glm::vec3 pos((sx / 2.f) + xOffset, (sy / 2.f) + yOffset, map.GetZ(sx, sy));
-					dd::cross(&pos.x, 0.25f);*/
-				}
-			}
+	glActiveTexture(GL_TEXTURE1);
+	CHECK_GL_ERROR();
+	glBindTexture(GL_TEXTURE_2D, getDiffuseTexture()->id);
+	CHECK_GL_ERROR();
 
-			//SDL_Log("%i %i %i %i", xSectorOffset, ySectorOffset, xSectorInnerOffset, ySectorInnerOffset);
+	glActiveTexture(GL_TEXTURE2);
+	CHECK_GL_ERROR();
+	glBindTexture(GL_TEXTURE_2D, getMaskTexture()->id);
+	CHECK_GL_ERROR();
+
+	CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer()->bind();
+
+	glEnableVertexAttribArray(0);
+	CHECK_GL_ERROR();
+
+	for (int x = 0; x < 4; ++x) {
+		for (int y = 0; y < 4; ++y) {
+			auto &map = hiRes->getMap(x, y);
+			auto vertexBuffer = map.getVertexBuffer();
+			vertexBuffer->bind();
+
+			glVertexAttribPointer(
+				0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+				3,                  // size
+				GL_FLOAT,  // type
+				GL_FALSE,           // normalized?
+				3 * sizeof(float),  // stride
+				(void*)0            // array buffer offset
+			);
+			CHECK_GL_ERROR();
+
+			glm::mat4 MVP = RenderInterface::instance().VP * glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - 2048, (yOffset + y * 64) - 2560, 0));
+			glUniformMatrix4fv(RenderInterface::instance().terrain.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
+			CHECK_GL_ERROR();
+
+			glUniform2f(RenderInterface::instance().terrain.uniforms["UVOffset"], x / 4.f, y / 4.f);
+			CHECK_GL_ERROR();
+
+			glDrawElements(GL_TRIANGLE_STRIP, CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer()->size / sizeof(uint16_t), GL_UNSIGNED_SHORT, 0);
+			CHECK_GL_ERROR();
 		}
 	}
 
-	int a = 1;
+	glDisableVertexAttribArray(0);
+	CHECK_GL_ERROR();
 }
 
 void CSector::save() {
@@ -209,6 +279,33 @@ void CSector::save() {
 		highRes->open(CBinaryArchiveWriter(fp));
 		SDL_RWclose(fp);
 	}
+}
+
+std::shared_ptr<xbtFile> CSector::getColorTexture() {
+	if (!color) {
+		char filename[80];
+		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/atlas%u_color.xbt", sectorID);
+		color = loadTexture(filename);
+	}
+	return color;
+}
+
+std::shared_ptr<xbtFile> CSector::getDiffuseTexture() {
+	if (!diffuse) {
+		char filename[80];
+		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/atlas%u_diffuse_high.xbt", sectorID);
+		diffuse = loadTexture(filename);
+	}
+	return diffuse;
+}
+
+std::shared_ptr<xbtFile> CSector::getMaskTexture() {
+	if (!mask) {
+		char filename[80];
+		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/atlas%u_mask_high.xbt", sectorID);
+		mask = loadTexture(filename);
+	}
+	return mask;
 }
 
 std::shared_ptr<CSectorHighRes> CSector::getHiRes() {
@@ -247,6 +344,4 @@ void CSector::SSectorDataChunk::read(IBinaryArchive & fp) {
 
 	if (unk6 > 0.f)
 		fp.memBlock(bitGrid.data(), 1, bitGrid.size());
-	else
-		SDL_Log("No bit grid");
 }

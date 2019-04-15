@@ -6,6 +6,7 @@
 #include "GLHelper.h"
 #include <memory>
 #include <array>
+#include "xbtFile.h"
 
 class IBinaryArchive;
 class MemberStructure;
@@ -47,7 +48,7 @@ public:
 	private:
 		//DisruptEditorData
 		std::shared_ptr<VertexBuffer> vertexBuffer;
-		bool isDirty = true;
+		bool isDirty = false;
 	};
 
 	uint32_t unk1;
@@ -60,12 +61,10 @@ public:
 class CSector {
 public:
 	void open(IBinaryArchive &fp);
-
 	void draw();
 	void save();
 
 	CPathID lowRes, hiRes;
-	std::shared_ptr<CSectorHighRes> getHiRes();
 
 	//Stored at 0x4 in CSector
 	struct SSectorDataChunk {//Size is 0x38
@@ -97,8 +96,11 @@ public:
 
 	//DisruptEditorData
 	int xPos, yPos, sectorID;
-
+	std::shared_ptr<xbtFile> getColorTexture();
+	std::shared_ptr<xbtFile> getDiffuseTexture();
+	std::shared_ptr<xbtFile> getMaskTexture();
+	std::shared_ptr<CSectorHighRes> getHiRes();
 private:
 	std::shared_ptr<CSectorHighRes> highRes;
-
+	std::shared_ptr<xbtFile> color, diffuse, mask;
 };

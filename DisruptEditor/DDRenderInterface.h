@@ -3,6 +3,9 @@
 #include "Implementation.h"
 #include "GLHelper.h"
 #include "glm/glm.hpp"
+#include <SDL_video.h>
+#include <SDL_mutex.h>
+#include "Camera.h"
 
 class RenderInterface : public dd::RenderInterface {
 public:
@@ -38,11 +41,15 @@ public:
 	void drawGlyphList(const dd::DrawVertex * glyphs, int count, dd::GlyphTextureHandle glyphTex);
 
 	GLuint VertexArrayID;
-	Shader lines, tex, model;
+	Shader lines, tex, model, terrain;
 	std::shared_ptr<VertexBuffer> linesBuffer, texBuffer;
 
 	glm::mat4 View, Projection, VP;
 	glm::ivec2 windowSize;
+	Camera camera;
+
+	SDL_Window* window;
+	SDL_GLContext context;
 
 	//Frame Buffer
 	GLuint fbo, fbo_texture, fbo_depth;

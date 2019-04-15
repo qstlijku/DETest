@@ -22,12 +22,13 @@ void World::loadWLUAsync() {
 
 void World::loadSectors() {
 	//This is hardcoded!
+	world.sectors.reserve(64 * 80);
 	for (uint32_t x = 0; x < 64; x += 4) {
 		for (uint32_t y = 0; y < 80; y += 4) {
 			uint32_t offset = (y * 64) + x;
 			SDL_Log("Loading Sector %u", offset);
 
-			CSector& sector = world.sectors.emplace_back();
+			CSector sector;
 			sector.xPos = x;
 			sector.yPos = y;
 			sector.sectorID = offset;
@@ -39,6 +40,8 @@ void World::loadSectors() {
 			CBinaryArchiveReader reader(fp);
 			sector.open(reader);
 			SDL_RWclose(fp);
+
+			world.sectors.push_back(sector);
 		}
 	}
 }

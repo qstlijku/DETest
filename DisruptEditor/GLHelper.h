@@ -7,11 +7,24 @@
 #include <SDL_assert.h>
 #include "tinyxml2.h"
 #include <memory>
+#include <SDL_log.h>
+
+inline void CHECK_GL_ERROR() {
+#if _DEBUG
+	GLenum ret = glGetError();
+	if (ret != GL_NO_ERROR)
+		SDL_Log("GLError: %u", ret);
+	SDL_assert(ret == GL_NO_ERROR);
+#endif
+}
 
 class Shader {
 public:
 	GLuint oglid;
-	inline void use() { glUseProgram(oglid); }
+	inline void use() { 
+		glUseProgram(oglid);
+		CHECK_GL_ERROR();
+	}
 	std::map<std::string, GLint> uniforms;
 	enum UniformTypes { INT, FLOAT, MAT4, VEC2, VEC3, VEC4, TEXTURE2D, TEXTURE3D };
 	std::map<std::string, std::string> uniformTypes;
@@ -21,67 +34,94 @@ public:
 static inline bool loadShader(Shader *shader, const char * vertex, const char * fragment) {
 	// Create the shaders
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	CHECK_GL_ERROR();
 	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	CHECK_GL_ERROR();
 
 	GLint Result = GL_FALSE;
 	int InfoLogLength;
 
 	// Compile Vertex Shader
 	glShaderSource(VertexShaderID, 1, &vertex, NULL);
+	CHECK_GL_ERROR();
 	glCompileShader(VertexShaderID);
+	CHECK_GL_ERROR();
 
 	// Check Vertex Shader
 	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+	CHECK_GL_ERROR();
 	if (Result == GL_FALSE) {
 		glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		CHECK_GL_ERROR();
 		Vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+		CHECK_GL_ERROR();
 		return false;
 	}
 
 	// Compile Fragment Shader
 	glShaderSource(FragmentShaderID, 1, &fragment, NULL);
+	CHECK_GL_ERROR();
 	glCompileShader(FragmentShaderID);
+	CHECK_GL_ERROR();
 
 	// Check Fragment Shader
 	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+	CHECK_GL_ERROR();
 	if (Result == GL_FALSE) {
 		glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		CHECK_GL_ERROR();
 		Vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
 		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+		CHECK_GL_ERROR();
 		glDeleteShader(VertexShaderID);
+		CHECK_GL_ERROR();
 		glDeleteShader(FragmentShaderID);
+		CHECK_GL_ERROR();
 		return false;
 	}
 
 	// Link the program
 	shader->oglid = glCreateProgram();
+	CHECK_GL_ERROR();
 	glAttachShader(shader->oglid, VertexShaderID);
+	CHECK_GL_ERROR();
 	glAttachShader(shader->oglid, FragmentShaderID);
+	CHECK_GL_ERROR();
 
 	glLinkProgram(shader->oglid);
+	CHECK_GL_ERROR();
 
 	glDeleteShader(VertexShaderID);
+	CHECK_GL_ERROR();
 	glDeleteShader(FragmentShaderID);
+	CHECK_GL_ERROR();
 
 	// Check the program
 	glGetProgramiv(shader->oglid, GL_LINK_STATUS, &Result);
+	CHECK_GL_ERROR();
 	if (Result == GL_FALSE) {
 		glGetProgramiv(shader->oglid, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		CHECK_GL_ERROR();
 		Vector<char> ProgramErrorMessage(InfoLogLength + 1);
 		glGetProgramInfoLog(shader->oglid, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+		CHECK_GL_ERROR();
 		glDeleteProgram(shader->oglid);
+		CHECK_GL_ERROR();
 		return false;
 	}
 
 	glUseProgram(shader->oglid);
+	CHECK_GL_ERROR();
 
 	for (auto it = shader->uniforms.begin(), end = shader->uniforms.end(); it != end; ++it) {
 		it->second = glGetUniformLocation(shader->oglid, it->first.c_str());
+		CHECK_GL_ERROR();
 	}
 
 	for (int i = 0; i < shader->samplerAttributes.size(); ++i) {
 		glUniform1i(shader->uniforms[shader->samplerAttributes[i]], i);
+		CHECK_GL_ERROR();
 	}
 
 	return true;
@@ -123,10 +163,12 @@ class VertexBuffer {
 public:
 	~VertexBuffer() {
 		glDeleteBuffers(1, &buffer_id);
+		CHECK_GL_ERROR();
 	}
 	bool loaded() { return buffer_id != -1; }
 	void bind() {
 		glBindBuffer(target, buffer_id);
+		CHECK_GL_ERROR();
 	}
 	uint32_t buffer_id = -1;
 	unsigned long size = 0, maxsize = 0;
@@ -136,11 +178,15 @@ public:
 
 inline std::shared_ptr<VertexBuffer> createVertexBuffer(const void *data, unsigned long size, VertexBufferOptions type, GLenum target = GL_ARRAY_BUFFER) {
 	std::shared_ptr<VertexBuffer> oglvb = std::make_shared<VertexBuffer>();
-	glGenBuffers(1, &oglvb->buffer_id);
-	oglvb->bind();
 	oglvb->type = type;
 	oglvb->target = target;
+	
+	glGenBuffers(1, &oglvb->buffer_id);
+	CHECK_GL_ERROR();
+	oglvb->bind();
+	
 	glBufferData(target, size, data, type);
+	CHECK_GL_ERROR();
 
 	oglvb->maxsize = size;
 	oglvb->size = size;
@@ -155,8 +201,10 @@ inline void updateVertexBuffer(const void *data, unsigned long size, std::shared
 	if (buffer->maxsize < size) {
 		buffer->maxsize = size;
 		glBufferData(buffer->target, size, data, buffer->type);
+		CHECK_GL_ERROR();
 	} else {
 		glBufferSubData(buffer->target, 0, size, data);
+		CHECK_GL_ERROR();
 	}
 	buffer->size = size;
 }
@@ -166,5 +214,6 @@ inline Vector<uint8_t> getVertexBuffer(std::shared_ptr<VertexBuffer> buffer) {
 	buffer->bind();
 	Vector<uint8_t> data(buffer->size);
 	glGetBufferSubData(buffer->target, 0, buffer->size, data.data());
+	CHECK_GL_ERROR();
 	return data;
 }

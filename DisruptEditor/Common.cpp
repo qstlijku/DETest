@@ -18,10 +18,11 @@
 #include "Serialization.h"
 #include <SDL_messagebox.h>
 #include "IBinaryArchive.h"
+#include <future>
+#include "DDRenderInterface.h"
 
 Settings settings;
 std::unordered_map<std::string, materialFile> materials;
-std::unordered_map<std::string, xbtFile> textures;
 
 void reloadSettings() {
 	std::string contents = readFile("settings.xml");
@@ -86,7 +87,7 @@ materialFile &loadMaterial(const std::string & path) {
 	if (materials.count(path) == 0) {
 		auto &model = materials[path];
 		SDL_Log("Loading %s...\n", path.c_str());
-		SDL_RWops *fp = FH::openFile(path);
+		SDL_RWops *fp = FH::openFile(path.c_str());
 		if (fp) {
 			CBinaryArchiveReader reader(fp);
 			model.open(reader);
@@ -96,15 +97,29 @@ materialFile &loadMaterial(const std::string & path) {
 	return materials[path];
 }
 
-xbtFile & loadTexture(const std::string & path) {
-	if (textures.count(path) == 0) {
-		auto &model = textures[path];
-		SDL_Log("Loading %s...\n", path.c_str());
-		SDL_RWops *fp = FH::openFile(path);
-		if (fp)
-			model.open(fp);
+static std::unordered_map<std::string, std::shared_ptr<xbtFile> > textures;
+
+static void loadTextureAsync(std::shared_ptr<xbtFile> obj, char *path) {
+	SDL_Log("Loading %s...", path);
+	try {
+		SDL_RWops* fp = FH::openFile(path);
+		if (fp) {
+			obj->open(fp);
+			SDL_RWclose(fp);
+		}
+	} catch (...) {}
+	free(path);
+}
+
+std::shared_ptr<xbtFile> loadTexture(const char *path) {
+	std::shared_ptr<xbtFile> model = textures[path];
+	if (!model) {
+		model = textures[path] = std::make_shared<xbtFile>();
+		/*std::thread thrd(loadTextureAsync, model, strdup(path));
+		thrd.detach();*/
+		loadTextureAsync(model, strdup(path));
 	}
-	return textures[path];
+	return model;
 }
 
 std::unordered_map<std::string, GLuint> texturesRes;
