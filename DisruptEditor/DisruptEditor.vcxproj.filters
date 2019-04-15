@@ -206,6 +206,9 @@
     <ClCompile Include="SectorWindow.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="SplineLoft.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -425,6 +428,7 @@
     <ClInclude Include="ImGradient.h">
       <Filter>Externals</Filter>
     </ClInclude>
+    <ClInclude Include="SplineLoft.h" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />

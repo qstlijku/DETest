@@ -225,6 +225,7 @@
     <ClCompile Include="sbaoFile.cpp" />
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="spkFile.cpp" />
+    <ClCompile Include="SplineLoft.cpp" />
     <ClCompile Include="sqlite3.c" />
     <ClCompile Include="stb_vorbis.c" />
     <ClCompile Include="SectorWindow.cpp" />
@@ -293,6 +294,7 @@
     <ClInclude Include="sbaoFile.h" />
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="spkFile.h" />
+    <ClInclude Include="SplineLoft.h" />
     <ClInclude Include="sqlite3.h" />
     <ClInclude Include="sqlite3ext.h" />
     <ClInclude Include="stb_image.h" />

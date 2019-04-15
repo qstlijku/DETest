@@ -160,6 +160,7 @@ void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(textDrawDistance);
 	REGISTER_MEMBER(displayComponents);
 	REGISTER_MEMBER(displayNear);
+	REGISTER_MEMBER(drawTerrain);
 
 	REGISTER_MEMBER(windowSize);
 	REGISTER_MEMBER(maximized);

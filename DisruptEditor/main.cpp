@@ -36,6 +36,7 @@
 #include "HexBase64.h"
 #include "DB.h"
 #include "DARE.h"
+#include "SplineLoft.h"
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -82,11 +83,26 @@ int main(int argc, char **argv) {
 	camera.far_plane = 6500.f;
 
 	//Debug
+	/*Vector<SplineLoftHiRes> hiRes;
+	Vector<FileInfo> files = FH::getFileList("worlds\\windy_city\\generated\\roadresources", "hgfx");
+	for (auto it : files) {
+		SDL_RWops* fp = SDL_RWFromFile(it.fullPath.c_str(), "rb");
+		CBinaryArchiveReader reader(fp);
+		SplineLoftHiRes& a = hiRes.emplace_back();
+		a.open(reader);
+		SDL_RWclose(fp);
+	}*/
+	
+
 #if _DEBUG
 	{
-		//FH::Init();
+		FH::Init();
 
-		Node root = readFCB(SDL_RWFromFile("Z:\\scratch\\bin\\windy_city\\worlds\\windy_city\\generated\\watersplines.fcb", "rb"));
+		{
+			
+		}
+
+		Node root = readFCB(FH::openFile("generated\\databases\\generic\\splineloftelement.lib"));
 		tinyxml2::XMLPrinter printer;
 		root.serializeXML(printer);
 
@@ -547,10 +563,20 @@ int main(int argc, char **argv) {
 
 		glBindVertexArray(RenderInterface::instance().VertexArrayID);
 		CHECK_GL_ERROR();
-		RenderInterface::instance().terrain.use();
-		size_t maxSectors = world.sectors.size();
-		for (size_t i = 0; i < maxSectors; ++i)
-			world.sectors[i].draw();
+		
+		if (settings.drawTerrain) {
+			RenderInterface::instance().terrain.use();
+			size_t maxSectors = world.sectors.size();
+			for (size_t i = 0; i < maxSectors; ++i)
+				world.sectors[i].draw();
+		}
+
+		/*RenderInterface::instance().model.use();
+		glm::mat4 MVP = RenderInterface::instance().VP;
+		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
+		CHECK_GL_ERROR();
+		for(auto &it : hiRes)
+			it.draw();*/
 
 		if (!ImGui::IsAnyWindowHovered())
 			camera.update(delta);
