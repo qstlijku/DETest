@@ -2,6 +2,7 @@
 
 #include "Hash.h"
 #include "DB.h"
+#include "IBinaryArchive.h"
 #include "Serialization.h"
 
 CStringID::CStringID(const std::string &filename) {
@@ -10,6 +11,10 @@ CStringID::CStringID(const std::string &filename) {
 
 std::string CStringID::getReverseName() {
 	return DB::instance().getStrFromCRC(id);
+}
+
+void CStringID::read(IBinaryArchive& fp) {
+	fp.serialize(id);
 }
 
 void CStringID::registerMembers(MemberStructure & ms) {

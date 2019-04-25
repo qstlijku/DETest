@@ -3,6 +3,7 @@
 #include <string>
 
 class MemberStructure;
+class IBinaryArchive;
 
 class CStringID {
 public:
@@ -12,6 +13,7 @@ public:
 	bool operator==(const CStringID &rhs) { return id == rhs.id; }
 	uint32_t id = -1;
 	std::string getReverseName();
+	void read(IBinaryArchive& fp);
 	void registerMembers(MemberStructure &ms);
 };
 
