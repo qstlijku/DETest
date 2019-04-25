@@ -209,6 +209,12 @@
     <ClCompile Include="SplineLoft.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CLODictionary.cpp">
+      <Filter>Source Files\File Formats</Filter>
+    </ClCompile>
+    <ClCompile Include="CResourceDataBase.cpp">
+      <Filter>Source Files\File Formats</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -429,6 +435,12 @@
       <Filter>Externals</Filter>
     </ClInclude>
     <ClInclude Include="SplineLoft.h" />
+    <ClInclude Include="CLODictionary.h">
+      <Filter>Source Files\File Formats</Filter>
+    </ClInclude>
+    <ClInclude Include="CResourceDataBase.h">
+      <Filter>Source Files\File Formats</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />
