@@ -6,6 +6,7 @@
 #include "World.h"
 #include <shellapi.h>
 #include "Version.h"
+#include "FileHandler.h"
 
 void UI::displayTopMenu() {
 	std::map<std::string, bool> &windows = settings.openWindows;
@@ -67,19 +68,21 @@ void UI::displayTopMenu() {
 		}
 		if (ImGui::MenuItem("Save Wlu")) {
 			for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
-				std::string backup = it->second->origFilename;
-				backup += ".bak";
-				CopyFileA(it->second->origFilename.c_str(), backup.c_str(), TRUE);
 
-				/*it->second.root.findFirstChild("Entities")->children.clear();//DEBUG
-				for (auto a = it->second.root.children.begin(); a != it->second.root.children.end();) {
+				/*it->second->root.findFirstChild("Entities")->children.clear();//DEBUG
+				for (auto a = it->second->root.children.begin(); a != it->second->root.children.end();) {
 					if (a->getHashName() != "Entities")
-						a = it->second.root.children.erase(a);
+						a = it->second->root.children.erase(a);
 					else
 						++a;
-				}*/
+				}
 
-				it->second->serialize(it->second->origFilename.c_str());
+				it->second->wluhead.unknown1 = 0;
+				it->second->wluhead.unknown2 = 0;*/
+
+				SDL_RWops* fp = FH::openFileWrite("worlds/windy_city/generated/wlu/" + it->second->shortName);
+				it->second->serialize(fp);
+				SDL_RWclose(fp);
 			}
 		}
 		ImGui::EndMenu();
