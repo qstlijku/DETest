@@ -260,7 +260,28 @@ public:
 	//
 
 	struct CBuildingMultiBatchProcessor {
+		bool has;
 		bool unk1;
+
+		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes
+
+		uint32_t unk2;
+		Vector<CSceneBuilding> buildings;
+
+		glm::vec3 unk3;
+		CPathID lowGeom;
+		CBuildingMaterialPaletteResource palette;
+		CMaterialResource material;
+		CPathID roofGeom;
+
+		uint32_t cunk1, cunk2;
+
+		uint32_t unk4;
+		uint32_t unk5;
+		glm::vec3 unk6;
+		glm::vec3 unk7;
+		glm::vec3 unk8;
+		float unk9;
 
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure& ms);
@@ -305,6 +326,7 @@ public:
 	};
 
 	struct CQuadtreeCollidableMultiBatchProcessor {
+		bool has;
 
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure& ms);

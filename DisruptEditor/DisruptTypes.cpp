@@ -576,3 +576,57 @@ void CBatchedDynamicMediaSystemObject::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(offset);
 	REGISTER_MEMBER(instance);
 }
+
+void CSceneBuilding::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(unk3);
+
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+	fp.serialize(unk9);
+	fp.serialize(unk10);
+	fp.serialize(unk11);
+	fp.serialize(unk12);
+
+	uint32_t count = batchData.size();
+	fp.serialize(count);
+	batchData.resize(count);
+
+	CStringID CSceneBuildingBatchDataType("CSceneBuildingBatchData");
+	fp.serialize(CSceneBuildingBatchDataType);
+	SDL_assert_release(CSceneBuildingBatchDataType == CStringID("CSceneBuildingBatchData"));
+
+	uint32_t cunk1 = 1;
+	fp.serialize(cunk1);
+	SDL_assert_release(cunk1 == 1);
+
+	uint32_t cunk2 = 1;
+	fp.serialize(cunk2);
+	SDL_assert_release(cunk2 == 1);
+
+	uint32_t cunk3 = count * 8 + 4;
+	fp.serialize(cunk3);
+	SDL_assert_release(cunk3 == count * 8 + 4);
+
+	uint32_t cunk4 = 4;
+	fp.serialize(cunk4);
+	SDL_assert_release(cunk4 == 4);
+
+	for (uint32_t i = 0; i < count; ++i)
+		fp.serialize(batchData[i]);
+}
+
+void CBuildingMaterialPaletteResource::read(IBinaryArchive& fp) {
+	fp.serialize(file.id);
+	if (file.id != -1)
+		fp.serialize(type.id);
+}
+
+void CBuildingMaterialPaletteResource::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(file);
+	REGISTER_MEMBER(type);
+}

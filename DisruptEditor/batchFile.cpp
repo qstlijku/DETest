@@ -55,10 +55,10 @@ bool batchFile::open(IBinaryArchive &reader) {
 		buildingMBP.read(reader);
 		SDL_Log("quadtreeCollidableMBP Tell: %u\n\n", reader.tell());
 		quadtreeCollidableMBP.read(reader);
-		SDL_Log("debrisSpawnerMBP Tell: %u\n\n", reader.tell());
+		/*SDL_Log("debrisSpawnerMBP Tell: %u\n\n", reader.tell());
 		debrisSpawnerMBP.read(reader);
 		SDL_Log("vegetationMBP Tell: %u\n\n", reader.tell());
-		vegetationMBP.read(reader);
+		vegetationMBP.read(reader);*/
 	} else if (head.type == 1) {
 		//assert_file_crash(strstr(filename, "_phys.cbatch"));
 	}
@@ -559,19 +559,52 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
+	fp.serialize(has);
+	if (!has) return;
+
 	fp.serialize(unk1);
 
-	uint32_t count;
+	uint32_t count = buildings.size();
 	fp.serialize(count);
-	SDL_assert_release(count == 0);
-	for (uint32_t i = 0; i < count; ++i) {
-		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes
-		fp.serializeNdVectorExternal(buildingResources);
+	if (count == 0) return;
 
-		//TODO: Finish This
-		SDL_assert_release(false);
+	fp.serializeNdVectorExternal(buildingResources);
+
+	CStringID buildingType("CBuilding");
+	fp.serialize(buildingType);
+	assert_file_crash(buildingType == CStringID("CBuilding"));
+
+	fp.serialize(unk2);
+	assert_file_crash(unk2 == 0);
+
+	uint32_t count2 = count;
+	fp.serialize(count2);
+	assert_file_crash(count2 == count);
+
+	buildings.resize(count);
+	for (uint32_t i = 0; i < count; ++i) {
+		buildings[i].read(fp);
 	}
 
+	fp.serialize(unk3);
+	fp.serialize(lowGeom);
+	fp.serialize(palette);
+	fp.serialize(material);
+	fp.serialize(roofGeom);
+
+	CStringID UnkType(0xA0E2DE5C);
+	fp.serialize(UnkType);
+	assert_file_crash(UnkType == CStringID(0xA0E2DE5C));
+
+	fp.serialize(cunk1);
+	fp.serialize(cunk2);
+
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+	fp.serialize(unk9);
 }
 
 void batchFile::CBuildingMultiBatchProcessor::registerMembers(MemberStructure& ms) {
@@ -579,6 +612,9 @@ void batchFile::CBuildingMultiBatchProcessor::registerMembers(MemberStructure& m
 }
 
 void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp) {
+	fp.serialize(has);
+	if (!has) return;
+
 	//void SerializeMember<T1>(IBinaryArchive&, T1&)[with T1 = IQuadtreeCollidableBatchProcessor * [3]]
 	//Serializes array of size 3
 
@@ -586,12 +622,7 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 	//CQuadtreeCollidableBatchProcessor::SDeepEllipse
 	//CQuadtreeCollidableBatchProcessor::SRoadObjectQuadtreeElement
 
-	uint32_t count;
-	fp.serialize(count);
-
-	count = 3;//Debug
-
-	for (uint32_t i = 0; i < count; ++i) {
+	for (int i = 0; i < 3; ++i) {
 		uint32_t count2;
 		fp.serialize(count2);
 

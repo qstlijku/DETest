@@ -30,6 +30,13 @@ struct CRealtreeResource {
 	void registerMembers(MemberStructure& ms);
 };
 
+struct CBuildingMaterialPaletteResource {
+	CPathID file;
+	CStringID type;
+	void read(IBinaryArchive& fp);
+	void registerMembers(MemberStructure& ms);
+};
+
 struct CTextureResource {
 	CPathID file;
 	CStringID type;
@@ -350,6 +357,28 @@ struct CBatchedDynamicMediaSystemObject {
 	bool has;
 	glm::mat4 offset;
 	CBatchedInstanceID instance;
+
+	void read(IBinaryArchive& fp);
+	void registerMembers(MemberStructure& ms);
+};
+
+struct CSceneBuilding {
+	uint32_t unk1;
+	uint32_t unk2;
+	uint32_t unk3;
+
+	glm::vec3 unk4;
+	glm::vec3 unk5;
+	glm::vec3 unk6;
+	float unk7;
+	glm::vec3 unk8;
+	uint8_t unk9;
+	bool unk10;
+	bool unk11;
+	float unk12;
+
+	//CSceneBuildingBatchData
+	Vector<glm::vec2> batchData;
 
 	void read(IBinaryArchive& fp);
 	void registerMembers(MemberStructure& ms);
