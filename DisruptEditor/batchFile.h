@@ -164,6 +164,19 @@ public:
 		void registerMembers(MemberStructure& ms);
 	};
 
+	struct CRealTreeBatchProcessor {
+		bool unk1;
+		uint32_t unk2;
+		CPathID resource;
+
+		//If unk3
+		uint32_t unk4;
+		Vector<SInstanceRange> ranges;
+
+		void read(IBinaryArchive& fp);
+		void registerMembers(MemberStructure& ms);
+	};
+
 	struct IBatchProcessor {
 		CStringID batchProcessor;
 		uint32_t batchProcessorUnk1;
@@ -175,6 +188,11 @@ public:
 		std::unique_ptr<CDynamicLightBatchProcessor> dynamicLightBatch;
 		std::unique_ptr<CLightEffectBatchProcessor> lightEffectBatch;
 		std::unique_ptr<CSecurityCameraBatchProcessor> securityCameraBatch;
+		std::unique_ptr<CRealTreeBatchProcessor> realTreeBatch;
+
+		//TODO
+		//std::unique_ptr<CDynamicMediaBatchProcessor> dynamicMediaBatch;
+		//std::unique_ptr<CTrafficLightBatchProcessor> trafficLightBatch;
 
 		void registerMembers(MemberStructure &ms);
 	};

@@ -85,9 +85,9 @@ bool batchFile::open(IBinaryArchive &reader) {
 void batchFile::CComponentMultiBatchProcessor::read(IBinaryArchive& fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchModelProcessorsAndResources *, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 
-	uint32_t unk1 = 1;
+	bool unk1 = true;
 	fp.serialize(unk1);
-	assert_file_crash(unk1 == 1);//If this is zero it looks like we should just skip the rest of this code, however none of the files contain 0 so I won't bother
+	assert_file_crash(unk1);//If this is zero it looks like we should just skip the rest of this code, however none of the files contain 0 so I won't bother
 
 	uint32_t batchCount = batchProcessors.size();
 	fp.serialize(batchCount);
@@ -175,6 +175,10 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 		else if (typeName == "CSecurityCameraBatchProcessor") {
 			batch.securityCameraBatch = std::make_unique<CSecurityCameraBatchProcessor>();
 			batch.securityCameraBatch->read(fp);
+		}
+		else if (typeName == "CRealTreeBatchProcessor") {
+			batch.realTreeBatch = std::make_unique<CRealTreeBatchProcessor>();
+			batch.realTreeBatch->read(fp);
 		}
 		else {
 			assert_file_crash(false && "IBatchProcessor not implemented");
@@ -522,6 +526,27 @@ void batchFile::CSecurityCameraBatchProcessor::registerMembers(MemberStructure& 
 	REGISTER_MEMBER(unk8);
 	REGISTER_MEMBER(unk9);
 	REGISTER_MEMBER(objects);
+}
+
+void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(resource);
+
+	uint32_t rangeCount = ranges.size();
+	fp.serialize(rangeCount);
+	ranges.resize(rangeCount);
+
+	if (rangeCount) {
+		fp.serialize(unk4);
+
+		CStringID clusterType("CSceneRealTreeClusterHelper");
+		fp.serialize(clusterType);
+		SDL_assert_release(clusterType == CStringID("CSceneRealTreeClusterHelper"));
+
+		for (uint32_t j = 0; j < rangeCount; ++j)
+			ranges[j].read(fp);
+	}
 }
 
 void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
