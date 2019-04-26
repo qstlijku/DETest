@@ -19,8 +19,10 @@ Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extF
 			tfReadFile(&dir, &file);
 
 			if (!file.is_dir && files.count(file.name) == 0) {
-				if (extFilter.empty() || file.ext == extFilter)
+				if (extFilter.empty() || file.ext == extFilter) {
+					strncpy(file.path, file.path + base.size(), sizeof(file.path));
 					files[file.name] = file;
+				}
 			}
 
 			tfDirNext(&dir);
@@ -82,6 +84,9 @@ SDL_RWops * FH::openFile(const char *path) {
 	void *data = malloc(size);
 	SDL_RWread(fp, data, 1, size);
 	SDL_RWclose(fp);
+
+	if (size == 0)
+		size = 1;
 
 	fp = SDL_RWFromConstMem(data, size);
 	fp->close = mem_close;

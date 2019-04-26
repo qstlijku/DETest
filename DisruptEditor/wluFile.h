@@ -32,17 +32,15 @@ struct roadHeader {
 class wluFile {
 public:
 	wluFile() {};
-	bool open(std::string filename);
-
-	void serialize(const char* filename);
+	bool open(SDL_RWops* fp);
+	void serialize(SDL_RWops* fp);
 
 	void draw(bool drawImgui = false, bool draw3D = false);
 	
 	Node root;
 
 	std::string shortName; //ex. wlu_data_01_loop_vigilante_01.xml.data.fcb
-	std::string origFilename; //ex. original filename opened with
-private:
+
 	bool openWD1(IBinaryArchive &fp);
 	bool openWD2(IBinaryArchive &fp);
 

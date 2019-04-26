@@ -13,7 +13,9 @@ void World::loadWLUAsync() {
 		world.loadingStatus = "Loading " + file.name;
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
-		wlu->open(file.fullPath);
+		SDL_RWops* fp = FH::openFile(file.fullPath.c_str());
+		wlu->open(fp);
+		SDL_RWclose(fp);
 		world.wlus[file.name] = wlu;
 		++i;
 		world.loadingProgress = (float)i / files.size();

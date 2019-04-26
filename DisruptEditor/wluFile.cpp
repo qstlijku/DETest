@@ -19,17 +19,9 @@
 #include "Types.h"
 #include "IBinaryArchive.h"
 
-bool wluFile::open(std::string filename) {
-	origFilename = filename;
-	SDL_RWops *fp = SDL_RWFromFile(filename.c_str(), "rb");
-	if (!fp) {
+bool wluFile::open(SDL_RWops* fp) {
+	if (!fp)
 		return false;
-	}
-
-	Vector<uint8_t> data(SDL_RWsize(fp));
-	SDL_RWread(fp, data.data(), data.size(), 1);
-	SDL_RWclose(fp);
-	fp = SDL_RWFromConstMem(data.data(), data.size());
 
 	uint32_t magic = SDL_ReadLE32(fp);
 	SDL_RWseek(fp, 0, RW_SEEK_SET);
@@ -44,7 +36,6 @@ bool wluFile::open(std::string filename) {
 		isWD2 = true;
 	}
 
-	SDL_RWclose(fp);
 	return ret;
 }
 
@@ -144,8 +135,7 @@ void wluFile::handleHeaders(IBinaryArchive &fp, size_t size) {
 	}
 }
 
-void wluFile::serialize(const char* filename) {
-	SDL_RWops *fp = SDL_RWFromFile(filename, "wb");
+void wluFile::serialize(SDL_RWops* fp) {
 	CBinaryArchiveWriter aw(fp);
 	
 	if (isWD2) {
@@ -173,8 +163,6 @@ void wluFile::serialize(const char* filename) {
 		SDL_RWseek(fp, 0, RW_SEEK_SET);
 		SDL_RWwrite(fp, &wluhead, sizeof(wluhead), 1);
 	}
-	
-	SDL_RWclose(fp);
 }
 
 

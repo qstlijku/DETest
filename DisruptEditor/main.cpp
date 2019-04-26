@@ -397,36 +397,25 @@ int main(int argc, char **argv) {
 			ImVec2 size = ImGui::GetWindowContentRegionMax();
 			size.y -= 75;
 			size.x -= 5;
-			ImGui::ListBoxHeader("##WLU List", size);
-			for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
-				if (it->first.find(searchWluBuffer) != std::string::npos) {
-					bool selected = currentWlu == it->second;
-					if (ImGui::Selectable(it->first.c_str(), selected))
-						currentWlu = it->second;
+			if (ImGui::ListBoxHeader("##WLU List", size)) {
+				for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
+					if (it->first.find(searchWluBuffer) != std::string::npos) {
+						bool selected = currentWlu == it->second;
+						if (ImGui::Selectable(it->first.c_str(), selected))
+							currentWlu = it->second;
+					}
 				}
+				ImGui::ListBoxFooter();
 			}
-			ImGui::ListBoxFooter();
 			ImGui::PopItemWidth();
 
 			if (currentWlu) {
 				wluFile& wlu = *currentWlu;
 
 				if (ImGui::Button("Save")) {
-					std::string backup = wlu.origFilename;
-					backup += ".bak";
-					CopyFileA(wlu.origFilename.c_str(), backup.c_str(), TRUE);
-					wlu.serialize(wlu.origFilename.c_str());
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Reload")) {
-					SDL_assert_release(wlu.open(wlu.origFilename.c_str()));
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Restore")) {
-					std::string backup = wlu.origFilename;
-					backup += ".bak";
-					CopyFileA(backup.c_str(), wlu.origFilename.c_str(), FALSE);
-					wlu.open(wlu.origFilename.c_str());
+					SDL_RWops* fp = FH::openFileWrite("worlds/windy_city/generated/wlu/" + wlu.shortName);
+					wlu.serialize(fp);
+					SDL_RWclose(fp);
 				}
 				ImGui::SameLine();
 				std::string xmlFileName = wlu.shortName + ".xml";
