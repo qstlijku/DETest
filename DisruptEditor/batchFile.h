@@ -198,6 +198,34 @@ public:
 		void registerMembers(MemberStructure& ms);
 	};
 
+	struct CDynamicMediaBatchProcessor {
+		bool unk1;
+		bool unk2;
+		CGeometryResource geom;
+		CMaterialSlotsMap materials;
+		uint32_t unk3;
+		bool unk4;
+		bool unk5;
+		bool unk6;
+		bool unk7;
+		uint32_t unk8;
+
+		//If unk8
+		uint32_t unk9;
+		uint32_t unk10;
+		uint32_t unk11;
+		uint32_t mediaObjects_unk;
+		Vector<CBatchedDynamicMediaSystemObject> mediaObjects;
+		uint32_t what;
+		uint32_t SDynamicIngredientPresetRef;
+		uint32_t EBroadcastChannel;
+		bool unk12;
+		CStringID unk13;
+
+		void read(IBinaryArchive& fp);
+		void registerMembers(MemberStructure& ms);
+	};
+
 	struct IBatchProcessor {
 		CStringID batchProcessor;
 		uint32_t batchProcessorUnk1;
@@ -211,9 +239,7 @@ public:
 		std::unique_ptr<CSecurityCameraBatchProcessor> securityCameraBatch;
 		std::unique_ptr<CRealTreeBatchProcessor> realTreeBatch;
 		std::unique_ptr<CTrafficLightBatchProcessor> trafficLightBatch;
-
-		//TODO
-		//std::unique_ptr<CDynamicMediaBatchProcessor> dynamicMediaBatch;
+		std::unique_ptr<CDynamicMediaBatchProcessor> dynamicMediaBatch;
 
 		void registerMembers(MemberStructure &ms);
 	};

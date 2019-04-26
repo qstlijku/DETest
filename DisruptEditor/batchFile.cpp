@@ -184,6 +184,10 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 			batch.trafficLightBatch = std::make_unique<CTrafficLightBatchProcessor>();
 			batch.trafficLightBatch->read(fp);
 		}
+		else if (typeName == "CDynamicMediaBatchProcessor") {
+			batch.dynamicMediaBatch = std::make_unique<CDynamicMediaBatchProcessor>();
+			batch.dynamicMediaBatch->read(fp);
+		}
 		else {
 			assert_file_crash(false && "IBatchProcessor not implemented");
 			return;
@@ -476,7 +480,6 @@ void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
 		//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchedInstanceID, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 		fp.serializeNdVectorExternal(batchedInstanceID);
 	}
-	assert_file_crash(hasBatchInstanceIDs);
 
 	SDL_Log("Tell3: %u", fp.tell());
 
@@ -697,5 +700,30 @@ void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk8);
 		fp.serialize(unk9);
 		fp.serializeNdVector(trafficLights, 0x60E4849E, unk10);
+	}
+}
+
+void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(geom);
+	fp.serialize(materials);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+	if (unk8) {
+		fp.serialize(unk9);
+		fp.serialize(unk10);
+		fp.serialize(unk11);
+		fp.serializeNdVector(mediaObjects, 0x5193828E, mediaObjects_unk);
+		fp.serialize(what);
+		if(what == 0)
+			fp.serialize(SDynamicIngredientPresetRef);
+		fp.serialize(EBroadcastChannel);
+		fp.serialize(unk12);
+		fp.serialize(unk13);
 	}
 }

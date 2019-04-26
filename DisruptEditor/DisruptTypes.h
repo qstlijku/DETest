@@ -346,4 +346,13 @@ struct CTrafficLightObjectBatched {
 	void registerMembers(MemberStructure& ms);
 };
 
+struct CBatchedDynamicMediaSystemObject {
+	bool has;
+	glm::mat4 offset;
+	CBatchedInstanceID instance;
+
+	void read(IBinaryArchive& fp);
+	void registerMembers(MemberStructure& ms);
+};
+
 #pragma pack(pop)

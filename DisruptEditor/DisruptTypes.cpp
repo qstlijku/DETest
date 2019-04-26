@@ -562,3 +562,17 @@ void CTrafficLightObjectBatched::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(offset);
 	REGISTER_MEMBER(instance);
 }
+
+void CBatchedDynamicMediaSystemObject::read(IBinaryArchive& fp) {
+	fp.serialize(has);
+	if (has) {
+		fp.serialize(offset);
+		fp.serialize(instance);
+	}
+}
+
+void CBatchedDynamicMediaSystemObject::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(has);
+	REGISTER_MEMBER(offset);
+	REGISTER_MEMBER(instance);
+}
