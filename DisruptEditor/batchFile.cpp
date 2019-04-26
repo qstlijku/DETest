@@ -180,6 +180,10 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 			batch.realTreeBatch = std::make_unique<CRealTreeBatchProcessor>();
 			batch.realTreeBatch->read(fp);
 		}
+		else if (typeName == "CTrafficLightBatchProcessor") {
+			batch.trafficLightBatch = std::make_unique<CTrafficLightBatchProcessor>();
+			batch.trafficLightBatch->read(fp);
+		}
 		else {
 			assert_file_crash(false && "IBatchProcessor not implemented");
 			return;
@@ -224,32 +228,35 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(rangeCount);
 	ranges.resize(rangeCount);
 
-	//CClusterHelper
-	SDL_Log("Tell3: %u\n\n", fp.tell());
-	CStringID type;
-	fp.serialize(type.id);
-	assert_file_crash(type.id == 0x2C9D950A);
-		
-	//Ptr to data
-	//Calls ClusterDataSwapBytes(ptr, stride, type);
+	if (rangeCount) {
+		//CClusterHelper
+		SDL_Log("Tell3: %u\n\n", fp.tell());
+		CStringID type;
+		fp.serialize(type.id);
+		assert_file_crash(type.id == 0x2C9D950A);
 
-	//assert_file_crash(!hasBatchInstanceID);
-	if (hasBatchInstanceID) {
-		fp.serializeNdVectorExternal(instances);
+		//Ptr to data
+		//Calls ClusterDataSwapBytes(ptr, stride, type);
+
+		fp.serialize(unkc1);
+		fp.serialize(unkc2);
+		SDL_assert_release(unkc2 == rangeCount);
+
+		if (hasBatchInstanceID) {
+			fp.serialize(batchedInstanceID);
+		}
+
+		fp.serialize(unkc3);
+		fp.serialize(unkc4);
+		fp.serialize(unkc5);
+
+		SDL_Log("Tell4: %u\n\n", fp.tell());
+
+		for (uint32_t j = 0; j < rangeCount; ++j)
+			ranges[j].read(fp);
+
+		SDL_Log("Tell5: %u\n\n", fp.tell());
 	}
-
-	fp.serialize(unkc1);
-	fp.serialize(unkc2);
-	fp.serialize(unkc3);
-	fp.serialize(unkc4);
-	fp.serialize(unkc5);
-
-	SDL_Log("Tell4: %u\n\n", fp.tell());
-
-	for (uint32_t j = 0; j < rangeCount; ++j)
-		ranges[j].read(fp);
-
-	SDL_Log("Tell5: %u\n\n", fp.tell());
 }
 
 void batchFile::registerMembers(MemberStructure & ms) {
@@ -448,7 +455,6 @@ void batchFile::CDynamicLightBatchProcessor::read(IBinaryArchive& fp) {
 		//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchedInstanceID, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 		batchedInstanceID.read(fp);
 	}
-	assert_file_crash(hasBatchInstanceIDs);
 
 	fp.serializeNdVector(sceneLight, 0xFB4B8BEB, unk1);
 }
@@ -556,10 +562,11 @@ void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(count);
 	SDL_assert_release(count == 0);
 	for (uint32_t i = 0; i < count; ++i) {
-		Vector<CPathID> buildingResources;
+		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes
 		fp.serializeNdVectorExternal(buildingResources);
 
 		//TODO: Finish This
+		SDL_assert_release(false);
 	}
 
 }
@@ -642,10 +649,10 @@ void batchFile::SRoadObjectQuadtreeElement::registerMembers(MemberStructure & ms
 void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<SDebrisSpawnerBatchInstance, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 
-	fp.serializeNdVector(batchInstances, 0xB59E6B00, unk1);
+	/*fp.serializeNdVector(batchInstances, 0xB59E6B00, unk1);
 
 	fp.serialize(unk2);
-	fp.serialize(unk3);
+	fp.serialize(unk3);*/
 
 }
 
@@ -674,4 +681,21 @@ void batchFile::CVegetationMultiBatchProcessor::read(IBinaryArchive & fp) {
 
 void batchFile::CVegetationMultiBatchProcessor::registerMembers(MemberStructure & ms) {
 
+}
+
+void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(geom);
+	fp.serialize(materials);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+	if (unk6) {
+		fp.serialize(unk7);
+		fp.serialize(unk8);
+		fp.serialize(unk9);
+		fp.serializeNdVector(trafficLights, 0x60E4849E, unk10);
+	}
 }

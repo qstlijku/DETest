@@ -23,6 +23,13 @@ struct CGeometryResource {
 	void registerMembers(MemberStructure &ms);
 };
 
+struct CRealtreeResource {
+	CPathID file;
+	CStringID type;
+	void read(IBinaryArchive& fp);
+	void registerMembers(MemberStructure& ms);
+};
+
 struct CTextureResource {
 	CPathID file;
 	CStringID type;
@@ -85,7 +92,7 @@ struct SInstanceRange {
 	glm::vec3 unk9;
 	float unk10;
 	float unk11;
-	bool unk12;
+	uint8_t unk12;
 	void read(IBinaryArchive& fp);
 	void registerMembers(MemberStructure &ms);
 };
@@ -324,6 +331,15 @@ struct CSecurityCameraObjectBatched {
 	bool has;
 	glm::mat4 unk1;
 	uint64_t unk2;
+	CBatchedInstanceID instance;
+
+	void read(IBinaryArchive& fp);
+	void registerMembers(MemberStructure& ms);
+};
+
+struct CTrafficLightObjectBatched {
+	bool has;
+	glm::mat4 offset;
 	CBatchedInstanceID instance;
 
 	void read(IBinaryArchive& fp);

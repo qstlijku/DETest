@@ -56,7 +56,7 @@ public:
 		uint16_t stride;
 		Vector<CProjectedDecalInfo> decals;
 		bool unk12;
-		Vector<CBatchedInstanceID> instances;
+		CBatchedInstanceID batchedInstanceID;
 		uint32_t unkc1;
 		uint32_t unkc2;
 		uint32_t unkc3;
@@ -177,6 +177,27 @@ public:
 		void registerMembers(MemberStructure& ms);
 	};
 
+	struct CTrafficLightBatchProcessor {
+		bool unk1;
+		bool unk2;
+		CGeometryResource geom;
+		CMaterialSlotsMap materials;
+		uint32_t unk3;
+		bool unk4;
+		bool unk5;
+		uint32_t unk6;
+
+		//If unk6
+		uint32_t unk7;
+		uint32_t unk8;
+		uint32_t unk9;
+		uint32_t unk10;
+		Vector<CTrafficLightObjectBatched> trafficLights;
+
+		void read(IBinaryArchive& fp);
+		void registerMembers(MemberStructure& ms);
+	};
+
 	struct IBatchProcessor {
 		CStringID batchProcessor;
 		uint32_t batchProcessorUnk1;
@@ -189,10 +210,10 @@ public:
 		std::unique_ptr<CLightEffectBatchProcessor> lightEffectBatch;
 		std::unique_ptr<CSecurityCameraBatchProcessor> securityCameraBatch;
 		std::unique_ptr<CRealTreeBatchProcessor> realTreeBatch;
+		std::unique_ptr<CTrafficLightBatchProcessor> trafficLightBatch;
 
 		//TODO
 		//std::unique_ptr<CDynamicMediaBatchProcessor> dynamicMediaBatch;
-		//std::unique_ptr<CTrafficLightBatchProcessor> trafficLightBatch;
 
 		void registerMembers(MemberStructure &ms);
 	};

@@ -537,3 +537,28 @@ void CSecurityCameraObjectBatched::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(instance);
 }
+
+void CRealtreeResource::read(IBinaryArchive& fp) {
+	fp.serialize(file.id);
+	if (file.id != -1)
+		fp.serialize(type.id);
+}
+
+void CRealtreeResource::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(file);
+	REGISTER_MEMBER(type);
+}
+
+void CTrafficLightObjectBatched::read(IBinaryArchive& fp) {
+	fp.serialize(has);
+	if (has) {
+		fp.serialize(offset);
+		fp.serialize(instance);
+	}
+}
+
+void CTrafficLightObjectBatched::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(has);
+	REGISTER_MEMBER(offset);
+	REGISTER_MEMBER(instance);
+}
