@@ -323,14 +323,7 @@ void Node::serializeXML(tinyxml2::XMLPrinter &printer) {
 }
 
 Node* Node::findFirstChild(const char *name) {
-	uint32_t hash = Hash::getHash(name);
-
-	for (auto &child : children) {
-		if (child.name.id == hash)
-			return &child;
-	}
-
-	return NULL;
+	return findFirstChild(Hash::getHash(name));
 }
 
 Node* Node::findFirstChild(uint32_t hash) {
@@ -343,14 +336,7 @@ Node* Node::findFirstChild(uint32_t hash) {
 }
 
 Attribute* Node::getAttribute(const char *name) {
-	uint32_t hash = Hash::getHash(name);
-
-	for (auto &attribute : attributes) {
-		if (attribute.name.id == hash)
-			return &attribute;
-	}
-
-	return NULL;
+	return getAttribute(Hash::getHash(name));
 }
 
 Attribute* Node::getAttribute(uint32_t hash) {

@@ -177,6 +177,7 @@
     <ClCompile Include="CBATCHWindow.cpp" />
     <ClCompile Include="CDobbsID.cpp" />
     <ClCompile Include="CLODictionary.cpp" />
+    <ClCompile Include="CMoveResourceDataManager.cpp" />
     <ClCompile Include="CPathID.cpp" />
     <ClCompile Include="CResourceDataBase.cpp" />
     <ClCompile Include="CStringID.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="bundleFile.h" />
     <ClInclude Include="CDobbsID.h" />
     <ClInclude Include="CLODictionary.h" />
+    <ClInclude Include="CMoveResourceDataManager.h" />
     <ClInclude Include="CPathID.h" />
     <ClInclude Include="CResourceDataBase.h" />
     <ClInclude Include="CStringID.h" />

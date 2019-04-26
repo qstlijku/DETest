@@ -215,6 +215,9 @@
     <ClCompile Include="CResourceDataBase.cpp">
       <Filter>Source Files\File Formats</Filter>
     </ClCompile>
+    <ClCompile Include="CMoveResourceDataManager.cpp">
+      <Filter>Source Files\File Formats</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -439,6 +442,9 @@
       <Filter>Source Files\File Formats</Filter>
     </ClInclude>
     <ClInclude Include="CResourceDataBase.h">
+      <Filter>Source Files\File Formats</Filter>
+    </ClInclude>
+    <ClInclude Include="CMoveResourceDataManager.h">
       <Filter>Source Files\File Formats</Filter>
     </ClInclude>
   </ItemGroup>
