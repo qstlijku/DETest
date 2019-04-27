@@ -188,6 +188,10 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 			batch.dynamicMediaBatch = std::make_unique<CDynamicMediaBatchProcessor>();
 			batch.dynamicMediaBatch->read(fp);
 		}
+		else if (typeName == "CBollardBatchProcessor") {
+			batch.bollardBatch = std::make_unique<CBollardBatchProcessor>();
+			batch.bollardBatch->read(fp);
+		}
 		else {
 			assert_file_crash(false && "IBatchProcessor not implemented");
 			return;
@@ -757,4 +761,9 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk12);
 		fp.serialize(unk13);
 	}
+}
+
+void batchFile::CBollardBatchProcessor::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
 }

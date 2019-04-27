@@ -226,6 +226,14 @@ public:
 		void registerMembers(MemberStructure& ms);
 	};
 
+	struct CBollardBatchProcessor {//Stubbed, Unused by game
+		uint32_t unk1;
+		uint32_t unk2;
+
+		void read(IBinaryArchive& fp);
+		void registerMembers(MemberStructure& ms);
+	};
+
 	struct IBatchProcessor {
 		CStringID batchProcessor;
 		uint32_t batchProcessorUnk1;
@@ -240,6 +248,9 @@ public:
 		std::unique_ptr<CRealTreeBatchProcessor> realTreeBatch;
 		std::unique_ptr<CTrafficLightBatchProcessor> trafficLightBatch;
 		std::unique_ptr<CDynamicMediaBatchProcessor> dynamicMediaBatch;
+
+		//Stubbed
+		std::unique_ptr<CBollardBatchProcessor> bollardBatch;
 
 		void registerMembers(MemberStructure &ms);
 	};
