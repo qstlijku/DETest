@@ -37,7 +37,7 @@ bool batchFile::open(IBinaryArchive &reader) {
 	if (head.type == 0) {
 		//assert_file_crash(strstr(filename, "_compound.cbatch"));
 
-		reader.memBlock(&compound, sizeof(compound), 1);
+		reader.serialize(compound);
 
 		//assert_file_crash(compound.unk3 == 0);
 
@@ -55,26 +55,31 @@ bool batchFile::open(IBinaryArchive &reader) {
 		buildingMBP.read(reader);
 		SDL_Log("quadtreeCollidableMBP Tell: %u\n\n", reader.tell());
 		quadtreeCollidableMBP.read(reader);
-		/*SDL_Log("debrisSpawnerMBP Tell: %u\n\n", reader.tell());
+		SDL_Log("debrisSpawnerMBP Tell: %u\n\n", reader.tell());
 		debrisSpawnerMBP.read(reader);
 		SDL_Log("vegetationMBP Tell: %u\n\n", reader.tell());
-		vegetationMBP.read(reader);*/
+		vegetationMBP.read(reader);
+
+		reader.serialize(batchResource);
+
+		assert_file_crash(compoud.bridgeSize == fp.tell() - 24);
 	} else if (head.type == 1) {
 		//assert_file_crash(strstr(filename, "_phys.cbatch"));
 	}
 
-	/*
-	while (SDL_RWtell(fp) < SDL_RWsize(fp)) {
-		uint32_t offset = SDL_RWtell(fp);
-		uint32_t ID = SDL_ReadLE32(fp);
-		std::string type = Hash::getReverseHash(ID);
+	/*reader.pad(4);
+	while (SDL_RWtell(reader.fp) < SDL_RWsize(reader.fp)) {
+		uint32_t offset = SDL_RWtell(reader.fp);
+		CStringID path;
+		path.id = SDL_ReadLE32(reader.fp);
+		std::string type = path.getReverseName();
 		if (type[0] != '_' && !type.empty())
 			SDL_Log("%u type=%s", offset, type.c_str());
-	}
-	*/
+	}*/
+	
 
 	if (!reader.isReading()) {
-		//Go back and write the size
+		//Go back and write the size, head.size
 		SDL_RWseek(reader.fp, 12, RW_SEEK_SET);
 		SDL_WriteLE32(reader.fp, SDL_RWsize(reader.fp) - sizeof(head));
 	}
@@ -97,9 +102,6 @@ void batchFile::CComponentMultiBatchProcessor::read(IBinaryArchive& fp) {
 	//void SerializeArray<T1>(IBinaryArchive &, T1 *, unsigned long) [with T1=CBatchModelProcessorsAndResources *]
 	for (uint32_t i = 0; i < batchCount; ++i) {
 		CBatchModelProcessorsAndResources &batch = batchProcessors[i];
-
-		/*if (i == 44)
-			__debugbreak();*/
 
 		uint32_t unk2 = 0;
 		fp.serialize(unk2);
@@ -295,12 +297,24 @@ void batchFile::batchHeader::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk6);
 }
 
+void batchFile::compoundHeader::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+	fp.serialize(bridgeSize);
+	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+	fp.serialize(unk9);
+}
+
 void batchFile::compoundHeader::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(unk3);
 	REGISTER_MEMBER(unk4);
-	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(bridgeSize);
 	REGISTER_MEMBER(unk6);
 	REGISTER_MEMBER(unk7);
 	REGISTER_MEMBER(unk8);
@@ -405,9 +419,8 @@ void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
 		batchedInstanceID.read(fp);
 		SDL_Log("Tell: %u", fp.tell());
 	}
-	assert_file_crash(hasBatchInstanceIDs);
 
-	fp.serialize(libraryObject);
+	fp.serialize(BlackoutEffectRef);
 	//CNomadDb::GenRecoverLibraryObject(const(CStringID,libraryObject))
 	//CStringID = 0xC9A01639 = BlackoutEffect
 }
@@ -579,7 +592,6 @@ void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
 	assert_file_crash(buildingType == CStringID("CBuilding"));
 
 	fp.serialize(unk2);
-	assert_file_crash(unk2 == 0);
 
 	uint32_t count2 = count;
 	fp.serialize(count2);
@@ -617,7 +629,8 @@ void batchFile::CBuildingMultiBatchProcessor::registerMembers(MemberStructure& m
 
 void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(has);
-	if (!has) return;
+	if (!has) 
+		return;
 
 	//void SerializeMember<T1>(IBinaryArchive&, T1&)[with T1 = IQuadtreeCollidableBatchProcessor * [3]]
 	//Serializes array of size 3
@@ -627,24 +640,22 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 	//CQuadtreeCollidableBatchProcessor::SRoadObjectQuadtreeElement
 
 	for (int i = 0; i < 3; ++i) {
-		uint32_t count2;
+		uint32_t count2 = 0;
 		fp.serialize(count2);
+		assert_file_crash(count2 == 0);
 
 		CStringID type;
 		fp.serialize(type.id);
 		std::string typeName = type.getReverseName();
 		SDL_Log("%s", typeName.c_str());
 
-		uint32_t unk2;
-		fp.serialize(unk2);
-
+		auto& var = quadTrees[i];
 		if (typeName == "CQuadtreeCollidableBatchProcessorSDeepEllipse") {
-			CQuadtreeCollidableBatchProcessor<SDeepEllipse> de;
-			de.read(fp);
-			
+			var = CQuadtreeCollidableBatchProcessor<SDeepEllipse>();
+			std::get<CQuadtreeCollidableBatchProcessor<SDeepEllipse>>(var).read(fp);
 		} else if(typeName == "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement") {
-			CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement> de;
-			de.read(fp);
+			var = CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>();
+			std::get<CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>>(var).read(fp);
 		} else {
 			assert_file_crash(false);
 		}
@@ -685,13 +696,31 @@ void batchFile::SRoadObjectQuadtreeElement::registerMembers(MemberStructure & ms
 }
 
 void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
-	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<SDebrisSpawnerBatchInstance, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
+	fp.serialize(has);
+	if (!has)
+		return;
 
-	/*fp.serializeNdVector(batchInstances, 0xB59E6B00, unk1);
+	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<SDebrisSpawnerBatchInstance, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
+	uint32_t counter = batchInstances.size();
+	fp.serialize(counter);
+	batchInstances.resize(counter);
+	if (counter) {
+		CStringID SDebrisSpawnerBatchInstanceType("SDebrisSpawnerBatchInstance");
+		fp.serialize(SDebrisSpawnerBatchInstanceType);
+		assert_file_crash(SDebrisSpawnerBatchInstanceType == CStringID("SDebrisSpawnerBatchInstance"));
+
+		fp.serialize(unk1);
+		
+		uint32_t counter2 = counter;
+		fp.serialize(counter2);
+		assert_file_crash(counter2 == counter);
+
+		for (uint32_t i = 0; i < counter; ++i)
+			batchInstances[i].read(fp);
+	}
 
 	fp.serialize(unk2);
-	fp.serialize(unk3);*/
-
+	fp.serialize(unk3);
 }
 
 void batchFile::CDebrisSpawnerMultiBatchProcessor::registerMembers(MemberStructure & ms) {
@@ -714,7 +743,9 @@ void batchFile::SDebrisSpawnerBatchInstance::registerMembers(MemberStructure & m
 }
 
 void batchFile::CVegetationMultiBatchProcessor::read(IBinaryArchive & fp) {
-
+	fp.serialize(has);
+	if (!has)
+		return;
 }
 
 void batchFile::CVegetationMultiBatchProcessor::registerMembers(MemberStructure & ms) {

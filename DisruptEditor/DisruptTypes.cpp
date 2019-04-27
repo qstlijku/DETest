@@ -600,9 +600,8 @@ void CSceneBuilding::read(IBinaryArchive& fp) {
 	fp.serialize(CSceneBuildingBatchDataType);
 	SDL_assert_release(CSceneBuildingBatchDataType == CStringID("CSceneBuildingBatchData"));
 
-	uint32_t cunk1 = 1;
 	fp.serialize(cunk1);
-	SDL_assert_release(cunk1 == 1);
+	//SDL_assert_release(cunk1 == 1);
 
 	uint32_t cunk2 = 1;
 	fp.serialize(cunk2);

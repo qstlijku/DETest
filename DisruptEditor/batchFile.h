@@ -6,6 +6,7 @@
 #include "Pair.h"
 #include <memory>
 #include "IBinaryArchive.h"
+#include <variant>
 
 struct SDL_RWops;
 class MemberStructure;
@@ -30,11 +31,13 @@ public:
 		uint32_t unk2;
 		uint32_t unk3;
 		uint32_t unk4;
-		uint32_t unk5;
+		uint32_t bridgeSize;
 		uint32_t unk6;
+
 		uint32_t unk7;
 		uint32_t unk8;
 		uint32_t unk9;
+		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure &ms);
 	};
 
@@ -99,7 +102,7 @@ public:
 		Vector<SEffectPosAndAngle> posAndAngles;
 		bool hasBatchInstanceIDs;
 		CBatchedInstanceID batchedInstanceID;
-		uint32_t libraryObject;
+		uint32_t BlackoutEffectRef;
 
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure& ms);
@@ -328,6 +331,7 @@ public:
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure& ms);
 
+		uint32_t unk0;
 		bool notHas;
 		glm::vec2 unk1;
 		glm::vec2 unk2;
@@ -338,6 +342,7 @@ public:
 
 	struct CQuadtreeCollidableMultiBatchProcessor {
 		bool has;
+		std::array< std::variant<CQuadtreeCollidableBatchProcessor<SDeepEllipse>, CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement> > , 3> quadTrees;
 
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure& ms);
@@ -352,6 +357,8 @@ public:
 	};
 
 	struct CDebrisSpawnerMultiBatchProcessor {
+		bool has;
+
 		Vector<SDebrisSpawnerBatchInstance> batchInstances;
 		uint32_t unk1;
 
@@ -363,6 +370,8 @@ public:
 	};
 
 	struct CVegetationMultiBatchProcessor {
+		bool has;
+
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure& ms);
 	};
@@ -378,6 +387,7 @@ public:
 	CQuadtreeCollidableMultiBatchProcessor quadtreeCollidableMBP;
 	CDebrisSpawnerMultiBatchProcessor debrisSpawnerMBP;
 	CVegetationMultiBatchProcessor vegetationMBP;
+	CPathID batchResource;
 
 	bool open(IBinaryArchive& reader);
 	void registerMembers(MemberStructure &ms);
@@ -385,6 +395,8 @@ public:
 
 template<typename T>
 inline void batchFile::CQuadtreeCollidableBatchProcessor<T>::read(IBinaryArchive & fp) {
+	fp.serialize(unk0);
+
 	fp.serialize(notHas);
 	if (notHas) return;
 
@@ -404,6 +416,7 @@ inline void batchFile::CQuadtreeCollidableBatchProcessor<T>::read(IBinaryArchive
 
 template<typename T>
 inline void batchFile::CQuadtreeCollidableBatchProcessor<T>::registerMembers(MemberStructure & ms) {
+	REGISTER_MEMBER(unk0);
 	REGISTER_MEMBER(notHas);
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(unk2);
