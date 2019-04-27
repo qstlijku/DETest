@@ -62,7 +62,7 @@ bool batchFile::open(IBinaryArchive &reader) {
 
 		reader.serialize(batchResource);
 
-		assert_file_crash(compoud.bridgeSize == fp.tell() - 24);
+		//assert_file_crash(compound.bridgeSize == reader.tell() - 24);
 	} else if (head.type == 1) {
 		//assert_file_crash(strstr(filename, "_phys.cbatch"));
 	}
@@ -279,6 +279,7 @@ void batchFile::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(quadtreeCollidableMBP);
 	REGISTER_MEMBER(debrisSpawnerMBP);
 	REGISTER_MEMBER(vegetationMBP);
+	REGISTER_MEMBER(batchResource);
 }
 
 void batchFile::CBatchModelProcessorsAndResources::registerMembers(MemberStructure & ms) {
@@ -343,6 +344,14 @@ void batchFile::IBatchProcessor::registerMembers(MemberStructure & ms) {
 		ms.registerMember(NULL, *lightEffectBatch);
 	if (securityCameraBatch)
 		ms.registerMember(NULL, *securityCameraBatch);
+	if (realTreeBatch)
+		ms.registerMember(NULL, *realTreeBatch);
+	if (trafficLightBatch)
+		ms.registerMember(NULL, *trafficLightBatch);
+	if (dynamicMediaBatch)
+		ms.registerMember(NULL, *dynamicMediaBatch);
+	if (bollardBatch)
+		ms.registerMember(NULL, *bollardBatch);
 }
 
 void batchFile::CGraphicBatchProcessor::registerMembers(MemberStructure & ms) {
@@ -575,6 +584,14 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 	}
 }
 
+void batchFile::CRealTreeBatchProcessor::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(unk1);
+	REGISTER_MEMBER(unk2);
+	REGISTER_MEMBER(resource);
+	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(ranges);
+}
+
 void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(has);
 	if (!has) return;
@@ -624,7 +641,28 @@ void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CBuildingMultiBatchProcessor::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(has);
 	REGISTER_MEMBER(unk1);
+
+	REGISTER_MEMBER(buildingResources);
+
+	REGISTER_MEMBER(unk2);
+	REGISTER_MEMBER(buildings);
+
+	REGISTER_MEMBER(unk3);
+	REGISTER_MEMBER(lowGeom);
+	REGISTER_MEMBER(palette);
+	REGISTER_MEMBER(material);
+	REGISTER_MEMBER(roofGeom);
+
+	REGISTER_MEMBER(cunk2);
+
+	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(unk6);
+	REGISTER_MEMBER(unk7);
+	REGISTER_MEMBER(unk8);
+	REGISTER_MEMBER(unk9);
 }
 
 void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp) {
@@ -724,6 +762,7 @@ void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
 }
 
 void batchFile::CDebrisSpawnerMultiBatchProcessor::registerMembers(MemberStructure & ms) {
+	REGISTER_MEMBER(has);
 	REGISTER_MEMBER(batchInstances);
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(unk2);
@@ -749,7 +788,7 @@ void batchFile::CVegetationMultiBatchProcessor::read(IBinaryArchive & fp) {
 }
 
 void batchFile::CVegetationMultiBatchProcessor::registerMembers(MemberStructure & ms) {
-
+	REGISTER_MEMBER(has);
 }
 
 void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
@@ -767,6 +806,22 @@ void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk9);
 		fp.serializeNdVector(trafficLights, 0x60E4849E, unk10);
 	}
+}
+
+void batchFile::CTrafficLightBatchProcessor::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(unk1);
+	REGISTER_MEMBER(unk2);
+	REGISTER_MEMBER(geom);
+	REGISTER_MEMBER(materials);
+	REGISTER_MEMBER(unk3);
+	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(unk6);
+	REGISTER_MEMBER(unk7);
+	REGISTER_MEMBER(unk8);
+	REGISTER_MEMBER(unk9);
+	REGISTER_MEMBER(unk10);
+	REGISTER_MEMBER(trafficLights);
 }
 
 void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
@@ -794,7 +849,35 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 	}
 }
 
+void batchFile::CDynamicMediaBatchProcessor::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(unk1);
+	REGISTER_MEMBER(unk2);
+	REGISTER_MEMBER(geom);
+	REGISTER_MEMBER(materials);
+	REGISTER_MEMBER(unk3);
+	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(unk6);
+	REGISTER_MEMBER(unk7);
+	REGISTER_MEMBER(unk8);
+	REGISTER_MEMBER(unk9);
+	REGISTER_MEMBER(unk10);
+	REGISTER_MEMBER(unk11);
+	REGISTER_MEMBER(mediaObjects_unk);
+	REGISTER_MEMBER(mediaObjects);
+	REGISTER_MEMBER(what);
+	REGISTER_MEMBER(SDynamicIngredientPresetRef);
+	REGISTER_MEMBER(EBroadcastChannel);
+	REGISTER_MEMBER(unk12);
+	REGISTER_MEMBER(unk13);
+}
+
 void batchFile::CBollardBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
+}
+
+void batchFile::CBollardBatchProcessor::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(unk1);
+	REGISTER_MEMBER(unk2);
 }

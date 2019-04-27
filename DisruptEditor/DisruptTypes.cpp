@@ -619,6 +619,23 @@ void CSceneBuilding::read(IBinaryArchive& fp) {
 		fp.serialize(batchData[i]);
 }
 
+void CSceneBuilding::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(unk1);
+	REGISTER_MEMBER(unk2);
+	REGISTER_MEMBER(unk3);
+	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(unk6);
+	REGISTER_MEMBER(unk7);
+	REGISTER_MEMBER(unk8);
+	REGISTER_MEMBER(unk9);
+	REGISTER_MEMBER(unk10);
+	REGISTER_MEMBER(unk11);
+	REGISTER_MEMBER(unk12);
+	REGISTER_MEMBER(cunk1);
+	REGISTER_MEMBER(batchData);
+}
+
 void CBuildingMaterialPaletteResource::read(IBinaryArchive& fp) {
 	fp.serialize(file.id);
 	if (file.id != -1)
