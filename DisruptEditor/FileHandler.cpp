@@ -4,6 +4,7 @@
 #include "tinyfiles.h"
 #include <Shlwapi.h>
 #include "DB.h"
+#include "SDL_log.h"
 
 Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extFilter) {
 	std::unordered_map<std::string, tfFILE> files;
@@ -194,6 +195,8 @@ std::string FH::getAbsoluteFilePath(const char *path) {
 			return it->second;
 	}
 
+	SDL_Log("Could not load file %s", path);
+
 	throw 3;
 	return std::string();
 }
@@ -214,6 +217,8 @@ std::string FH::getAbsoluteFilePath(uint32_t path) {
 		if (it != unknownFileMap[base].end())
 			return it->second;
 	}
+
+	SDL_Log("Could not load file %08x", path);
 
 	throw 3;
 	return "";

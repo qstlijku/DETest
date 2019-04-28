@@ -30,7 +30,7 @@ layout (location = 0) out vec4 gAlbedoSpec;
 uniform sampler2D diffuse;
 
 void main() {
-	gAlbedoSpec = vec4(texture(diffuse, uv).rgb, 1.0);
+	gAlbedoSpec = vec4(texture(diffuse, uv));
 }
 	</fragment>
 </shader>

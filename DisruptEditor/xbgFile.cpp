@@ -915,7 +915,17 @@ void xbgFile::draw(int selLod) {
 
 	int i = 0;
 	for (auto &mesh : lod.meshes) {
-		SDL_assert_release(mesh.primitiveType == 0);
+		GLenum pType = GL_TRIANGLES;
+		switch (mesh.primitiveType) {
+		case 0:
+			pType = GL_TRIANGLES;
+			break;
+		case 7:
+			pType = GL_POINTS;
+			break;
+		default:
+			SDL_assert_release(false && "Unhandled Primitive Type");
+		}
 
 		auto &mat = loadMaterial(materialResources.materials[mesh.matID].file);
 		auto& diffuse = loadTexture(mat.getCommandPath("DiffuseTexture1").c_str());
@@ -953,7 +963,7 @@ void xbgFile::draw(int selLod) {
 		// Draw the triangles
 		GLint id;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &id);
-		glDrawElements(GL_TRIANGLES, mesh.drawCall.primitiveCount, GL_UNSIGNED_SHORT, (void*)(mesh.drawCall.unk4 * 2));
+		glDrawElements(pType, mesh.drawCall.primitiveCount, GL_UNSIGNED_SHORT, (void*)(mesh.drawCall.unk4 * 2));
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(8);

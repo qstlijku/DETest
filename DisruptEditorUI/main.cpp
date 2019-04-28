@@ -42,8 +42,38 @@
 #include "CMoveResourceDataManager.h"
 #include "xbgMipFile.h"
 
+#include <Windows.h>
+#include <Shellapi.h>
+#include <DbgHelp.h>
+static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
+	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile) {
+		_MINIDUMP_EXCEPTION_INFORMATION ExInfo;
+		ExInfo.ThreadId = ::GetCurrentThreadId();
+		ExInfo.ExceptionPointers = apExceptionInfo;
+		ExInfo.ClientPointers = FALSE;
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &ExInfo, NULL, NULL);
+		::CloseHandle(hFile);
+
+		MessageBox(NULL, L"DisruptEditor has crashed! A crash.mdmp has been written",
+			L"Your session has been Disrupted!",
+			MB_ICONERROR | MB_OK
+		);
+	}
+	exit(0);
+}
+
+static void LogOutputFunction(void* userdata, int category, SDL_LogPriority priority, const char* message) {
+	FILE* fp = (FILE*)userdata;
+	fprintf(fp, "%s\n", message);
+	fflush(fp);
+}
+
 int main(int argc, char **argv) {
+	SetUnhandledExceptionFilter(HandleException);
 	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_LogSetOutputFunction(LogOutputFunction, fopen("DisruptEditor.log", "wb"));
+
 	LoadingScreen *loadingScreen = new LoadingScreen;
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -535,8 +565,8 @@ int main(int argc, char **argv) {
 
 				}
 			}
-			ImGui::End();
 		}
+		ImGui::End();
 
 		glBindVertexArray(RenderInterface::instance().VertexArrayID);
 		CHECK_GL_ERROR();
@@ -555,9 +585,8 @@ int main(int argc, char **argv) {
 		glm::mat4 MVP = RenderInterface::instance().VP;
 		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
 		CHECK_GL_ERROR();
-		//static xbgFile& xbg = loadXBG("graphics\\landscape\\rocks\\07_rockcliffmod_a_small_kit_01.xbg");
-		//static xbgFile& xbg = loadXBG("graphics\\characters\\char\\char01\\char01.xbg");
-		static xbgFile& xbg = loadXBG("graphics\\vehicles_nexus\\air\\helicopter_01\\helicopter_01.xbg");
+		static xbgFile xbg;
+		static int selLod = 0;
 		static char buffer[255];
 		ImGui::InputText("Filename", buffer, sizeof(buffer));
 		if (ImGui::Button("Load")) {
@@ -567,6 +596,7 @@ int main(int argc, char **argv) {
 				xbg.buffers.insert(xbg.buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
 				xbg.mips.clear();
 			}
+			selLod = 0;
 		}
 		static uint32_t hashID = 0;
 		ImGui::InputScalar("HashID", ImGuiDataType_U32, &hashID);
@@ -577,13 +607,13 @@ int main(int argc, char **argv) {
 				xbg.buffers.insert(xbg.buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
 				xbg.mips.clear();
 			}
+			selLod = 0;
 		}
 		if (ImGui::Button("XML")) {
 			std::string str = serializeToXML(xbg);
 			SDL_SetClipboardText(str.c_str());
 		}
 		//static xbgFile &xbg = loadXBG("graphics\\landscape\\endofworld_01.xbg");
-		static int selLod = 1;
 		ImGui::SliderInt("Lod", &selLod, 0, xbg.lods.size()-1);
 		xbg.draw(selLod);
 
