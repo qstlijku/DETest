@@ -9,20 +9,21 @@ void bundleFile::open(IBinaryArchive & fp) {
 	fp.serialize(magic);
 	SDL_assert_release(magic == 1114530924);
 
-	uint16_t unk1;
+	uint16_t unk1 = 12804;
 	fp.serialize(unk1);
+	SDL_assert_release(unk1 == 12804);
 
-	uint16_t count;
+	uint16_t count = 0;
 	fp.serialize(count);
 	SDL_assert_release(count != 0);//Game Checks for this
 	SDL_assert_release(count == 1);//My Sanity check
 
 	//Skipped
-	uint32_t unk3;
+	uint32_t unk3 = 0;
 	fp.serialize(unk3);
 
 	//Skipped
-	uint32_t unk4;
+	uint32_t unk4 = 0;
 	fp.serialize(unk4);
 
 	//The comments are for the first iteration of the loop, because ubisoft does something really weird
