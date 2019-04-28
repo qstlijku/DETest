@@ -127,9 +127,7 @@ std::string FH::getReverseFilename(uint32_t hash) {
 	return it->path;
 }
 
-static void handleUnknownPath(const char* base, std::unordered_map<uint32_t, std::string> &unknownFiles) {	
-	SDL_Log("handleUnknownPath %s", base);
-
+static void handleUnknownPath(const char* base, std::unordered_map<uint32_t, std::string> &unknownFiles) {
 	tfDIR dir;
 	tfDirOpen(&dir, base);
 	while (dir.has_next) {
@@ -140,8 +138,6 @@ static void handleUnknownPath(const char* base, std::unordered_map<uint32_t, std
 			file.name[8] = '\0';
 
 			uint32_t hash = std::stoul(file.name, NULL, 16);
-			SDL_Log("handleUnknownPath %08x %s", hash, file.name);
-
 			if (unknownFiles.count(hash) == 0) {
 				unknownFiles[hash] = file.path;
 			}
@@ -155,7 +151,6 @@ static void handleUnknownPath(const char* base, std::unordered_map<uint32_t, std
 
 static std::unordered_map<uint32_t, std::string> genListOfUnknown(const std::string &path) {
 	std::string unknownPath = path + "__UNKNOWN/";
-	SDL_Log("Searching unknown folder %s", unknownPath.c_str());
 	std::unordered_map<uint32_t, std::string> unknownFiles;
 	if (!PathFileExistsA(unknownPath.c_str())) return unknownFiles;
 
