@@ -770,14 +770,14 @@ void batchFile::CDebrisSpawnerMultiBatchProcessor::registerMembers(MemberStructu
 }
 
 void batchFile::SDebrisSpawnerBatchInstance::read(IBinaryArchive & fp) {
-	fp.serialize(objectID);
+	fp.serialize(DebrisSpawnerDbObjectRef);
 	//GenRecoverLibraryObject (CDebrisSpawnerDbObject, objectID);
 
 	fp.serialize(offset);
 }
 
 void batchFile::SDebrisSpawnerBatchInstance::registerMembers(MemberStructure & ms) {
-	REGISTER_MEMBER(objectID);
+	REGISTER_MEMBER(DebrisSpawnerDbObjectRef);
 	REGISTER_MEMBER(offset);
 }
 

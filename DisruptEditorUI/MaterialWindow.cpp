@@ -24,7 +24,8 @@ void UI::displayMaterial() {
 			mat = materialFile();
 			SDL_RWops* fp = SDL_RWFromFile(currentFile, "rb");
 			if (fp) {
-				mat.open(CBinaryArchiveReader(fp));
+				CBinaryArchiveReader reader(fp);
+				mat.open(reader);
 				SDL_RWclose(fp);
 				matFile = currentFile;
 			}
@@ -34,7 +35,8 @@ void UI::displayMaterial() {
 		if (!matFile.empty()) {
 			SDL_RWops* fp = SDL_RWFromFile(matFile.c_str(), "wb");
 			if (fp) {
-				mat.open(CBinaryArchiveWriter(fp));
+				CBinaryArchiveWriter writer(fp);
+				mat.open(writer);
 				SDL_RWclose(fp);
 			}
 		}
@@ -44,7 +46,8 @@ void UI::displayMaterial() {
 		if (currentFile) {
 			SDL_RWops* fp = SDL_RWFromFile(currentFile, "wb");
 			if (fp) {
-				mat.open(CBinaryArchiveWriter(fp));
+				CBinaryArchiveWriter writer(fp);
+				mat.open(writer);
 				SDL_RWclose(fp);
 				matFile = currentFile;
 			}

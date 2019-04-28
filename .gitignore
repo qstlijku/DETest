@@ -4,7 +4,6 @@ imgui.ini
 settings.xml
 *.db
 *.db-journal
-*.ogg
 *.wav
 *.spk.xml
 desktop.ini

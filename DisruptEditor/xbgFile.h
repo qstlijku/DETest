@@ -50,8 +50,7 @@ public:
 	bool unk2;//This bool is used in the first branch of SceneGeometryParams
 
 	struct CMeshNameID {
-		CStringID name1;
-		std::string name2;
+		std::string name;
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);
 	};
@@ -90,16 +89,16 @@ public:
 	SceneGeometryParams geomParams;
 
 	struct MaterialResources {
+		uint32_t unk0;
 		Vector<float> unk1;
 		struct MaterialFile {
-			CPathID file1;
-			std::string file2;
+			std::string file;
 			void read(IBinaryArchive &fp);
 			void registerMembers(MemberStructure &ms);
 		};
 		Vector<MaterialFile> materials;
 
-		void read(IBinaryArchive &fp);
+		void read(IBinaryArchive &fp, uint32_t lods);
 		void registerMembers(MemberStructure &ms);
 	};
 	MaterialResources materialResources;
@@ -193,6 +192,7 @@ public:
 				ESecondaryMotionObjectType type;
 				bool unk13;
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SSMSimulationParametersDesc simulationParams;
 
@@ -202,6 +202,7 @@ public:
 					glm::mat4 unk1;
 					float fRadius;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SSphereDesc> spheres;
 
@@ -212,6 +213,7 @@ public:
 					glm::vec3 unk3;
 					glm::vec3 unk4;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SCylinderDesc> cylinders;
 
@@ -222,6 +224,7 @@ public:
 					glm::vec3 unk3;
 					glm::vec3 unk4;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SCapsuleDesc> capsules;
 
@@ -231,10 +234,12 @@ public:
 					glm::vec3 unk2;
 					glm::vec3 unk3;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SInfinitePlaneDesc> planes;
 
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SecondaryMotionUnitCollisionPrimitives secondaryMotionUnitCollisionPrimitives;
 
@@ -245,6 +250,7 @@ public:
 					glm::vec3 unk2;
 					float unk3;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SSphereLimitDesc> spheres;
 
@@ -254,6 +260,7 @@ public:
 					glm::vec3 unk2;
 					glm::vec3 unk3;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SBoxLimitDesc> boxes;
 
@@ -265,10 +272,12 @@ public:
 					float unk4;
 					float unk5;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SCylinderLimitDesc> cylinders;
 
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SecondaryMotionUnitLimits secondaryMotionUnitLimits;
 
@@ -280,11 +289,13 @@ public:
 					uint16_t unk3;
 					glm::vec2 unk4;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SSMParticleDesc> particles;
 				Vector<CMeshNameID> meshes;
 
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SecondaryMotionUnitParticles secondaryMotionUnitParticles;
 
@@ -294,20 +305,24 @@ public:
 					uint16_t p2;
 					uint16_t p3;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<Triangle> triangles;
 
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SecondaryMotionUnitTriangles secondaryMotionUnitTriangles;
 
 			struct SecondaryMotionUnitConnectivities {
 				struct SSMParticleConnectivity {
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<SSMParticleConnectivity> connectivity;
 
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SecondaryMotionUnitConnectivities secondaryMotionUnitConnectivities;
 
@@ -317,10 +332,12 @@ public:
 					uint16_t unk2;
 					uint16_t unk3;
 					void read(IBinaryArchive &fp);
+					void registerMembers(MemberStructure& ms);
 				};
 				Vector<Spring> springs;
 
 				void read(IBinaryArchive &fp);
+				void registerMembers(MemberStructure& ms);
 			};
 			SecondaryMotionUnitSpringDescs secondaryMotionUnitSpringDescs;
 
@@ -328,25 +345,66 @@ public:
 			bool unk2;
 
 			void read(IBinaryArchive &fp);
+			void registerMembers(MemberStructure& ms);
 		};
 		Vector<SMO> smos;
 
 		void read(IBinaryArchive &fp);
+		void registerMembers(MemberStructure& ms);
 	};
 	SecondaryMotionObjects secondaryMotionObjects;
 
 	struct ProceduralNodes {
-		uint32_t has;
+		struct SProceduralNode {
+			uint16_t unk1;
+			uint8_t type;
 
-		//Only one SProceduralNode
+			//Type 1
+			uint32_t t1_unk1;
+			float t1_unk2;
+			uint32_t t1_unk3;
+			float t1_unk4;
+
+			//Type 2
+			uint32_t t2_unk1;
+			float t2_unk2;
+
+			//Type 3
+			uint32_t t3_unk1;
+			uint32_t t3_unk2;
+			float t3_unk3;
+
+			//Type 5
+			uint32_t t5_unk1;
+			uint32_t t5_unk2;
+			float t5_unk3;
+			float t5_unk4;
+			float t5_unk5;
+			float t5_unk6;
+			float t5_unk7;
+			float t5_unk8;
+			float t5_unk9;
+
+			//Type 6
+			uint32_t t6_unk1;
+			uint32_t t6_unk2;
+			uint32_t t6_unk3;
+			uint32_t t6_unk4;
+			uint32_t t6_unk5;
+
+			void read(IBinaryArchive& fp);
+			void registerMembers(MemberStructure& ms);
+		};
+		Vector<SProceduralNode> nodes;
 
 		void read(IBinaryArchive &fp);
+		void registerMembers(MemberStructure& ms);
 	};
 	ProceduralNodes proceduralNodes;
 
 	struct CBasicDrawCallRange {
 		uint32_t unk1;//8, 9, 0xC
-		uint32_t unk2;//10, 11, 0x10
+		uint32_t faceCount;//10, 11, 0x10
 		uint32_t primitiveCount;//12, 13, 0x14
 		uint32_t unk4;//14, 15, 0x18
 		uint32_t unk5;//16, 17, 0x1C
@@ -376,14 +434,14 @@ public:
 
 			uint32_t primitiveType;//0, 1, 0x38
 
-			uint16_t unk6;//2, 0x3C
+			uint16_t matID;//2, 0x3C
 			uint16_t vertexFormat;//3, 0x3E
 
 			uint8_t vertexStride;//4 Vertex Stride, 0x40
 			uint8_t unk9;//0x41
 			uint16_t unk10;//5, 0x46
 
-			uint32_t unk11;//6, 7
+			uint32_t boneMapID;//6, 7
 
 			CBasicDrawCallRange drawCall;//0xC
 
@@ -427,9 +485,7 @@ public:
 	struct GeomMips {
 		uint32_t unk1;
 		uint32_t unk2;
-
-		CPathID name1;
-		std::string name2;
+		std::string path;
 
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);

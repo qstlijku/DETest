@@ -37,6 +37,9 @@
 #include "DB.h"
 #include "DARE.h"
 #include "SplineLoft.h"
+#include "CResourceDataBase.h"
+#include "embedFile.h"
+#include "CMoveResourceDataManager.h"
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -92,19 +95,23 @@ int main(int argc, char **argv) {
 		a.open(reader);
 		SDL_RWclose(fp);
 	}*/
-	
+
+	/*world.loadSectors();
+	for (auto& it : world.sectors)
+		it.save();
+
+	int absud = 1;*/
 
 #if _DEBUG
 	{
-		FH::Init();
-
 		{
-			
+			CMoveResourceDataManager move;
+			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/combinedmovefile.bin");
+			CBinaryArchiveReader reader(fp);
+			move.open(reader);
 		}
 
-		Node root = readFCB(FH::openFile("generated\\databases\\generic\\splineloftelement.lib"));
-		tinyxml2::XMLPrinter printer;
-		root.serializeXML(printer);
+		FH::Init();
 
 		Vector<FileInfo> files;// = FH::getFileList("soundbinary", "spk");
 		//FILE* fpa = fopen("res/dare.txt", "ab");
@@ -216,25 +223,6 @@ int main(int argc, char **argv) {
 			SDL_RWclose(fp);*/
 		}
 
-		batchFile bf;
-		try {
-			//SDL_RWops* fp = SDL_RWFromFile("C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c2_i0_xn0767_yp0513_xn0641_yp0639_compound.cbatch", "rb");
-			//CBinaryArchiveReader reader(fp);
-			//bf.open(reader);
-			//SDL_RWclose(fp);
-
-			//bf.componentMBP.batchProcessors.clear();
-			//bf.physicsFile.id = -1;
-
-			/*fp = SDL_RWFromFile("C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c2_i0_xn0767_yp0513_xn0641_yp0639_compound.cbatch", "wb");
-			bf.open(CBinaryArchiveWriter(fp));
-			SDL_RWclose(fp);*/
-
-		}
-		catch (...) {}
-		std::string str = serializeToXML(bf);
-		int a = 1;
-
 		/*tfDIR dir;
 		tfDirOpen(&dir, "C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds\\windy_city\\generated\\batchmeshentity");
 		while (dir.has_next) {
@@ -280,13 +268,12 @@ int main(int argc, char **argv) {
 		std::thread sectorThread(world.loadSectors);
 		sectorThread.detach();
 
-		std::thread wluThread(world.loadWLUAsync);
-		wluThread.detach();
-	}
+		/*std::thread wluThread(world.loadWLUAsync);
+		wluThread.detach();*/
 
-	/*for (auto& it : world.sectors)
-		it.save();
-	int a = 1;*/
+		std::thread batchThread(world.loadBatchAsync);
+		batchThread.detach();
+	}
 
 	/*{
 		FILE *out = fopen("out.txt", "w");
@@ -560,6 +547,18 @@ int main(int argc, char **argv) {
 				world.sectors[i].draw();
 		}
 
+		//Draw Batches
+		RenderInterface::instance().model.use();
+		glm::mat4 MVP = RenderInterface::instance().VP;
+		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
+		CHECK_GL_ERROR();
+		static xbgFile& xbg = loadXBG("graphics\\landscape\\rocks\\07_rockcliffmod_a_small_kit_01.xbg");
+		//static xbgFile& xbg = loadXBG("graphics\\characters\\char\\char01\\char01.xbg");
+		//static xbgFile& xbg = loadXBG("graphics\\vehicles_nexus\\air\\helicopter_01\\helicopter_01.xbg");
+		//static xbgFile &xbg = loadXBG("graphics\\landscape\\endofworld_01.xbg");
+		std::string ser = serializeToXML(xbg);
+		xbg.draw();
+
 		/*RenderInterface::instance().model.use();
 		glm::mat4 MVP = RenderInterface::instance().VP;
 		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
@@ -599,6 +598,18 @@ int main(int argc, char **argv) {
 					saveSettings();
 					break;
 				}
+				break;
+			}
+			case SDL_DROPFILE: {
+				SDL_RWops* fp = SDL_RWFromFile(event.drop.file, "rb");
+				Node root = readFCB(fp);
+				tinyxml2::XMLPrinter printer;
+				root.serializeXML(printer);
+				std::string output = event.drop.file + std::string(".xml");
+				SDL_RWclose(fp);
+				fp = SDL_RWFromFile(output.c_str(), "wb");
+				SDL_RWwrite(fp, printer.CStr(), printer.CStrSize(), 1);
+				SDL_RWclose(fp);
 				break;
 			}
 			}

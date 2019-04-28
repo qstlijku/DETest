@@ -21,14 +21,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -78,18 +78,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\DisruptEditor\main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\DisruptEditor\DisruptEditor.vcxproj">
       <Project>{60ce386b-2172-4878-82d2-c20b51dd60ea}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\DisruptEditor\Icon.ico" />
+    <ClCompile Include="CBATCHWindow.cpp" />
+    <ClCompile Include="DAREWindow.cpp" />
+    <ClCompile Include="DominoWindow.cpp" />
+    <ClCompile Include="EntityLibraryWindow.cpp" />
+    <ClCompile Include="ImguiWindows.cpp" />
+    <ClCompile Include="LoadingScreen.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MaterialWindow.cpp" />
+    <ClCompile Include="SectorWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\DisruptEditor\Res.rc" />
+    <None Include="Windows.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImguiWindows.h" />
+    <ClInclude Include="LoadingScreen.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Res.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,6 +22,27 @@ void World::loadWLUAsync() {
 	}
 }
 
+void World::loadBatchAsync() {
+	Vector<FileInfo> files = FH::getFileList("worlds/windy_city/generated/batchmeshentity/", "cbatch");
+	for (auto it : files) {
+		if (it.name.find("_compound") == std::string::npos) continue;
+
+		std::shared_ptr<batchFile> bf = std::make_shared<batchFile>();
+		try {
+			if (it.name != "batchmeshentity_c2_i0_xn0767_yp0513_xn0641_yp0639_compound.cbatch")
+				continue;
+
+			SDL_RWops * fp = FH::openFile(it.fullPath.c_str());
+			CBinaryArchiveReader reader(fp);
+			bf->open(reader);
+			SDL_RWclose(fp);
+			world.batches[it.name] = bf;
+
+			std::string str = serializeToXML(*bf);
+		} catch (...) {}
+	}
+}
+
 void World::loadSectors() {
 	//This is hardcoded!
 	world.sectors.reserve(64 * 80);

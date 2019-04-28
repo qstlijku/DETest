@@ -121,7 +121,6 @@
     <ClCompile Include="..\vendor\stb\stb_vorbis.c" />
     <ClCompile Include="..\vendor\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="bundleFile.cpp" />
-    <ClCompile Include="CBATCHWindow.cpp" />
     <ClCompile Include="CDobbsID.cpp" />
     <ClCompile Include="CLODictionary.cpp" />
     <ClCompile Include="CMoveResourceDataManager.cpp" />
@@ -129,15 +128,11 @@
     <ClCompile Include="CResourceDataBase.cpp" />
     <ClCompile Include="CStringID.cpp" />
     <ClCompile Include="DARE.cpp" />
-    <ClCompile Include="DAREWindow.cpp" />
     <ClCompile Include="DB.cpp" />
     <ClCompile Include="DisruptTypes.cpp" />
-    <ClCompile Include="DominoWindow.cpp" />
     <ClCompile Include="embedFile.cpp" />
-    <ClCompile Include="EntityLibraryWindow.cpp" />
     <ClCompile Include="HexBase64.cpp" />
     <ClCompile Include="IBinaryArchive.cpp" />
-    <ClCompile Include="ImguiWindows.cpp" />
     <ClCompile Include="Adpcm.cpp" />
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="batchFile.cpp" />
@@ -153,11 +148,9 @@
     <ClCompile Include="FileHandler.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="hkxFile.cpp" />
-    <ClCompile Include="LoadingScreen.cpp" />
     <ClCompile Include="locFile.cpp" />
     <ClCompile Include="mabFile.cpp" />
     <ClCompile Include="materialFile.cpp" />
-    <ClCompile Include="MaterialWindow.cpp" />
     <ClCompile Include="NBCF.cpp" />
     <ClCompile Include="RML.cpp" />
     <ClCompile Include="RoadNetwork.cpp" />
@@ -165,7 +158,6 @@
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="spkFile.cpp" />
     <ClCompile Include="SplineLoft.cpp" />
-    <ClCompile Include="SectorWindow.cpp" />
     <ClCompile Include="Types.cpp" />
     <ClCompile Include="wluFile.cpp" />
     <ClCompile Include="World.cpp" />
@@ -213,7 +205,6 @@
     <ClInclude Include="embedFile.h" />
     <ClInclude Include="HexBase64.h" />
     <ClInclude Include="IBinaryArchive.h" />
-    <ClInclude Include="ImguiWindows.h" />
     <ClInclude Include="Adpcm.h" />
     <ClInclude Include="Audio.h" />
     <ClInclude Include="batchFile.h" />
@@ -231,7 +222,6 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="hkxFile.h" />
     <ClInclude Include="Colors.h" />
-    <ClInclude Include="LoadingScreen.h" />
     <ClInclude Include="locFile.h" />
     <ClInclude Include="mabFile.h" />
     <ClInclude Include="materialFile.h" />
@@ -254,9 +244,6 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Windows.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

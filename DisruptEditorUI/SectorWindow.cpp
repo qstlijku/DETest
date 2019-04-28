@@ -25,6 +25,14 @@ void UI::displaySector() {
 	if (ImGui::Button("Save")) {
 
 	}
+	ImGui::SameLine();
+	if (ImGui::Button("Export OBJ")) {
+
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Import OBJ")) {
+
+	}
 
 	//Brush Settings
 	static int currentBrush = 0;

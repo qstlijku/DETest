@@ -349,7 +349,7 @@ public:
 	};
 
 	struct SDebrisSpawnerBatchInstance {
-		uint32_t objectID;
+		uint32_t DebrisSpawnerDbObjectRef;
 		glm::mat4 offset;
 
 		void read(IBinaryArchive& fp);

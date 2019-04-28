@@ -15,9 +15,6 @@
     <Filter Include="Source Files\File Formats">
       <UniqueIdentifier>{687ff245-5975-45f1-96c2-bad3c1344bb2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Windows">
-      <UniqueIdentifier>{68039922-194d-43ec-a465-136e2393e925}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Hash.cpp">
@@ -27,9 +24,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Common.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LoadingScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Dialog.cpp">
@@ -107,35 +101,17 @@
     <ClCompile Include="Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DAREWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="DominoWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="EntityLibraryWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="CPathID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CStringID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImguiWindows.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="CBATCHWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="IBinaryArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HexBase64.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MaterialWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
     </ClCompile>
     <ClCompile Include="DB.cpp">
       <Filter>Source Files</Filter>
@@ -160,9 +136,6 @@
     </ClCompile>
     <ClCompile Include="DisruptTypes.cpp">
       <Filter>Source Files\File Formats</Filter>
-    </ClCompile>
-    <ClCompile Include="SectorWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
     </ClCompile>
     <ClCompile Include="CLODictionary.cpp">
       <Filter>Source Files\File Formats</Filter>
@@ -244,9 +217,6 @@
     <ClInclude Include="Hash.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="LoadingScreen.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="batchFile.h">
       <Filter>Source Files\File Formats</Filter>
     </ClInclude>
@@ -312,9 +282,6 @@
     </ClInclude>
     <ClInclude Include="Audio.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImguiWindows.h">
-      <Filter>Source Files\Windows</Filter>
     </ClInclude>
     <ClInclude Include="CPathID.h">
       <Filter>Source Files</Filter>
@@ -454,10 +421,5 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Windows.def">
-      <Filter>Source Files\Windows</Filter>
-    </None>
   </ItemGroup>
 </Project>

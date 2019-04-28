@@ -90,6 +90,8 @@ public:
 	};
 	Vector<SCommand> commands;
 
+	std::string getCommandPath(const char* name);
+
 	struct CGradient {
 		Vector<glm::vec4> vecs;
 		CStringID id;

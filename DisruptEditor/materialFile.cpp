@@ -7,6 +7,17 @@
 #include "FileHandler.h"
 #include "Serialization.h"
 
+std::string materialFile::getCommandPath(const char* name) {
+	CStringID hash(name);
+
+	for (auto& it : commands) {
+		if (it.name == hash && (it.type == 8 || it.type == 9 || it.type == 10))
+			return it.path;
+	}
+
+	return std::string();
+}
+
 bool materialFile::open(IBinaryArchive &fp) {
 	fp.serialize(magic);
 	SDL_assert_release(magic == 5062996);
