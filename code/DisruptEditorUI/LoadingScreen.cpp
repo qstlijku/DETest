@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 #define STB_VORBIS_HEADER_ONLY
-#include "stb_vorbis.c"
+#include "stb_vorbis.h"
 #include "stb_image.h"
 #include "stb_truetype.h"
 

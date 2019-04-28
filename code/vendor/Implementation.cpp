@@ -15,3 +15,4 @@
 #include "noc_file_dialog.h"
 #include "dr_wav.h"
 #include "debug_draw.hpp"
+#include "stb_vorbis.h"

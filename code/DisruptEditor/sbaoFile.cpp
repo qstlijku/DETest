@@ -14,7 +14,7 @@
 #include "Hash.h"
 #include "Audio.h"
 #define STB_VORBIS_HEADER_ONLY
-#include "stb_vorbis.c"
+#include "stb_vorbis.h"
 #include "FileHandler.h"
 
 static void StreamValidationPoint(IBinaryArchive & fp) {

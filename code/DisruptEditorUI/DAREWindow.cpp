@@ -9,7 +9,7 @@
 #include "noc_file_dialog.h"
 #include "dr_wav.h"
 #define STB_VORBIS_HEADER_ONLY
-#include "stb_vorbis.c"
+#include "stb_vorbis.h"
 #include <SDL.h>
 #include "DARE.h"
 
