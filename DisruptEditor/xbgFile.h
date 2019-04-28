@@ -494,7 +494,7 @@ public:
 
 	uint32_t clothWrinkleControlPatchBundles;
 
-	void draw();
+	void draw(int selLod);
 	void registerMembers(MemberStructure &ms);
 };
 

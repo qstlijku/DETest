@@ -40,6 +40,7 @@
 #include "CResourceDataBase.h"
 #include "embedFile.h"
 #include "CMoveResourceDataManager.h"
+#include "xbgMipFile.h"
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -548,16 +549,43 @@ int main(int argc, char **argv) {
 		}
 
 		//Draw Batches
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
 		RenderInterface::instance().model.use();
 		glm::mat4 MVP = RenderInterface::instance().VP;
 		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
 		CHECK_GL_ERROR();
-		static xbgFile& xbg = loadXBG("graphics\\landscape\\rocks\\07_rockcliffmod_a_small_kit_01.xbg");
+		//static xbgFile& xbg = loadXBG("graphics\\landscape\\rocks\\07_rockcliffmod_a_small_kit_01.xbg");
 		//static xbgFile& xbg = loadXBG("graphics\\characters\\char\\char01\\char01.xbg");
-		//static xbgFile& xbg = loadXBG("graphics\\vehicles_nexus\\air\\helicopter_01\\helicopter_01.xbg");
+		static xbgFile& xbg = loadXBG("graphics\\vehicles_nexus\\air\\helicopter_01\\helicopter_01.xbg");
+		static char buffer[255];
+		ImGui::InputText("Filename", buffer, sizeof(buffer));
+		if (ImGui::Button("Load")) {
+			xbg = loadXBG(buffer);
+			if (xbg.mips.size() == 1) {
+				xbgMipFile& xbgmip = loadXBGMIP(xbg.mips[0].path);
+				xbg.buffers.insert(xbg.buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
+				xbg.mips.clear();
+			}
+		}
+		static uint32_t hashID = 0;
+		ImGui::InputScalar("HashID", ImGuiDataType_U32, &hashID);
+		if (ImGui::Button("Load ID")) {
+			xbg = loadXBG(hashID);
+			if (xbg.mips.size() == 1) {
+				xbgMipFile& xbgmip = loadXBGMIP(xbg.mips[0].path);
+				xbg.buffers.insert(xbg.buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
+				xbg.mips.clear();
+			}
+		}
+		if (ImGui::Button("XML")) {
+			std::string str = serializeToXML(xbg);
+			SDL_SetClipboardText(str.c_str());
+		}
 		//static xbgFile &xbg = loadXBG("graphics\\landscape\\endofworld_01.xbg");
-		std::string ser = serializeToXML(xbg);
-		xbg.draw();
+		static int selLod = 1;
+		ImGui::SliderInt("Lod", &selLod, 0, xbg.lods.size()-1);
+		xbg.draw(selLod);
 
 		/*RenderInterface::instance().model.use();
 		glm::mat4 MVP = RenderInterface::instance().VP;

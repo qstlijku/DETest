@@ -183,9 +183,7 @@ void xbgFile::SceneGeometryParams::registerMembers(MemberStructure & ms) {
 
 void xbgFile::MaterialResources::read(IBinaryArchive & fp, uint32_t lods) {
 	fp.serialize(unk0);
-	uint32_t s = unk0;
-	if (s == 0)
-		s = lods;
+	uint32_t s = lods - unk0;
 	unk1.resize(s);
 	for (uint32_t i = 0; i < s; ++i)
 		fp.serialize(unk1[i]);
@@ -907,21 +905,29 @@ void xbgFile::GeomMips::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(path);
 }
 
-void xbgFile::draw() {
+void xbgFile::draw(int selLod) {
 	if (lods.empty()) return;
 
-	LOD &lod = lods[unk3];
+	if (selLod >= lods.size())
+		return;
 
+	LOD &lod = lods[selLod];
+
+	int i = 0;
 	for (auto &mesh : lod.meshes) {
+		SDL_assert_release(mesh.primitiveType == 0);
+
 		auto &mat = loadMaterial(materialResources.materials[mesh.matID].file);
 		auto& diffuse = loadTexture(mat.getCommandPath("DiffuseTexture1").c_str());
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuse->id);
 		
-		int bufferIndex = 0;
+		int bufferIndex = selLod;
+
+		int baseOffset = mesh.drawCall.unk1;
+
 		buffers[bufferIndex].vertex->bind();
 		buffers[bufferIndex].index->bind();
-		SDL_assert_release(buffers[bufferIndex].vertex->size % mesh.vertexStride == 0);
 		SDL_assert_release(buffers[bufferIndex].index->size % sizeof(short) == 0);
 
 		// 1rst attribute buffer : vertices
@@ -932,23 +938,23 @@ void xbgFile::draw() {
 			GL_SHORT,  // type
 			GL_TRUE,           // normalized?
 			mesh.vertexStride,  // stride
-			(void*)0            // array buffer offset
+			(void*)baseOffset            // array buffer offset
 		);
-		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(8);
 		glVertexAttribPointer(
 			8,                  // attribute. No particular reason for 0, but must match the layout in the shader.
 			2,                  // size
 			GL_SHORT,  // type
 			GL_TRUE,           // normalized?
 			mesh.vertexStride,  // stride
-			(void*)(8)            // array buffer offset
+			(void*)(baseOffset + 8)            // array buffer offset
 		);
 
 		// Draw the triangles
 		GLint id;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &id);
 		glDrawElements(GL_TRIANGLES, mesh.drawCall.primitiveCount, GL_UNSIGNED_SHORT, (void*)(mesh.drawCall.unk4 * 2));
-
+		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(8);
 	}
