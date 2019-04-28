@@ -41,24 +41,6 @@
     <ClCompile Include="DDRenderInterface.cpp">
       <Filter>Externals</Filter>
     </ClCompile>
-    <ClCompile Include="tinyxml2.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="stb_vorbis.c">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="Implementation.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_draw.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="glad.c">
-      <Filter>Externals</Filter>
-    </ClCompile>
     <ClCompile Include="batchFile.cpp">
       <Filter>Source Files\File Formats</Filter>
     </ClCompile>
@@ -107,12 +89,6 @@
     <ClCompile Include="locFile.cpp">
       <Filter>Source Files\File Formats</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuizmo.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="ImSequencer.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
     <ClCompile Include="Adpcm.cpp">
       <Filter>Externals</Filter>
     </ClCompile>
@@ -121,15 +97,6 @@
     </ClCompile>
     <ClCompile Include="FileHandler.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_impl_opengl3.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_impl_sdl.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_widgets.cpp">
-      <Filter>Externals</Filter>
     </ClCompile>
     <ClCompile Include="Serialization.cpp">
       <Filter>Source Files</Filter>
@@ -173,9 +140,6 @@
     <ClCompile Include="DB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sqlite3.c">
-      <Filter>Externals</Filter>
-    </ClCompile>
     <ClCompile Include="Types.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -197,17 +161,8 @@
     <ClCompile Include="DisruptTypes.cpp">
       <Filter>Source Files\File Formats</Filter>
     </ClCompile>
-    <ClCompile Include="ImCurveEdit.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGradient.cpp">
-      <Filter>Externals</Filter>
-    </ClCompile>
     <ClCompile Include="SectorWindow.cpp">
       <Filter>Source Files\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="SplineLoft.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CLODictionary.cpp">
       <Filter>Source Files\File Formats</Filter>
@@ -218,48 +173,57 @@
     <ClCompile Include="CMoveResourceDataManager.cpp">
       <Filter>Source Files\File Formats</Filter>
     </ClCompile>
+    <ClCompile Include="SplineLoft.cpp">
+      <Filter>Source Files\File Formats</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\glad\glad.c">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\imgui\imgui_impl_sdl.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\imgui\imgui_widgets.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\imgui\imgui.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\imgui\imgui_draw.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGuizmo\ImSequencer.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGuizmo\ImCurveEdit.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\ImGuizmo\ImGradient.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sqlite3\sqlite3.c">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\stb\stb_vorbis.c">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\tinyxml2\tinyxml2.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\Implementation.cpp">
+      <Filter>Externals</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stb_image.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_image_write.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_rect_pack.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_textedit.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_truetype.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyfiles.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyxml2.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="Implementation.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="khrplatform.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="glad.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
     <ClInclude Include="Vector.h">
       <Filter>Externals</Filter>
     </ClInclude>
-    <ClInclude Include="noc_file_dialog.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
     <ClInclude Include="DDRenderInterface.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="debug_draw.hpp">
       <Filter>Externals</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
@@ -331,16 +295,7 @@
     <ClInclude Include="locFile.h">
       <Filter>Source Files\File Formats</Filter>
     </ClInclude>
-    <ClInclude Include="ImSequencer.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuizmo.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
     <ClInclude Include="Adpcm.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="dr_wav.h">
       <Filter>Externals</Filter>
     </ClInclude>
     <ClInclude Include="mabFile.h">
@@ -348,30 +303,6 @@
     </ClInclude>
     <ClInclude Include="FileHandler.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_impl_sdl.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_impl_opengl3.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imconfig.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imstb_rectpack.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imstb_textedit.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imstb_truetype.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui_internal.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui.h">
-      <Filter>Externals</Filter>
     </ClInclude>
     <ClInclude Include="Serialization.h">
       <Filter>Source Files</Filter>
@@ -394,18 +325,11 @@
     <ClInclude Include="Pair.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Version.h" />
     <ClInclude Include="IBinaryArchive.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="HexBase64.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite3.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite3ext.h">
-      <Filter>Externals</Filter>
     </ClInclude>
     <ClInclude Include="DB.h">
       <Filter>Source Files</Filter>
@@ -431,13 +355,6 @@
     <ClInclude Include="DisruptTypes.h">
       <Filter>Source Files\File Formats</Filter>
     </ClInclude>
-    <ClInclude Include="ImCurveEdit.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGradient.h">
-      <Filter>Externals</Filter>
-    </ClInclude>
-    <ClInclude Include="SplineLoft.h" />
     <ClInclude Include="CLODictionary.h">
       <Filter>Source Files\File Formats</Filter>
     </ClInclude>
@@ -446,6 +363,93 @@
     </ClInclude>
     <ClInclude Include="CMoveResourceDataManager.h">
       <Filter>Source Files\File Formats</Filter>
+    </ClInclude>
+    <ClInclude Include="SplineLoft.h">
+      <Filter>Source Files\File Formats</Filter>
+    </ClInclude>
+    <ClInclude Include="Colors.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\debug_draw\debug_draw.hpp">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\dr_wav\dr_wav.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\glad\glad.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\glad\khrplatform.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imgui_impl_opengl3.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imgui_impl_sdl.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imgui_internal.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imstb_rectpack.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imstb_textedit.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imstb_truetype.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imconfig.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\imgui\imgui.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\ImGuizmo\ImGuizmo.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\ImGuizmo\ImSequencer.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\ImGuizmo\ImCurveEdit.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\ImGuizmo\ImGradient.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\noc_file_dialog\noc_file_dialog.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sqlite3\sqlite3.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sqlite3\sqlite3ext.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\stb\stb_textedit.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\stb\stb_truetype.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\stb\stb_image.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\stb\stb_image_write.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\stb\stb_rect_pack.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\tinyfiles\tinyfiles.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\tinyxml2\tinyxml2.h">
+      <Filter>Externals</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

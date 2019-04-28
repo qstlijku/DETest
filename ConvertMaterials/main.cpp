@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 			printf("Converting to XML: %s\n", outFilename.c_str());
 			convertMatToXML(filename, outFilename);
 		} else {
-			printf("I'm not sure what to do with this file based on it's file extension ¯\_(ツ)_/¯");
+			wprintf(L"I'm not sure what to do with this file based on it's file extension ¯\_(ツ)_/¯");
 		}
 
 		printf("\n");

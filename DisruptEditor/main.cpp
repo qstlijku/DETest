@@ -1,6 +1,6 @@
 #include "glad.h"
 #include <SDL.h>
-#include "Implementation.h"
+#include "Colors.h"
 #include "Common.h"
 #include "DDRenderInterface.h"
 #include "cseqFile.h"
