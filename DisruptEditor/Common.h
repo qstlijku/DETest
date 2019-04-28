@@ -11,6 +11,7 @@
 #include <memory>
 
 class xbgFile;
+class xbgMipFile;
 class materialFile;
 class xbtFile;
 class Node;
@@ -59,6 +60,9 @@ bool writeFile(const std::string &file, const std::string &contents);
 
 xbgFile& loadXBG(const std::string &path);
 xbgFile& loadXBG(uint32_t path);
+
+xbgMipFile& loadXBGMIP(const std::string& path);
+xbgMipFile& loadXBGMIP(uint32_t path);
 
 materialFile& loadMaterial(const std::string &path);
 

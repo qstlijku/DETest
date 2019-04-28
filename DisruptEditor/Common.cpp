@@ -19,6 +19,7 @@
 #include <SDL_messagebox.h>
 #include "IBinaryArchive.h"
 #include <future>
+#include "xbgMipFile.h"
 #include "DDRenderInterface.h"
 
 Settings settings;
@@ -69,7 +70,15 @@ bool writeFile(const std::string & file, const std::string &contents) {
 std::unordered_map<uint32_t, xbgFile> xbgs;
 
 xbgFile& loadXBG(const std::string &path) {
-	return loadXBG(Hash::getFilenameHash(path));
+	uint32_t hash = Hash::getFilenameHash(path);
+	if (xbgs.count(hash) == 0) {
+		auto& model = xbgs[hash];
+		SDL_Log("Loading %s\n", path);
+		SDL_RWops* fp = FH::openFile(path.c_str());
+		if (fp)
+			model.open(CBinaryArchiveReader(fp));
+	}
+	return xbgs[hash];
 }
 
 xbgFile &loadXBG(uint32_t path) {
@@ -81,6 +90,31 @@ xbgFile &loadXBG(uint32_t path) {
 			model.open(CBinaryArchiveReader(fp));
 	}
 	return xbgs[path];
+}
+
+std::unordered_map<uint32_t, xbgMipFile> xbgmips;
+
+xbgMipFile& loadXBGMIP(const std::string& path) {
+	uint32_t hash = Hash::getFilenameHash(path);
+	if (xbgs.count(hash) == 0) {
+		auto& model = xbgmips[hash];
+		SDL_Log("Loading %s\n", path);
+		SDL_RWops* fp = FH::openFile(path.c_str());
+		if (fp)
+			model.open(CBinaryArchiveReader(fp));
+	}
+	return xbgmips[hash];
+}
+
+xbgMipFile& loadXBGMIP(uint32_t path) {
+	if (xbgs.count(path) == 0) {
+		auto& model = xbgmips[path];
+		SDL_Log("Loading %u.xbgmip\n", path);
+		SDL_RWops* fp = FH::openFile(path);
+		if (fp)
+			model.open(CBinaryArchiveReader(fp));
+	}
+	return xbgmips[path];
 }
 
 materialFile &loadMaterial(const std::string & path) {
