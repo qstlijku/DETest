@@ -113,8 +113,6 @@ int main(int argc, char **argv) {
 
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
-	camera.near_plane = 0.25f;
-	camera.far_plane = 6500.f;
 
 	//Debug
 	/*Vector<SplineLoftHiRes> hiRes;
@@ -299,8 +297,8 @@ int main(int argc, char **argv) {
 		std::thread sectorThread(world.loadSectors);
 		sectorThread.detach();
 
-		/*std::thread wluThread(world.loadWLUAsync);
-		wluThread.detach();*/
+		std::thread wluThread(world.loadWLUAsync);
+		wluThread.detach();
 
 		std::thread batchThread(world.loadBatchAsync);
 		batchThread.detach();
@@ -389,7 +387,7 @@ int main(int argc, char **argv) {
 		SDL_GetWindowSize(window, &renderInterface.windowSize.x, &renderInterface.windowSize.y);
 		glViewport(0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y);
 		renderInterface.View = glm::lookAtLH(camera.location, camera.lookingAt, camera.up);
-		renderInterface.Projection = glm::perspective(camera.fov, (float)renderInterface.windowSize.x / renderInterface.windowSize.y, camera.near_plane, camera.far_plane);
+		renderInterface.Projection = glm::perspective(settings.fov, (float)renderInterface.windowSize.x / renderInterface.windowSize.y, settings.near_plane, settings.far_plane);
 		renderInterface.VP = renderInterface.Projection * renderInterface.View;
 
 		UI::displayTopMenu();

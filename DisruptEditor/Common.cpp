@@ -191,6 +191,9 @@ void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(searchPaths);
 	REGISTER_MEMBER(patchDir);
 
+	REGISTER_MEMBER(near_plane);
+	REGISTER_MEMBER(far_plane);
+	REGISTER_MEMBER(fov);
 	REGISTER_MEMBER(textDrawDistance);
 	REGISTER_MEMBER(displayComponents);
 	REGISTER_MEMBER(displayNear);

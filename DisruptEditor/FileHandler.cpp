@@ -3,6 +3,7 @@
 #include "Hash.h"
 #include "tinyfiles.h"
 #include <Shlwapi.h>
+#include <shlobj_core.h>
 #include "DB.h"
 #include "SDL_log.h"
 
@@ -97,7 +98,11 @@ SDL_RWops * FH::openFile(const char *path) {
 
 SDL_RWops* FH::openFileWrite(const std::string& path) {
 	std::string fullPath = settings.patchDir + path;
-	//Todo: create parent directories
+	//Create parent directories
+	std::size_t found = fullPath.find_last_of("/\\");
+	std::string parentDir = fullPath.substr(0, found);
+	int ret = SHCreateDirectoryExA(NULL, parentDir.c_str(), NULL);
+	SDL_assert_release(ret == ERROR_SUCCESS || ret == ERROR_FILE_EXISTS || ret == ERROR_ALREADY_EXISTS);
 
 	return SDL_RWFromFile(fullPath.c_str(), "wb");
 }

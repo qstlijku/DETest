@@ -70,7 +70,7 @@ void UI::displaySector() {
 	//Get Cursor Ray
 	glm::vec3 rayFrom(RenderInterface::instance().camera.location);
 	glm::vec3 rayTo;
-	{
+	/*{
 		glm::ivec2 mouse;
 		uint32_t mouseButton = SDL_GetMouseState(&mouse.x, &mouse.y);
 		glm::vec2 mousePos = mouse;
@@ -110,7 +110,7 @@ void UI::displaySector() {
 		rayTo += mousePos.x * dHor;
 		rayTo -= mousePos.y * dVert;
 		rayTo = glm::normalize(rayTo);
-	}
+	}*/
 
 	glm::vec3 col = Intersect(glm::vec3(0, 0, 70.f), glm::vec3(0, 0, 1), rayFrom, rayTo);
 

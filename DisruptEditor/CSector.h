@@ -39,7 +39,7 @@ public:
 		//CTerrain::GetZ(long, long)
 		double GetZ(long x, long y);
 		void SetZ(long x, long y, double height);
-		int GetOffset(long x, long y);
+		static int GetOffset(long x, long y);
 		static uint16_t CompressHeight(double height);
 		static double DecompressHeight(uint16_t packed);
 
@@ -87,7 +87,8 @@ public:
 		uint16_t padding2;
 		
 		//For SWaterSectorDatas?
-		std::array<uint8_t, 0x211> bitGrid;
+		//COneBitGrid<(long)65>
+		std::array<uint8_t, (65 * 8) + 9> bitGrid;
 
 		void read(IBinaryArchive& fp);
 	};

@@ -59,7 +59,7 @@ bool wluFile::openWD1(IBinaryArchive &fp) {
 	fp.pad(4);
 	//SDL_RWseek(fp, wluhead.size + sizeof(wluhead), RW_SEEK_SET);
 
-	size_t offset = fp.tell();
+	/*size_t offset = fp.tell();
 	size_t extraBegin = offset;
 	if (offset != size + sizeof(wluhead)) {
 		handleHeaders(fp, size + sizeof(wluhead));
@@ -73,7 +73,7 @@ bool wluFile::openWD1(IBinaryArchive &fp) {
 	if (!extraData.empty()) {
 		SDL_RWseek(fp.fp, extraBegin, RW_SEEK_SET);
 		fp.memBlock(extraData.data(), 1, extraData.size());
-	}
+	}*/
 
 	//Handle .embed
 	/*fp = fopen((filename + ".embed").c_str(), "rb");

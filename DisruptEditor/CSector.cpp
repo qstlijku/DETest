@@ -93,7 +93,7 @@ void CSectorHighRes::CSceneTerrainSectorPackedData::SetZ(long x, long y, double 
 
 int CSectorHighRes::CSceneTerrainSectorPackedData::GetOffset(long x, long y) {
 	int offset = ((y * 0x41 + x) * 4 + 0x150) / 2;
-	SDL_assert_release(offset <= terrainSectorPackedData.size());
+	SDL_assert_release(offset <= 0x5ab0 / 2);
 	return offset;
 }
 
@@ -266,6 +266,39 @@ void CSector::save() {
 		it.minZ = 60;
 		it.maxZ = 130;
 	}*/
+	auto it = getHiRes();
+	for (auto& a : it->maps) {
+		/*for (int x = 0; x < 65; ++x) {
+			for (int y = 0; y < 65; ++y) {
+				int offset = a.GetOffset(x, y) + 0x21aa;
+				float t = a.DecompressHeight(a.terrainSectorPackedData[offset]);
+				float w = a.DecompressHeight(a.terrainSectorPackedData[offset+1]);
+
+				//a.terrainSectorPackedData[offset + 1] = 0;// a.CompressHeight(70);
+				//SDL_Log("%u %u", a.terrainSectorPackedData[offset], a.terrainSectorPackedData[offset+1]);
+			}
+		}*/
+
+		int maxOffset = a.GetOffset(64, 64) + 2;
+		/*for (int i = 0; i < (65 * 65) / 2; ++i)//This does banding shadows on the terrain
+			a.terrainSectorPackedData[(18296 / 2) + i] &= 0xFF00;*/
+
+		/*for (int i = 0; i < 674 / 2; ++i)//This appears to do nothing
+			a.terrainSectorPackedData[(22524 / 2) + i] |= 0xFFFF;*/
+
+		/*for (int i = 0; i < 1030 / 2; i += 2)//Causes weird floating triangles far away
+			a.terrainSectorPackedData[(17236 / 2) + 5 + i] &= 0;*/
+
+		/*for (int i = 0; i < 0x150 / 2; i += 1)//Causes weird floating triangles far away
+			a.terrainSectorPackedData[i] &= 0;*/
+	}
+
+	for (auto& a : dataChunk) {
+		for (auto& it : a.bitGrid)
+			it = 0;
+	}
+
+	//Extra interesting data at 18296 bytes
 
 	char filename[80];
 	snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdat", sectorID);

@@ -10,7 +10,7 @@
 void UI::displayMaterial() {
 	if (!settings.openWindows["Material"])
 		return;
-	if (!ImGui::Begin("Materials", &settings.openWindows["Material"], ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+	if (!ImGui::Begin("Materials", &settings.openWindows["Material"], ImGuiWindowFlags_MenuBar)) {
 		ImGui::End();
 		return;
 	}
