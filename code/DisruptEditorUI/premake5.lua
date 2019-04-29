@@ -1,10 +1,9 @@
 
 project "DisruptEditorUI"
     language "C++"
-    kind "WindowedApp"
+	kind "WindowedApp"
 	postbuildcommands "{COPY} $(SolutionDir)../code/vendor/SDL2/SDL2.dll %{cfg.targetdir}"
-	prelinkcommands "{COPY} $(SolutionDir)../code/vendor/SDL2/SDL2.lib %{cfg.targetdir}"
-	prelinkcommands "{COPY} $(SolutionDir)../code/vendor/SDL2/SDL2main.lib %{cfg.targetdir}"
+	libdirs { "$(SolutionDir)../code/vendor/SDL2" }
 
 	vpaths
     {

@@ -1,7 +1,8 @@
 
 project "ConvertMaterials"
     language "C++"
-    kind "ConsoleApp"
+	kind "ConsoleApp"
+	libdirs { "$(SolutionDir)../code/vendor/SDL2" }
 
 	vpaths
     {

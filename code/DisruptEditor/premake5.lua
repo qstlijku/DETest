@@ -1,7 +1,8 @@
 
 project "DisruptEditor"
     language "C++"
-    kind "StaticLib"
+	kind "StaticLib"
+	libdirs { "$(SolutionDir)../code/vendor/SDL2" }
 	
 	vpaths
     {
