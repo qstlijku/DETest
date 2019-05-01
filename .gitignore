@@ -1,3 +1,8 @@
+
+bin
+build
+
+# Data
 *.xml.data.fcb.xml
 *.log
 imgui.ini
