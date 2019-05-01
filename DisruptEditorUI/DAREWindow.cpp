@@ -13,6 +13,8 @@
 #include <SDL.h>
 #include "DARE.h"
 
+static uint32_t loadedSPK = 0;
+
 template <typename T>
 void displayImGui(const char *name, CObjectReference<T> &obj) {
 	ImGui::InputScalar(name, ImGuiDataType_U32, &obj.refAtomicId);
@@ -26,11 +28,16 @@ void displayImGui(const char *name, CObjectReference<T> &obj) {
 }*/
 
 void displayImGui(ResourceDescriptor& obj) {
+	ImGui::PushID(&obj);
 	ImGui::Text("resourceDescriptor Type: %s", obj.pResourceDesc.type.getReverseName().c_str());
 	ImGui::InputFloat("ResVolume", &obj.resVolume.vol.m_volume_dB);
 
-	if (obj.pResourceDesc.sampleResourceDescriptor) {
-		SampleResourceDescriptor& srd = *obj.pResourceDesc.sampleResourceDescriptor;
+	if (std::holds_alternative<SampleResourceDescriptor>(obj.pResourceDesc.data)) {
+		SampleResourceDescriptor &srd = std::get<SampleResourceDescriptor>(obj.pResourceDesc.data);
+		
+		char saveText[80], saveFilename[80];
+		snprintf(saveFilename, sizeof(saveFilename), "%08x.wav", obj.Id);
+		snprintf(saveText, sizeof(saveText), "Save %s", saveFilename);
 
 		ImGui::Checkbox("Looping", &srd.bLooping);
 		ImGui::Checkbox("Tool", &srd.bTool);
@@ -58,10 +65,9 @@ void displayImGui(ResourceDescriptor& obj) {
 		ImGui::Text("Channels: %u", srd.ulNbChannels);
 		ImGui::Text("Sample Rate: %u", srd.ulFreq);
 
-		ImGui::PushID(&srd);
-		if (ImGui::Button("Save recording.wav")) {
+		if (ImGui::Button(saveText)) {
 			try {
-				srd.saveDecoded("recording.wav");
+				srd.saveDecoded(saveFilename);
 			} catch (...) {
 
 			}
@@ -83,20 +89,31 @@ void displayImGui(ResourceDescriptor& obj) {
 				if (pSampleData) {
 					srd.ulFreq = sampleRate;
 					srd.ulNbChannels = channels;
-					srd.CompressionFormat = 1;//OGG
+					srd.CompressionFormat = 1;//WAV
+					if (srd.stToolSourceFormat.bStream) {
+						srd.stToolSourceFormat.bStream = false;
+						srd.stToolSourceFormat.bZeroLatency = false;
+						srd.stToolSourceFormat.ulOffsetData = 0;
+						//Let's create a dummy sbao
+						srd.stToolSourceFormat.dataRef = srd.stToolSourceFormat.streamRef;
+						uint32_t newID = srd.stToolSourceFormat.dataRef.refAtomicId;
+						spkFile& spk = DARE::instance().spks[loadedSPK];
+						sbaoFile &newSbao = spk.getSbao(newID);
+						newSbao.type = CDobbsID("SndData");
+						newSbao.data.emplace<SndData>();
+					}
 					sbaoFile& sbao = DARE::instance().loadAtomicObject(srd.stToolSourceFormat.dataRef.refAtomicId);
-					sbao.sndData->rawData.resize(totalSampleCount * sizeof(short));
-					memcpy(sbao.sndData->rawData.data(), pSampleData, sbao.sndData->rawData.size());
-					srd.stToolSourceFormat.ulNbBytes = sbao.sndData->rawData.size();
+					SndData& snd = std::get<SndData>(sbao.data);
+					snd.rawData.resize(totalSampleCount * sizeof(short));
+					memcpy(snd.rawData.data(), pSampleData, snd.rawData.size());
+					srd.stToolSourceFormat.ulNbBytes = snd.rawData.size();
 
 					drwav_free(pSampleData);
 				}
 			}
 		}
-
-		ImGui::PopID();
-	} else if (obj.pResourceDesc.multiTrackResourceDescriptor) {
-		MultiTrackResourceDescriptor& mtrd = *obj.pResourceDesc.multiTrackResourceDescriptor;
+	} else if (std::holds_alternative<MultiTrackResourceDescriptor>(obj.pResourceDesc.data)) {
+		MultiTrackResourceDescriptor &mtrd = std::get<MultiTrackResourceDescriptor>(obj.pResourceDesc.data);
 
 		ImGui::Text("Layers: %u", mtrd.m_tracks.size());
 		for (uint32_t i = 0; i < mtrd.ulNbTrack; ++i) {
@@ -115,8 +132,8 @@ void displayImGui(ResourceDescriptor& obj) {
 		if (ImGui::Button("Save recording.wav"))
 			mtrd.saveDecoded("recording.wav", 0);
 		ImGui::PopID();*/
-	} else if (obj.pResourceDesc.granularResourceDescriptor) {
-		GranularResourceDescriptor& grd = *obj.pResourceDesc.granularResourceDescriptor;
+	} else if (std::holds_alternative<GranularResourceDescriptor>(obj.pResourceDesc.data)) {
+		GranularResourceDescriptor &grd = std::get<GranularResourceDescriptor>(obj.pResourceDesc.data);
 
 
 		if (ImGui::Button("Save"))
@@ -131,6 +148,7 @@ void displayImGui(ResourceDescriptor& obj) {
 			mtrd.saveDecoded("recording.wav", 0);
 		ImGui::PopID();*/
 	}
+	ImGui::PopID();
 }
 
 void displayImGui(SndData& obj) {
@@ -146,12 +164,14 @@ void UI::displayDARE() {
 	}
 
 	static uint32_t inputSpk;
-	ImGui::InputScalar("SPK", ImGuiDataType_U32, &inputSpk, NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
+	ImGui::InputScalar("SPK", ImGuiDataType_U32, &inputSpk, NULL, NULL, "%08x", ImGuiInputTextFlags_CharsHexadecimal);
 	ImGui::SameLine();
 	if (ImGui::Button("Load")) {
 		DARE::instance().reset();
+		loadedSPK = 0;
 		try {
 			DARE::instance().addSoundResource(inputSpk);
+			loadedSPK = inputSpk;
 		} catch(...) {}
 	}
 	ImGui::SameLine();
@@ -162,7 +182,7 @@ void UI::displayDARE() {
 		SDL_RWops* fp = FH::openFileWrite(buffer);
 		if (fp) {
 			CBinaryArchiveWriter writer(fp);
-			DARE::instance().spks.begin()->second->open(writer);
+			DARE::instance().spks.begin()->second.open(writer);
 			SDL_RWclose(fp);
 		} else {
 			SDL_ShowSimpleMessageBox(0, "Failed to open file for writing", buffer, NULL);
@@ -171,78 +191,50 @@ void UI::displayDARE() {
 		//TODO: Save external sbao files
 	}
 	ImGui::SameLine();
+	if (ImGui::Button("XML")) {
+		char buffer[24];
+		snprintf(buffer, sizeof(buffer), "%08x.spk.xml", loadedSPK);
+		writeFile(buffer, serializeToXML(DARE::instance().spks[loadedSPK]));
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Import XML")) {
+		char buffer[24];
+		snprintf(buffer, sizeof(buffer), "%08x.spk.xml", loadedSPK);
+		unserializeFromXML(DARE::instance().spks[loadedSPK], readFile(buffer).c_str());
+	}
+	ImGui::SameLine();
 	if (ImGui::Button("Stop All Sounds")) {
 		Audio::instance().stopAll();
 	}
-
 	ImGui::Separator();
 
-	for (auto it : DARE::instance().atomicObjects) {
-		sbaoFile& sbao = *it.second.ao;
-		ImGui::PushID(&sbao);
+	for (auto &spk : DARE::instance().spks) {
+		for (sbaoFile &sbao : spk.second.objs) {
+			ImGui::PushID(&sbao);
 
-		char buffer[160];
-		snprintf(buffer, sizeof(buffer), "Atomic Object: %08x", it.first);
+			char buffer[160];
+			snprintf(buffer, sizeof(buffer), "Atomic Object: %08x", sbao.Id);
 
-		if (ImGui::Selectable(buffer)) {
-			char buffer[16];
-			snprintf(buffer, sizeof(buffer), "%08x", it.first);
-			SDL_SetClipboardText(buffer);
+			if (ImGui::Selectable(buffer)) {
+				char buffer[16];
+				snprintf(buffer, sizeof(buffer), "%08x", sbao.Id);
+				SDL_SetClipboardText(buffer);
+			}
+
+
+			std::string typeName = sbao.type.getReverseName();
+			ImGui::Text("Type: %s", typeName.c_str());
+
+			if (typeName == "ResourceDescriptor")
+				displayImGui(std::get<ResourceDescriptor>(sbao.data));
+			else
+				displayImGui(sbao);
+
+			ImGui::PopID();
+			ImGui::Separator();
 		}
-		if (ImGui::Button("XML")) {
-			snprintf(buffer, sizeof(buffer), "%08x.sbao.xml", it.first);
-
-			std::string xml = serializeToXML(sbao);
-			FILE* fp = fopen(buffer, "wb");
-			fwrite(xml.c_str(), 1, xml.size(), fp);
-			fclose(fp);
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Import XML")) {
-			snprintf(buffer, sizeof(buffer), "%08x.sbao.xml", it.first);
-
-			SDL_assert(false && "TODO");
-		}
-
-		std::string typeName = sbao.type.getReverseName();
-		ImGui::Text("Type: %s", typeName.c_str());
-
-		if (it.second.spkFile == -1)
-			ImGui::TextColored(ImVec4(1, 0, 0, 1), "External SBAO");
-
-		if (typeName == "ResourceDescriptor") {
-			displayImGui(*sbao.resourceDescriptor);
-		} else if (typeName == "PlayEventDescriptor") {
-			displayImGui(*sbao.playEventDescriptor);
-		} else if (typeName == "MultiEventDescriptor") {
-			displayImGui(*sbao.multiEventDescriptor);
-		} else if (typeName == "PresetDescriptor") {
-			displayImGui(*sbao.presetDescriptor);
-		} else if (typeName == "PresetEventDescriptor") {
-			displayImGui(*sbao.presetEventDescriptor);
-		} else if (typeName == "StopEventDescriptor") {
-			displayImGui(*sbao.stopEventDescriptor);
-		} else if (typeName == "RemovePresetEventDescriptor") {
-			displayImGui(*sbao.removePresetEventDescriptor);
-		} else if (typeName == "ProjectDesc") {
-			displayImGui(*sbao.projectDesc);
-		} else if (typeName == "RolloffResourceDescriptor") {
-			displayImGui(*sbao.rolloffResourceDescriptor);
-		} else if (typeName == "EmitterSpec") {
-			displayImGui(*sbao.emitterSpec);
-		} else if (typeName == "ChangeVolumeEventDescriptor") {
-			displayImGui(*sbao.changeVolumeEventDescriptor);
-		} else if (typeName == "StopNGoEventDescriptor") {
-			displayImGui(*sbao.stopNGoEventDescriptor);
-		} else if (typeName == "SwitchEventDescriptor") {
-			displayImGui(*sbao.switchEventDescriptor);
-		} else if (typeName == "SndData") {
-			displayImGui(*sbao.sndData);
-		}
-
-		ImGui::PopID();
-		ImGui::Separator();
 	}
+	
 
 	ImGui::End();
 }

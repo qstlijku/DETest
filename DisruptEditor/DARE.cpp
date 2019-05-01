@@ -9,13 +9,9 @@ void DARE::addSoundResource(uint32_t res) {
 	snprintf(buffer, sizeof(buffer), "soundbinary/%08x.spk", res);
 
 	SDL_RWops *fp = FH::openFile(buffer);
-	std::shared_ptr<spkFile> spk = spks[res] = std::make_shared<spkFile>();
-	spk->open(CBinaryArchiveReader(fp));
+	spkFile &spk = spks[res];
+	spk.open(CBinaryArchiveReader(fp));
 	SDL_RWclose(fp);
-
-	//Add the atomic objects
-	for (size_t i = 0; i < spk->ids.size(); ++i)
-		atomicObjects[spk->ids[i]] = { res, spk->objs[i] };
 }
 
 void DARE::addAtomicObject(uint32_t res) {
@@ -24,10 +20,9 @@ void DARE::addAtomicObject(uint32_t res) {
 
 	SDL_RWops *fp = FH::openFile(buffer);
 	if (fp) {
-		std::shared_ptr<sbaoFile> sbao = std::make_shared<sbaoFile>();
-		sbao->open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
+		sbaoFile &sbao = atomicObjects[res];
+		sbao.open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
 		SDL_RWclose(fp);
-		atomicObjects[res] = { 0xFFFFFFFF, sbao };
 	}
 }
 
@@ -37,11 +32,19 @@ void DARE::reset() {
 }
 
 sbaoFile& DARE::loadAtomicObject(uint32_t res) {
+	//Search Through SPKs
+	for (auto& it : spks) {
+		for (auto& sbao : it.second.objs) {
+			if (sbao.Id == res)
+				return sbao;
+		}
+	}
+
 	if (atomicObjects.count(res) == 0)
 		addAtomicObject(res);
 
 	SDL_assert_release(atomicObjects.count(res));
-	return *atomicObjects[res].ao;
+	return atomicObjects[res];
 }
 
 bool DARE::isAtomicObjectLoaded(uint32_t res) {

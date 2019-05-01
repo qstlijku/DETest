@@ -12,13 +12,13 @@ void spkFile::open(IBinaryArchive &fp) {
 	fp.serialize(magic);
 	SDL_assert_release(magic == spkMagic);
 
-	uint32_t count = ids.size();
+	uint32_t count = objs.size();
 	fp.serialize(count);
-	ids.resize(count);
 	objs.resize(count);
+	objs.reserve(count + 100);//TODO: This is a dirty trick to prevent pointers from changing on us when we add to this vector
 
 	for (uint32_t i = 0; i < count; ++i)
-		fp.serialize(ids[i]);
+		fp.serialize(objs[i].Id);
 
 	for (uint32_t i = 0; i < count; ++i) {
 		uint32_t size;
@@ -26,8 +26,7 @@ void spkFile::open(IBinaryArchive &fp) {
 			fp.serialize(size);
 			uint32_t nextOffset = fp.tell() + size;
 			try {
-				objs[i] = std::make_shared<sbaoFile>();
-				objs[i]->open(fp, size);
+				objs[i].open(fp, size);
 			}
 			catch (...) {
 				int a = 0;
@@ -39,7 +38,7 @@ void spkFile::open(IBinaryArchive &fp) {
 			size = 0;
 			fp.serialize(size);
 			Sint64 dataOffset = fp.tell();
-			objs[i]->open(fp, 0);
+			objs[i].open(fp, 0);
 			Sint64 endOffset = fp.tell();
 
 			SDL_RWseek(fp.fp, sizeOffset, RW_SEEK_SET);
@@ -53,9 +52,16 @@ void spkFile::open(IBinaryArchive &fp) {
 }
 
 void spkFile::registerMembers(MemberStructure & ms) {
-	for (uint32_t i = 0; i < objs.size(); ++i) {
-		char buffer[16];
-		snprintf(buffer, sizeof(buffer), "%08x", ids[i]);
-		ms.registerMember(buffer, *objs[i]);
+	ms.registerMember(NULL, objs);
+}
+
+sbaoFile& spkFile::getSbao(uint32_t resId) {
+	for (auto& it : objs) {
+		if (it.Id == resId)
+			return it;
 	}
+
+	sbaoFile& newSbao = objs.emplace_back();
+	newSbao.Id = resId;
+	return newSbao;
 }

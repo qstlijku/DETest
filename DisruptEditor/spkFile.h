@@ -11,7 +11,8 @@ public:
 	void open(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms);
 
-	Vector< std::shared_ptr<sbaoFile> > objs;
-	Vector<uint32_t> ids;
+	sbaoFile& getSbao(uint32_t resId);
+
+	Vector<sbaoFile> objs;
 };
 

@@ -9,6 +9,7 @@
 #include "IBinaryArchive.h"
 #include "Serialization.h"
 #include "HexBase64.h"
+#include <variant>
 
 struct ResourceDescriptor;
 void addReferenceSpk(uint32_t ID);
@@ -45,19 +46,11 @@ struct CObjectReference {
 		addReferenceSpk(refAtomicId);
 	}
 	void registerMembers(MemberStructure &ms) {
-		ms.registerMember(NULL, refAtomicId);
-	}
-};
-
-template <>
-struct CObjectReference<SndData> {
-	uint32_t refAtomicId;
-	void read(IBinaryArchive& fp) {
-		fp.serialize(refAtomicId);
-		addReferenceSbao(refAtomicId);
-	}
-	void registerMembers(MemberStructure& ms) {
-		ms.registerMember(NULL, refAtomicId);
+		char buffer[16];
+		snprintf(buffer, sizeof(buffer), "%08x", refAtomicId);
+		std::string str = buffer;
+		ms.registerMember(NULL, str);
+		sscanf(str.c_str(), "%08x", &refAtomicId);
 	}
 };
 
@@ -219,7 +212,7 @@ struct SampleResourceDescriptor {
 };
 
 struct tdstRandomElement {
-	uint32_t resourceId;
+	CObjectReference<ResourceDescriptor> resourceId;
 	float prob;
 	bool bCanBeChosenTwice;
 	bool bHasPlayed;
@@ -583,15 +576,15 @@ struct BaseResourceDescriptor {
 	//BaseFields
 	Vector< CObjectReference<EmitterSpec> > emitterSpecs;
 
-	std::shared_ptr<SampleResourceDescriptor> sampleResourceDescriptor;
-	std::shared_ptr<RandomResourceDescriptor> randomResourceDescriptor;
-	std::shared_ptr<SilenceResourceDescriptor> silenceResourceDescriptor;
-	std::shared_ptr<MultiLayerResourceDescriptor> multiLayerResourceDescriptor;
-	std::shared_ptr<SequenceResourceDescriptor> sequenceResourceDescriptor;
-	std::shared_ptr<MultiTrackResourceDescriptor> multiTrackResourceDescriptor;
-	std::shared_ptr<ThemeResourceDescriptor> themeResourceDescriptor;
-	std::shared_ptr<GranularResourceDescriptor> granularResourceDescriptor;
-	std::shared_ptr<SwitchResourceDescriptor> switchResourceDescriptor;
+	std::variant<SampleResourceDescriptor,
+		RandomResourceDescriptor,
+		SilenceResourceDescriptor,
+		MultiLayerResourceDescriptor,
+		SequenceResourceDescriptor,
+		MultiTrackResourceDescriptor,
+		ThemeResourceDescriptor,
+		GranularResourceDescriptor,
+		SwitchResourceDescriptor> data;
 
 	void read(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms);
@@ -627,7 +620,7 @@ struct Delay {
 };
 
 struct EventDescriptor {
-	uint32_t Id;
+	CObjectReference<EventDescriptor> Id;
 	uint32_t eType;
 	LimiterInfoDescriptor globalLimiterInfo;
 	LimiterInfoDescriptor perSoundObjectLimiterInfo;
@@ -1188,7 +1181,7 @@ struct ChangeVolumeEventDescriptor {
 
 	void read(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms) {
-		REGISTER_MEMBER(pBase);
+		ms.registerMember(NULL, pBase);
 		REGISTER_MEMBER(bApplyOnObjectType);
 		REGISTER_MEMBER(newVolume_dB);
 		REGISTER_MEMBER(fFadeDuration);
@@ -1210,7 +1203,7 @@ struct StopNGoEventDescriptor {
 
 	void read(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms) {
-		REGISTER_MEMBER(pBase);
+		ms.registerMember(NULL, pBase);
 		REGISTER_MEMBER(uEvtStop);
 		REGISTER_MEMBER(uEvtGo);
 		REGISTER_MEMBER(fFadeDuration);
@@ -1239,7 +1232,7 @@ struct SwitchEventDescriptor {
 
 	void read(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms) {
-		REGISTER_MEMBER(pBase);
+		ms.registerMember(NULL, pBase);
 		REGISTER_MEMBER(switchTypeId);
 		REGISTER_MEMBER(defaultEvent);
 		REGISTER_MEMBER(m_elements);
@@ -1251,6 +1244,8 @@ public:
 	void open(IBinaryArchive &fp, size_t size);
 	void registerMembers(MemberStructure &ms);
 
+	uint32_t Id;//Not stored
+
 	uint32_t unk1;
 	uint32_t unk2;
 	uint32_t unk3;
@@ -1258,20 +1253,19 @@ public:
 	uint32_t unk5;
 
 	CDobbsID type;
-
-	std::shared_ptr<ResourceDescriptor> resourceDescriptor;
-	std::shared_ptr<PlayEventDescriptor> playEventDescriptor;
-	std::shared_ptr<MultiEventDescriptor> multiEventDescriptor;
-	std::shared_ptr<PresetDescriptor> presetDescriptor;
-	std::shared_ptr<PresetEventDescriptor> presetEventDescriptor;
-	std::shared_ptr<StopEventDescriptor> stopEventDescriptor;
-	std::shared_ptr<RemovePresetEventDescriptor> removePresetEventDescriptor;
-	std::shared_ptr<ProjectDesc> projectDesc;
-	std::shared_ptr<RolloffResourceDescriptor> rolloffResourceDescriptor;
-	std::shared_ptr<EmitterSpec> emitterSpec;
-	std::shared_ptr<ChangeVolumeEventDescriptor> changeVolumeEventDescriptor;
-	std::shared_ptr<StopNGoEventDescriptor> stopNGoEventDescriptor;
-	std::shared_ptr<SwitchEventDescriptor> switchEventDescriptor;
-	std::shared_ptr<SndData> sndData;
+	std::variant<ResourceDescriptor,
+		PlayEventDescriptor,
+		MultiEventDescriptor,
+		PresetDescriptor,
+		PresetEventDescriptor,
+		StopEventDescriptor,
+		RemovePresetEventDescriptor,
+		ProjectDesc,
+		RolloffResourceDescriptor,
+		EmitterSpec,
+		ChangeVolumeEventDescriptor,
+		StopNGoEventDescriptor,
+		SwitchEventDescriptor,
+		SndData> data;
 };
 

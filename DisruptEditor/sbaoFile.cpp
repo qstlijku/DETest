@@ -118,11 +118,18 @@ static std::vector<short> decodeSoundData(uint32_t CompressionFormat, Vector<uin
 	return decoded;
 }
 
-template <typename T>
-void serializeSharedPtr(std::shared_ptr<T>& ptr, IBinaryArchive &fp) {
-	if (!ptr)
-		ptr = std::make_shared<T>();
-	ptr->read(fp);
+template <typename T, typename ... U>
+void serializeAny(IBinaryArchive& fp, std::variant<U...> &ptr) {
+	if (!std::holds_alternative<T>(ptr))
+		ptr.emplace<T>();
+	std::get<T>(ptr).read(fp);
+}
+
+template <typename T, typename ... U>
+void serializeAny(MemberStructure& ms, std::variant<U...> & ptr) {
+	if (!std::holds_alternative<T>(ptr))
+		ptr.emplace<T>();
+	ms.registerMember(NULL, std::get<T>(ptr));
 }
 
 void sbaoFile::open(IBinaryArchive & fp, size_t size) {
@@ -148,8 +155,9 @@ void sbaoFile::open(IBinaryArchive & fp, size_t size) {
 	//We need to know ahead of time if this is audio data or a object
 
 	//This is for object
-	if (!fp.isReading() && sndData) {
-		fp.memBlock(sndData->rawData.data(), 1, sndData->rawData.size());
+	if (!fp.isReading() && std::holds_alternative<SndData>(data)) {
+		SndData &sndData = std::get<SndData>(data);
+		fp.memBlock(sndData.rawData.data(), 1, sndData.rawData.size());
 		fp.padding = IBinaryArchive::PADDING_IBINARYARCHIVE;
 		return;
 	} else {
@@ -157,33 +165,32 @@ void sbaoFile::open(IBinaryArchive & fp, size_t size) {
 	}
 
 	std::string typeName = type.getReverseName();
-
 	if (typeName == "ResourceDescriptor") {
-		serializeSharedPtr(resourceDescriptor, fp);
+		serializeAny<ResourceDescriptor>(fp, data);
 	} else if (typeName == "PlayEventDescriptor") {
-		serializeSharedPtr(playEventDescriptor, fp);
+		serializeAny<PlayEventDescriptor>(fp, data);
 	} else if (typeName == "MultiEventDescriptor") {
-		serializeSharedPtr(multiEventDescriptor, fp);
+		serializeAny<MultiEventDescriptor>(fp, data);
 	} else if (typeName == "PresetDescriptor") {
-		serializeSharedPtr(presetDescriptor, fp);
+		serializeAny<PresetDescriptor>(fp, data);
 	} else if (typeName == "PresetEventDescriptor") {
-		serializeSharedPtr(presetEventDescriptor, fp);
+		serializeAny<PresetEventDescriptor>(fp, data);
 	} else if (typeName == "StopEventDescriptor") {
-		serializeSharedPtr(stopEventDescriptor, fp);
+		serializeAny<StopEventDescriptor>(fp, data);
 	} else if (typeName == "RemovePresetEventDescriptor") {
-		serializeSharedPtr(removePresetEventDescriptor, fp);
+		serializeAny<RemovePresetEventDescriptor>(fp, data);
 	} else if (typeName == "ProjectDesc") {
-		serializeSharedPtr(projectDesc, fp);
+		serializeAny<ProjectDesc>(fp, data);
 	} else if (typeName == "RolloffResourceDescriptor") {
-		serializeSharedPtr(rolloffResourceDescriptor, fp);
+		serializeAny<RolloffResourceDescriptor>(fp, data);
 	} else if (typeName == "EmitterSpec") {
-		serializeSharedPtr(emitterSpec, fp);
+		serializeAny<EmitterSpec>(fp, data);
 	} else if (typeName == "ChangeVolumeEventDescriptor") {
-		serializeSharedPtr(changeVolumeEventDescriptor, fp);
+		serializeAny<ChangeVolumeEventDescriptor>(fp, data);
 	} else if (typeName == "StopNGoEventDescriptor") {
-		serializeSharedPtr(stopNGoEventDescriptor, fp);
+		serializeAny<StopNGoEventDescriptor>(fp, data);
 	} else if (typeName == "SwitchEventDescriptor") {
-		serializeSharedPtr(switchEventDescriptor, fp);
+		serializeAny<SwitchEventDescriptor>(fp, data);
 	} else if (typeName[0] != '_') {
 		SDL_assert_release(false);
 	} else {
@@ -192,9 +199,9 @@ void sbaoFile::open(IBinaryArchive & fp, size_t size) {
 		//Assume this is sound data
 		SDL_RWseek(fp.fp, -4, RW_SEEK_CUR);
 		size_t rawDataSize = size - (7 * 4);
-		sndData = std::make_shared<SndData>();
-		sndData->rawData.resize(rawDataSize);
-		fp.memBlock(sndData->rawData.data(), 1, rawDataSize);
+		SndData &sndData = data.emplace<SndData>();
+		sndData.rawData.resize(rawDataSize);
+		fp.memBlock(sndData.rawData.data(), 1, rawDataSize);
 	}
 
 	fp.padding = IBinaryArchive::PADDING_IBINARYARCHIVE;
@@ -206,37 +213,37 @@ void sbaoFile::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk3);
 	REGISTER_MEMBER(unk4);
 	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(Id);
 
 	REGISTER_MEMBER(type);
 	std::string typeName = type.getReverseName();
-	if (typeName == "ResourceDescriptor")
-		ms.registerMember(NULL, *resourceDescriptor);
-	else if (typeName == "PlayEventDescriptor")
-		ms.registerMember(NULL, *playEventDescriptor);
-	else if (typeName == "MultiEventDescriptor")
-		ms.registerMember(NULL, *multiEventDescriptor);
-	else if (typeName == "PresetDescriptor")
-		ms.registerMember(NULL, *presetDescriptor);
-	else if (typeName == "PresetEventDescriptor")
-		ms.registerMember(NULL, *presetEventDescriptor);
-	else if (typeName == "StopEventDescriptor")
-		ms.registerMember(NULL, *stopEventDescriptor);
-	else if (typeName == "RemovePresetEventDescriptor")
-		ms.registerMember(NULL, *removePresetEventDescriptor);
-	else if (typeName == "ProjectDesc")
-		ms.registerMember(NULL, *projectDesc);
-	else if (typeName == "RolloffResourceDescriptor")
-		ms.registerMember(NULL, *rolloffResourceDescriptor);
-	else if (typeName == "EmitterSpec")
-		ms.registerMember(NULL, *emitterSpec);
-	else if (typeName == "ChangeVolumeEventDescriptor")
-		ms.registerMember(NULL, *changeVolumeEventDescriptor);
-	else if (typeName == "StopNGoEventDescriptor")
-		ms.registerMember(NULL, *stopNGoEventDescriptor);
-	else if (typeName == "SwitchEventDescriptor")
-		ms.registerMember(NULL, *switchEventDescriptor);
-	else if (typeName == "SndData")
-		ms.registerMember(NULL, *sndData);
+	if (typeName == "ResourceDescriptor") {
+		serializeAny<ResourceDescriptor>(ms, data);
+	} else if (typeName == "PlayEventDescriptor") {
+		serializeAny<PlayEventDescriptor>(ms, data);
+	} else if (typeName == "MultiEventDescriptor") {
+		serializeAny<MultiEventDescriptor>(ms, data);
+	} else if (typeName == "PresetDescriptor") {
+		serializeAny<PresetDescriptor>(ms, data);
+	} else if (typeName == "PresetEventDescriptor") {
+		serializeAny<PresetEventDescriptor>(ms, data);
+	} else if (typeName == "StopEventDescriptor") {
+		serializeAny<StopEventDescriptor>(ms, data);
+	} else if (typeName == "RemovePresetEventDescriptor") {
+		serializeAny<RemovePresetEventDescriptor>(ms, data);
+	} else if (typeName == "ProjectDesc") {
+		serializeAny<ProjectDesc>(ms, data);
+	} else if (typeName == "RolloffResourceDescriptor") {
+		serializeAny<RolloffResourceDescriptor>(ms, data);
+	} else if (typeName == "EmitterSpec") {
+		serializeAny<EmitterSpec>(ms, data);
+	} else if (typeName == "ChangeVolumeEventDescriptor") {
+		serializeAny<ChangeVolumeEventDescriptor>(ms, data);
+	} else if (typeName == "StopNGoEventDescriptor") {
+		serializeAny<StopNGoEventDescriptor>(ms, data);
+	} else if (typeName == "SwitchEventDescriptor") {
+		serializeAny<SwitchEventDescriptor>(ms, data);
+	}
 }
 
 void ResourceDescriptor::read(IBinaryArchive & fp) {
@@ -246,7 +253,7 @@ void ResourceDescriptor::read(IBinaryArchive & fp) {
 	globalLimiterInfo.read(fp);
 	perSoundObjectLimiterInfo.read(fp);
 	fp.serialize(eType);
-	pResourceDesc.read(fp);
+	fp.serialize(pResourceDesc);
 }
 
 void ResourceDescriptor::registerMembers(MemberStructure & ms) {
@@ -291,23 +298,23 @@ void BaseResourceDescriptor::read(IBinaryArchive & fp) {
 	fp.serializeNdVectorExternal(emitterSpecs);
 
 	if (typeName == "SampleResourceDescriptor") {
-		serializeSharedPtr(sampleResourceDescriptor, fp);
+		serializeAny<SampleResourceDescriptor>(fp, data);
 	} else if (typeName == "RandomResourceDescriptor") {
-		serializeSharedPtr(randomResourceDescriptor, fp);
+		serializeAny<RandomResourceDescriptor>(fp, data);
 	} else if (typeName == "SilenceResourceDescriptor") {
-		serializeSharedPtr(silenceResourceDescriptor, fp);
+		serializeAny<SilenceResourceDescriptor>(fp, data);
 	} else if (typeName == "MultiLayerResourceDescriptor") {
-		serializeSharedPtr(multiLayerResourceDescriptor, fp);
+		serializeAny<MultiLayerResourceDescriptor>(fp, data);
 	} else if (typeName == "SequenceResourceDescriptor") {
-		serializeSharedPtr(sequenceResourceDescriptor, fp);
+		serializeAny<SequenceResourceDescriptor>(fp, data);
 	} else if (typeName == "MultiTrackResourceDescriptor") {
-		serializeSharedPtr(multiTrackResourceDescriptor, fp);
+		serializeAny<MultiTrackResourceDescriptor>(fp, data);
 	} else if (typeName == "ThemeResourceDescriptor") {
-		serializeSharedPtr(themeResourceDescriptor, fp);
+		serializeAny<ThemeResourceDescriptor>(fp, data);
 	} else if (typeName == "GranularResourceDescriptor") {
-		serializeSharedPtr(granularResourceDescriptor, fp);
+		serializeAny<GranularResourceDescriptor>(fp, data);
 	} else if (typeName == "SwitchResourceDescriptor") {
-		serializeSharedPtr(switchResourceDescriptor, fp);
+		serializeAny<SwitchResourceDescriptor>(fp, data);
 	} else {
 		SDL_assert_release(false);
 	}
@@ -318,24 +325,25 @@ void BaseResourceDescriptor::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(emitterSpecs);
 
 	std::string typeName = type.getReverseName();
-	if (typeName == "SampleResourceDescriptor")
-		ms.registerMember(NULL, *sampleResourceDescriptor);
-	else if (typeName == "RandomResourceDescriptor")
-		ms.registerMember(NULL, *randomResourceDescriptor);
-	else if (typeName == "SilenceResourceDescriptor")
-		ms.registerMember(NULL, *silenceResourceDescriptor);
-	else if (typeName == "MultiLayerResourceDescriptor")
-		ms.registerMember(NULL, *multiLayerResourceDescriptor);
-	else if (typeName == "SequenceResourceDescriptor")
-		ms.registerMember(NULL, *sequenceResourceDescriptor);
-	else if (typeName == "MultiTrackResourceDescriptor")
-		ms.registerMember(NULL, *multiTrackResourceDescriptor);
-	else if (typeName == "ThemeResourceDescriptor")
-		ms.registerMember(NULL, *themeResourceDescriptor);
-	else if (typeName == "GranularResourceDescriptor")
-		ms.registerMember(NULL, *granularResourceDescriptor);
-	else if (typeName == "SwitchResourceDescriptor")
-		ms.registerMember(NULL, *switchResourceDescriptor);
+	if (typeName == "SampleResourceDescriptor") {
+		serializeAny<SampleResourceDescriptor>(ms, data);
+	} else if (typeName == "RandomResourceDescriptor") {
+		serializeAny<RandomResourceDescriptor>(ms, data);
+	} else if (typeName == "SilenceResourceDescriptor") {
+		serializeAny<SilenceResourceDescriptor>(ms, data);
+	} else if (typeName == "MultiLayerResourceDescriptor") {
+		serializeAny<MultiLayerResourceDescriptor>(ms, data);
+	} else if (typeName == "SequenceResourceDescriptor") {
+		serializeAny<SequenceResourceDescriptor>(ms, data);
+	} else if (typeName == "MultiTrackResourceDescriptor") {
+		serializeAny<MultiTrackResourceDescriptor>(ms, data);
+	} else if (typeName == "ThemeResourceDescriptor") {
+		serializeAny<ThemeResourceDescriptor>(ms, data);
+	} else if (typeName == "GranularResourceDescriptor") {
+		serializeAny<GranularResourceDescriptor>(ms, data);
+	} else if (typeName == "SwitchResourceDescriptor") {
+		serializeAny<SwitchResourceDescriptor>(ms, data);
+	}
 }
 
 void RTPC::read(IBinaryArchive & fp) {
@@ -363,28 +371,29 @@ std::vector<short> SampleResourceDescriptor::decode() {
 		//sbaoFile &uSndDataZeroLatencyMemPart = DARE::instance().loadAtomicObject(stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId);
 		if (stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId != 0xFFFFFFFF) {
 			sbaoFile& streamRefBegin = DARE::instance().loadAtomicObject(stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId);
-			sndData.rawData = streamRefBegin.sndData->rawData;
+			sndData.rawData = std::get<SndData>(streamRefBegin.data).rawData;
 			if (stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId == stToolSourceFormat.streamRef.refAtomicId) {
 				char buffer[80];
 				snprintf(buffer, sizeof(buffer), "soundbinary/%08x.sbao", stToolSourceFormat.streamRef.refAtomicId);
 
 				SDL_RWops* fp = FH::openFile(buffer);
 				if (fp) {
-					std::shared_ptr<sbaoFile> sbao = std::make_shared<sbaoFile>();
-					sbao->open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
+					sbaoFile sbao;
+					sbao.open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
 					SDL_RWclose(fp);
-					sndData.rawData.insert(sndData.rawData.end(), sbao->sndData->rawData.begin(), sbao->sndData->rawData.end());
+					SndData& second = std::get<SndData>(sbao.data);
+					sndData.rawData.insert(sndData.rawData.end(), second.rawData.begin(), second.rawData.end());
 				}
 			} else {
-				sndData.rawData.insert(sndData.rawData.end(), streamRef.sndData->rawData.begin(), streamRef.sndData->rawData.end());
+				SndData& second = std::get<SndData>(streamRef.data);
+				sndData.rawData.insert(sndData.rawData.end(), second.rawData.begin(), second.rawData.end());
 			}
 		} else {
-			sndData = *streamRef.sndData;
+			sndData = std::get<SndData>(streamRef.data);
 		}
 	} else {
 		sbaoFile &source = DARE::instance().loadAtomicObject(stToolSourceFormat.dataRef.refAtomicId);
-		SDL_assert_release(source.sndData);
-		sndData = *source.sndData;
+		sndData = std::get<SndData>(source.data);
 	}
 
 	return decodeSoundData(CompressionFormat, sndData.rawData, ulNbChannels, ulFreq);
@@ -835,10 +844,10 @@ std::vector<short> MultiTrackResourceDescriptor::decode(int layer) {
 
 		SDL_RWops* fp = FH::openFile(buffer);
 		if (fp) {
-			std::shared_ptr<sbaoFile> sbao = std::make_shared<sbaoFile>();
-			sbao->open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
+			sbaoFile sbao;
+			sbao.open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
 			SDL_RWclose(fp);
-			tempRawData = sbao->sndData->rawData;
+			tempRawData = std::get<SndData>(sbao.data).rawData;
 			mem = SDL_RWFromConstMem(tempRawData.data(), tempRawData.size());
 		}
 	} else {
@@ -1193,12 +1202,11 @@ std::vector<short> GranularResourceDescriptor::decode() {
 		sbaoFile& streamRef = DARE::instance().loadAtomicObject(m_toolSourceFormat.streamRef.refAtomicId);
 		//sbaoFile &uSndDataZeroLatencyMemPart = DARE::instance().loadAtomicObject(stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId);
 		SDL_assert_release(m_toolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId == 0xFFFFFFFF);
-		sndData = *streamRef.sndData;
+		sndData = std::get<SndData>(streamRef.data);
 	}
 	else {
 		sbaoFile& source = DARE::instance().loadAtomicObject(m_toolSourceFormat.dataRef.refAtomicId);
-		SDL_assert_release(source.sndData);
-		sndData = *source.sndData;
+		sndData = std::get<SndData>(source.data);
 	}
 
 	return decodeSoundData(m_compression, sndData.rawData, m_numChannels, m_freq);

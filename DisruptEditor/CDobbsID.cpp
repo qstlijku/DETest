@@ -23,7 +23,7 @@ void CDobbsID::registerMembers(MemberStructure & ms) {
 		if (temp[0] == '_')
 			sscanf(temp.c_str(), "_%08x", &id);
 		else
-			id = Hash::getHash(temp.c_str());
+			id = Hash::gearDobbsHash((const uint8_t*)temp.c_str(), temp.size());
 		break;
 	}
 	default:
