@@ -524,7 +524,6 @@ void DynamicIndexedPropertyContainer::read(IBinaryArchive & fp) {
 
 	fp.serialize(isBlob);
 	if (isBlob) {
-		uint32_t unk1;
 		fp.serialize(unk1);
 	} else {
 		//Dare::DynamicIndexedPropertyContainer::NormalSerialize((SndGear::Serializer &, long))
@@ -537,6 +536,7 @@ void DynamicIndexedPropertyContainer::read(IBinaryArchive & fp) {
 void DynamicIndexedPropertyContainer::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(size);
 	REGISTER_MEMBER(isBlob);
+	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(rawSize);//TODO
 }
 
@@ -1344,7 +1344,7 @@ void StringPool::read(IBinaryArchive & fp) {
 	else {
 		Vector<char> data;
 		for (std::string str : strings) {
-
+			data.insert(data.end(), str.begin(), str.end());//TODO: Check if this include null terminator
 		}
 
 		uint32_t size = data.size();

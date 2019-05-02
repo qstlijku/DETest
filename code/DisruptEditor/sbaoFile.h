@@ -170,6 +170,9 @@ struct DynamicIndexedPropertyContainer {
 	int32_t size;
 	bool isBlob;
 
+	//Blob Serialize
+	uint32_t unk1;
+
 	//Normal Seralize
 	uint32_t rawSize;
 
