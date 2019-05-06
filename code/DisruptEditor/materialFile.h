@@ -91,6 +91,7 @@ public:
 	Vector<SCommand> commands;
 
 	std::string getCommandPath(const char* name);
+	void bind();
 
 	struct CGradient {
 		Vector<glm::vec4> vecs;
@@ -101,6 +102,8 @@ public:
 		void registerMembers(MemberStructure &ms);
 	};
 	Vector<CGradient> gradients;
+
+	bool loaded = false;
 
 	bool open(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms);

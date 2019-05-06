@@ -10,35 +10,38 @@ void World::loadWLUAsync() {
 	Vector<FileInfo> files = FH::getFileList("worlds/windy_city/generated/wlu", "xml.data.fcb");
 	int i = 0;
 	for (FileInfo& file : files) {
-		world.loadingStatus = "Loading " + file.name;
+		
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
 		SDL_RWops* fp = FH::openFile(file.fullPath.c_str());
 		wlu->open(fp);
 		SDL_RWclose(fp);
+		world.mutex.lock();
 		world.wlus[file.name] = wlu;
+		world.loadingStatus = "Loading " + file.name;
 		++i;
 		world.loadingProgress = (float)i / files.size();
+		world.mutex.unlock();
 	}
 }
 
 void World::loadBatchAsync() {
 	Vector<FileInfo> files = FH::getFileList("worlds/windy_city/generated/batchmeshentity/", "cbatch");
+	int i = 0;
 	for (auto it : files) {
 		if (it.name.find("_compound") == std::string::npos) continue;
 
+
 		std::shared_ptr<batchFile> bf = std::make_shared<batchFile>();
 		try {
-			if (it.name != "batchmeshentity_c2_i0_xn0767_yp0513_xn0641_yp0639_compound.cbatch")
-				continue;
-
 			SDL_RWops * fp = FH::openFile(it.fullPath.c_str());
 			CBinaryArchiveReader reader(fp);
 			bf->open(reader);
 			SDL_RWclose(fp);
+			world.mutex.lock();
 			world.batches[it.name] = bf;
-
-			std::string str = serializeToXML(*bf);
+			world.loadingStatus = "Loading " + it.name;
+			world.mutex.unlock();
 		} catch (...) {}
 	}
 }

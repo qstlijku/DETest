@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <unordered_set>
 #include "Common.h"
+#include "ResourceLoader.h"
 #include "Hash.h"
 #include "DDRenderInterface.h"
 #include "glm/gtc/matrix_transform.hpp"

@@ -1,11 +1,14 @@
 #pragma once
 
 #include "glad.h"
-struct SDL_RWops;
+#include "IBinaryArchive.h"
 
 class xbtFile {
 public:
-	bool open(SDL_RWops* fp);
+	bool open(IBinaryArchive &reader);
+	void bind(int slot);
+	bool loaded = false;
+private:
 	GLuint id;
 };
 

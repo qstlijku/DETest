@@ -11,7 +11,7 @@ You may not use this file without permission
 #include <iostream>
 #include "Vector.h"
 #include <stdlib.h>
-#include "Common.h"
+#include "ResourceLoader.h"
 #include "materialFile.h"
 #include "xbtFile.h"
 #include "glm/glm.hpp"
@@ -21,6 +21,7 @@ You may not use this file without permission
 #include "IBinaryArchive.h"
 #include "Serialization.h"
 #include "HexBase64.h"
+#include <DDRenderInterface.h>
 
 static void serializeMat4(IBinaryArchive& fp, glm::mat4 &vec) {
 	fp.pad(16);
@@ -906,6 +907,7 @@ void xbgFile::GeomMips::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::draw(int selLod) {
+	if (!loaded) return;
 	if (lods.empty()) return;
 
 	if (selLod >= lods.size())
@@ -913,8 +915,9 @@ void xbgFile::draw(int selLod) {
 
 	LOD &lod = lods[selLod];
 
-	int i = 0;
 	for (auto &mesh : lod.meshes) {
+		glUniform1f(RenderInterface::instance().model.uniforms["scale"], mesh.unk2);
+
 		GLenum pType = GL_TRIANGLES;
 		switch (mesh.primitiveType) {
 		case 0:
@@ -927,10 +930,7 @@ void xbgFile::draw(int selLod) {
 			SDL_assert_release(false && "Unhandled Primitive Type");
 		}
 
-		auto &mat = loadMaterial(materialResources.materials[mesh.matID].file);
-		auto& diffuse = loadTexture(mat.getCommandPath("DiffuseTexture1").c_str());
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuse->id);
+		loadMaterial(materialResources.materials[mesh.matID].file.c_str())->bind();
 		
 		int bufferIndex = selLod;
 

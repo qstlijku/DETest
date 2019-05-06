@@ -1,5 +1,6 @@
 <shader>
 	<uniform name="MVP" type="mat4" />
+	<uniform name="scale" type="float" />
 	<vertex>
 #version 330
 layout(location = 0) in vec3 CS_Position;
@@ -11,10 +12,11 @@ out vec3 pos;
 out vec2 uv;
 
 uniform mat4 MVP;
+uniform float scale = 1.0;
 
 void main(){
-	gl_Position = MVP * vec4(CS_Position,1);
-	pos = CS_Position;
+	gl_Position = MVP * vec4(CS_Position*scale,1);
+	pos = CS_Position*scale;
 	uv = CS_DiffuseUV;
 }
 	</vertex>
@@ -30,7 +32,7 @@ layout (location = 0) out vec4 gAlbedoSpec;
 uniform sampler2D diffuse;
 
 void main() {
-	gAlbedoSpec = vec4(texture(diffuse, uv));
+	gAlbedoSpec = vec4(texture(diffuse, uv).rgb, 1);
 }
 	</fragment>
 </shader>

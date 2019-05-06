@@ -40,7 +40,9 @@
 #include "CResourceDataBase.h"
 #include "embedFile.h"
 #include "CMoveResourceDataManager.h"
-#include "xbgMipFile.h"
+#include "batchFile.h"
+#include "ResourceLoader.h"
+#include <glm/gtx/norm.hpp>
 
 #include <Windows.h>
 #include <Shellapi.h>
@@ -95,10 +97,24 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
-	if (glcontext == NULL) {
+	SDL_GLContext glcontext2 = SDL_GL_CreateContext(window);
+	if (glcontext == NULL || glcontext2 == NULL) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create gl context", SDL_GetError(), window);
 		return 1;
 	}
+	//Share Lists
+	BOOL error = wglShareLists((HGLRC)glcontext, (HGLRC)glcontext2);
+	if (error == FALSE) {
+		DWORD errorCode = GetLastError();
+		LPVOID lpMsgBuf;
+		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)& lpMsgBuf, 0, NULL);
+		MessageBox(NULL, (LPCTSTR)lpMsgBuf, L"Error", MB_OK | MB_ICONINFORMATION);
+		LocalFree(lpMsgBuf);
+		exit(0);
+	}
+	SDL_GL_MakeCurrent(window, glcontext);
+
 	SDL_GL_SetSwapInterval(1);
 	gladLoadGL();
 	IMGUI_CHECKVERSION();
@@ -109,27 +125,11 @@ int main(int argc, char **argv) {
 	ImGui::StyleColorsDark(NULL);
 	RenderInterface::instance().window = window;
 	RenderInterface::instance().context = glcontext;
+	RenderInterface::instance().context2 = glcontext2;
 	dd::initialize(&RenderInterface::instance());
 
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
-
-	//Debug
-	/*Vector<SplineLoftHiRes> hiRes;
-	Vector<FileInfo> files = FH::getFileList("worlds\\windy_city\\generated\\roadresources", "hgfx");
-	for (auto it : files) {
-		SDL_RWops* fp = SDL_RWFromFile(it.fullPath.c_str(), "rb");
-		CBinaryArchiveReader reader(fp);
-		SplineLoftHiRes& a = hiRes.emplace_back();
-		a.open(reader);
-		SDL_RWclose(fp);
-	}*/
-
-	/*world.loadSectors();
-	for (auto& it : world.sectors)
-		it.save();
-
-	int absud = 1;*/
 
 #if _DEBUG
 	{
@@ -215,61 +215,6 @@ int main(int argc, char **argv) {
 				fclose(fp);
 			}*/
 		}
-
-		//locFile loc;
-		//loc.open("Z:\\scratch\\bin\\common\\languages\\main_english.loc");
-
-		/*tfDIR dir;
-		tfDirOpen(&dir, "C:\\Users\\Jonathan\\Desktop\\WD_materials_BIN");
-		while (dir.has_next) {
-			tfFILE file;
-			tfReadFile(&dir, &file);
-
-			if (!file.is_dir && strstr(file.name, ".bin") != NULL && strstr(file.name, ".bin.xml") == NULL) {
-				SDL_Log("Loading %s", file.name);
-
-				materialFile mat;
-				SDL_RWops* fp = SDL_RWFromFile(file.path, "rb");
-				CBinaryArchiveReader reader(fp);
-				mat.open(reader);
-				SDL_RWclose(fp);
-				std::string str = serializeToXML(mat);
-				std::string outFilename = file.path + std::string(".xml");
-				fp = SDL_RWFromFile(outFilename.c_str(), "wb");
-				SDL_RWwrite(fp, str.data(), str.size(), 1);
-				SDL_RWclose(fp);
-			}
-
-			tfDirNext(&dir);
-		}
-		tfDirClose(&dir);*/
-
-		{
-			/*xbgFile xbg;
-			SDL_RWops *fp = SDL_RWFromFile("C:\\Users\\Jonathan\\Desktop\\char01.xbg", "rb");
-			CBinaryArchiveReader reader(fp);
-			xbg.open(reader);
-			SDL_RWclose(fp);*/
-		}
-
-		/*tfDIR dir;
-		tfDirOpen(&dir, "C:\\Program Files\\Ubisoft\\WATCH_DOGS\\bin\\patch\\worlds\\windy_city\\generated\\batchmeshentity");
-		while (dir.has_next) {
-			tfFILE file;
-			tfReadFile(&dir, &file);
-
-			if (!file.is_dir && strstr(file.name, "_compound.cbatch") != NULL) {
-				SDL_Log("Loading %s", file.name);
-
-				batchFile bf;
-				bf.open(SDL_RWFromFile(file.path, "rb"));
-				std::string str = serializeToJSON(bf);
-				std::string outFilename = file.name + std::string(".json");
-			}
-
-			tfDirNext(&dir);
-		}
-		tfDirClose(&dir);*/
 	}
 #endif
 
@@ -294,6 +239,9 @@ int main(int argc, char **argv) {
 
 		world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
 
+		std::thread resourceLoader(resourceLoaderThread);
+		resourceLoader.detach();
+
 		std::thread sectorThread(world.loadSectors);
 		sectorThread.detach();
 
@@ -304,61 +252,8 @@ int main(int argc, char **argv) {
 		batchThread.detach();
 	}
 
-	/*{
-		FILE *out = fopen("out.txt", "w");
-		for (auto it = entityLibraryUID.begin(); it != entityLibraryUID.end(); ++it) {
-			std::string arche = Hash::getReverseHashFNV(it->first);
-			fprintf(out, "%s = %s\n", it->second.c_str(), arche.c_str());
-		}
-		fclose(out);
-	}*/
-
-	/*{
-		loadingScreen->mutex.lock();
-		loadingScreen->title = "Brute forcing archetypes...";
-		loadingScreen->message.clear();
-		loadingScreen->mutex.unlock();
-		std::unordered_set<uint32_t> unknown;
-		{
-			for (auto it = entityLibraryUID.begin(); it != entityLibraryUID.end(); ++it) {
-				unknown.emplace(it->first);
-			}
-
-			for (auto it = Hash::reverseFNVHash.begin(); it != Hash::reverseFNVHash.end(); ++it) {
-				unknown.erase(it->first);
-			}
-		}
-		struct UUID {
-			uint32_t Data1;
-			uint16_t  Data2;
-			uint16_t  Data3;
-			uint8_t  Data4[8];
-		};
-		UUID guid;
-		char buffer[250];
-		uint32_t hash;
-		FILE *fp = fopen("res/archeBrute.txt", "a");
-		while (!unknown.empty()) {
-			snprintf(buffer, sizeof(buffer), "{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}", guid.Data1, guid.Data2, guid.Data3,
-				guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-				guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-
-			hash = Hash::getFilenameHash(buffer);
-			if (unknown.count(hash) > 0) {
-				unknown.erase(hash);
-				fprintf(fp, "%s\n", buffer);
-				fflush(fp);
-			}
-
-			RtlGenRandom(&guid, sizeof(guid));
-		}
-		fclose(fp);
-	}
-	return 0;*/
-
 	Uint32 ticks = SDL_GetTicks();
 	uint64_t frameCount = 0;
-	std::shared_ptr<wluFile> currentWlu;
 
 	if (settings.maximized)
 		SDL_MaximizeWindow(window);
@@ -390,181 +285,22 @@ int main(int argc, char **argv) {
 		renderInterface.Projection = glm::perspective(settings.fov, (float)renderInterface.windowSize.x / renderInterface.windowSize.y, settings.near_plane, settings.far_plane);
 		renderInterface.VP = renderInterface.Projection * renderInterface.View;
 
+		world.mutex.lock();
+
 		UI::displayTopMenu();
 		UI::displayTempWindows();
 		UI::displayWindows();
 
-		if (world.loadingProgress != 1.f) {
+		int resources;
+		std::string file;
+		getResourceLoaderProgress(resources, file);
+		if (world.loadingProgress != 1.f || resources > 0 || true) {
 			ImGui::SetNextWindowPos(ImVec2(15, 25), ImGuiCond_Always);
 			ImGui::Begin("Loading", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 			ImGui::Text("%i%% %s", (int)(world.loadingProgress * 100), world.loadingStatus.c_str());
+			ImGui::Text("Resource Loader: %i %s", resources, file.c_str());
 			ImGui::End();
 		}
-
-		//Draw Layer Window
-		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowPos(ImVec2(1150.f, 5.f), ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("Layers")) {
-			//Wlu List
-			ImGui::PushItemWidth(-1.f);
-			static char searchWluBuffer[255] = { 0 };
-			ImGui::InputText("##Search", searchWluBuffer, sizeof(searchWluBuffer));
-
-			ImVec2 size = ImGui::GetWindowContentRegionMax();
-			size.y -= 75;
-			size.x -= 5;
-			if (ImGui::ListBoxHeader("##WLU List", size)) {
-				for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
-					if (it->first.find(searchWluBuffer) != std::string::npos) {
-						bool selected = currentWlu == it->second;
-						if (ImGui::Selectable(it->first.c_str(), selected))
-							currentWlu = it->second;
-					}
-				}
-				ImGui::ListBoxFooter();
-			}
-			ImGui::PopItemWidth();
-
-			if (currentWlu) {
-				wluFile& wlu = *currentWlu;
-
-				if (ImGui::Button("Save")) {
-					SDL_RWops* fp = FH::openFileWrite("worlds/windy_city/generated/wlu/" + wlu.shortName);
-					wlu.serialize(fp);
-					SDL_RWclose(fp);
-				}
-				ImGui::SameLine();
-				std::string xmlFileName = wlu.shortName + ".xml";
-				if (ImGui::Button("XML")) {
-					FILE* fp = fopen(xmlFileName.c_str(), "wb");
-					tinyxml2::XMLPrinter printer(fp);
-					wlu.root.serializeXML(printer);
-					fclose(fp);
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Import XML")) {
-					tinyxml2::XMLDocument doc;
-					doc.LoadFile(xmlFileName.c_str());
-					wlu.root.deserializeXML(doc.RootElement());
-				}
-			}
-			
-			ImGui::End();
-			ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-			ImGui::Begin("Properties");
-
-			if (currentWlu) {
-				wluFile& wlu = *currentWlu;
-				wlu.draw();
-
-				Node* Entities = wlu.root.findFirstChild("Entities");
-				if (!Entities) continue;
-
-				for (Node& entityRef : Entities->children) {
-					bool needsCross = true;
-
-					Node* entityPtr = &entityRef;
-					Attribute* ArchetypeGuid = entityRef.getAttribute("ArchetypeGuid");
-					if (ArchetypeGuid) {
-						uint32_t uid = Hash::getFilenameHash((const char*)ArchetypeGuid->buffer.data());
-						entityPtr = findEntityByUID(uid);
-						if (!entityPtr) {
-							SDL_Log("Could not find %s\n", ArchetypeGuid->buffer.data());
-							SDL_assert_release(false && "Could not lookup entity by archtype, check that dlc_solo is loaded first before other packfiles");
-							entityPtr = &entityRef;
-						}
-					}
-					Node& entity = *entityPtr;
-
-					Attribute* hidName = entity.getAttribute("hidName");
-					glm::vec3& pos = entity.get<glm::vec3>("hidPos");
-					glm::vec3& angles = entity.get<glm::vec3>("hidAngles");
-
-					//
-					Node* hidBBox = entity.findFirstChild("hidBBox");
-
-					Node* Components = entity.findFirstChild("Components");
-					SDL_assert_release(Components);
-
-					Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
-					if (CGraphicComponent) {
-						Attribute* XBG = CGraphicComponent->getAttribute(0x3182766C);
-
-						/*if (XBG && XBG->buffer.size() > 5) {
-							auto &model = loadXBG((char*)XBG->buffer.data());
-							renderInterface.model.use();
-
-							glm::mat4 modelMatrix = glm::translate(glm::mat4(), pos);
-							modelMatrix = glm::rotate(modelMatrix, angles.x, glm::vec3(1, 0, 0));
-							modelMatrix = glm::rotate(modelMatrix, angles.y, glm::vec3(0, 1, 0));
-							modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
-
-							glm::mat4 MVP = renderInterface.VP * modelMatrix;
-							glUniformMatrix4fv(renderInterface.model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-							model.draw();
-						}*/
-					}
-
-					Node* CProximityTriggerComponent = Components->findFirstChild("CProximityTriggerComponent");
-					if (CProximityTriggerComponent) {
-						needsCross = false;
-						glm::vec3 extent = *(glm::vec3*)CProximityTriggerComponent->getAttribute("vectorSize")->buffer.data();
-						dd::box(&pos.x, red, extent.x, extent.y, extent.z);
-					}
-
-					if (hidBBox && false) {
-						glm::vec3 boxMin = *((glm::vec3*)hidBBox->getAttribute("vectorBBoxMin")->buffer.data());
-						glm::vec3 boxMax = *((glm::vec3*)hidBBox->getAttribute("vectorBBoxMax")->buffer.data());
-						glm::vec3 boxExtent = boxMax - boxMin;
-						dd::box(&pos.x, blue, boxExtent.x, boxExtent.y, boxExtent.z);
-					}
-
-					Node* PatrolDescription = entity.findFirstChild("PatrolDescription");
-					if (PatrolDescription) {
-						needsCross = false;
-						Node* PatrolPointList = PatrolDescription->findFirstChild("PatrolPointList");
-
-						glm::vec3 last;
-						for (Node& PatrolPoint : PatrolPointList->children) {
-							glm::vec3 pos = *(glm::vec3*)PatrolPoint.getAttribute("vecPos")->buffer.data();
-
-							if (last != glm::vec3())
-								dd::line(&last[0], &pos[0], red);
-							else
-								dd::projectedText((char*)hidName->buffer.data(), &pos.x, red, &renderInterface.VP[0][0], 0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y, 0.5f);
-							last = pos;
-						}
-					}
-
-					Node* RaceDescription = entity.findFirstChild("RaceDescription");
-					if (RaceDescription) {
-						needsCross = false;
-						Node* RacePointList = RaceDescription->findFirstChild("RacePointList");
-
-						glm::vec3 last;
-						for (Node& RacePoint : RacePointList->children) {
-							glm::vec3 pos = *(glm::vec3*)RacePoint.getAttribute("vecPos")->buffer.data();
-							float fShortcutRadius = *(float*)RacePoint.getAttribute("fShortcutRadius")->buffer.data();
-
-							dd::sphere((float*)& pos.x, red, fShortcutRadius);
-
-							if (last != glm::vec3())
-								dd::line(&last[0], &pos[0], red);
-							else
-								dd::projectedText((char*)hidName->buffer.data(), &pos.x, red, &renderInterface.VP[0][0], 0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y, 0.5f);
-							last = pos;
-						}
-					}
-
-					if (glm::distance(pos, camera.location) < settings.textDrawDistance)
-						dd::projectedText((char*)hidName->buffer.data(), &pos.x, white, &renderInterface.VP[0][0], 0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y, 0.5f);
-					if (needsCross)
-						dd::cross(&pos.x, 0.25f);
-
-				}
-			}
-		}
-		ImGui::End();
 
 		glBindVertexArray(RenderInterface::instance().VertexArrayID);
 		CHECK_GL_ERROR();
@@ -576,51 +312,76 @@ int main(int argc, char **argv) {
 				world.sectors[i].draw();
 		}
 
-		//Draw Batches
+		//Draw XBG
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		RenderInterface::instance().model.use();
 		glm::mat4 MVP = RenderInterface::instance().VP;
 		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
 		CHECK_GL_ERROR();
-		static xbgFile xbg;
+		static std::shared_ptr<xbgFile> xbg;
 		static int selLod = 0;
 		static char buffer[255];
 		ImGui::InputText("Filename", buffer, sizeof(buffer));
 		if (ImGui::Button("Load")) {
 			xbg = loadXBG(buffer);
-			if (xbg.mips.size() == 1) {
-				xbgMipFile& xbgmip = loadXBGMIP(xbg.mips[0].path);
-				xbg.buffers.insert(xbg.buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
-				xbg.mips.clear();
-			}
 			selLod = 0;
 		}
 		static uint32_t hashID = 0;
 		ImGui::InputScalar("HashID", ImGuiDataType_U32, &hashID);
 		if (ImGui::Button("Load ID")) {
 			xbg = loadXBG(hashID);
-			if (xbg.mips.size() == 1) {
-				xbgMipFile& xbgmip = loadXBGMIP(xbg.mips[0].path);
-				xbg.buffers.insert(xbg.buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
-				xbg.mips.clear();
-			}
 			selLod = 0;
 		}
 		if (ImGui::Button("XML")) {
-			std::string str = serializeToXML(xbg);
+			std::string str = serializeToXML(*xbg);
 			SDL_SetClipboardText(str.c_str());
 		}
-		//static xbgFile &xbg = loadXBG("graphics\\landscape\\endofworld_01.xbg");
-		ImGui::SliderInt("Lod", &selLod, 0, xbg.lods.size()-1);
-		xbg.draw(selLod);
+		if (xbg) {
+			ImGui::SliderInt("Lod", &selLod, 0, xbg->lods.size() - 1);
+			xbg->draw(selLod);
+		}
 
-		/*RenderInterface::instance().model.use();
-		glm::mat4 MVP = RenderInterface::instance().VP;
-		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-		CHECK_GL_ERROR();
-		for(auto &it : hiRes)
-			it.draw();*/
+		//Draw Building Batches
+		for (auto& it : world.batches) {
+			auto& component = it.second->componentMBP;
+			for (auto& it : component.batchProcessors) {
+				for (auto& it : it.processors) {
+					auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
+					if (!batch) continue;
+
+					std::shared_ptr<xbgFile> xbg = loadXBG(batch->xbg.file.id);
+					for (auto& it : batch->ranges) {
+						if (glm::distance2(RenderInterface::instance().camera.location, it.unk1) > 100 * 100)
+							continue;
+						glm::mat4 MVP = glm::translate(RenderInterface::instance().VP, it.unk1);
+						glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
+						xbg->draw(0);
+					}
+				}
+			}
+
+			batchFile::CBuildingMultiBatchProcessor& building = it.second->buildingMBP;
+			if (building.lowGeom.id != -1) {
+				std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
+				glm::mat4 MVP = glm::translate(RenderInterface::instance().VP, building.unk6);
+				glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
+				xbg->draw(0);
+			}
+			if (building.roofGeom.id != -1) {
+				std::shared_ptr<xbgFile> xbg = loadXBG(building.roofGeom.id);
+				glm::mat4 MVP = glm::translate(RenderInterface::instance().VP, building.unk6);
+				glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
+				xbg->draw(0);
+			}
+			
+			/*if (!building.buildingResources.empty())
+				std::string a = serializeToXML(*it.second);*/
+		}
+
+		ImGui::InputFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
+
+		world.mutex.unlock();
 
 		if (!ImGui::IsAnyWindowHovered())
 			camera.update(delta);

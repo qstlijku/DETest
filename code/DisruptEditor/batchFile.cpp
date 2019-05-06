@@ -121,6 +121,20 @@ void batchFile::CComponentMultiBatchProcessor::read(IBinaryArchive& fp) {
 	}
 }
 
+template <typename T, typename ... U>
+void serializeAny(IBinaryArchive& fp, std::variant<U...>& ptr) {
+	if (!std::holds_alternative<T>(ptr))
+		ptr.emplace<T>();
+	std::get<T>(ptr).read(fp);
+}
+
+template <typename T, typename ... U>
+void serializeAny(MemberStructure& ms, std::variant<U...>& ptr) {
+	if (!std::holds_alternative<T>(ptr))
+		ptr.emplace<T>();
+	ms.registerMember(NULL, std::get<T>(ptr));
+}
+
 void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 	// void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=CSmartResourcePtr<CArchetypeResource>]
 	arche.read(fp);
@@ -150,50 +164,28 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 		std::string typeName = batch.batchProcessor.getReverseName();
 		SDL_Log("IBatchProcessor type=%s", typeName.c_str());
 
-		if (typeName == "CGraphicBatchProcessor") {
-			batch.graphicBatch = std::make_unique<CGraphicBatchProcessor>();
-			batch.graphicBatch->read(fp);
-		}
-		else if (typeName == "CSoundPointBatchProcessor") {
-			batch.soundPointBatch = std::make_unique<CSoundPointBatchProcessor>();
-			batch.soundPointBatch->read(fp);
-		}
-		else if (typeName == "CBlackoutEffectBatchProcessor") {
-			batch.blackoutEffectBatch = std::make_unique<CBlackoutEffectBatchProcessor>();
-			batch.blackoutEffectBatch->read(fp);
-		}
-		else if (typeName == "CParticlesBatchProcessor") {
-			batch.particlesBatch = std::make_unique<CParticlesBatchProcessor>();
-			batch.particlesBatch->read(fp);
-		}
-		else if (typeName == "CDynamicLightBatchProcessor") {
-			batch.dynamicLightBatch = std::make_unique<CDynamicLightBatchProcessor>();
-			batch.dynamicLightBatch->read(fp);
-		}
-		else if (typeName == "CLightEffectBatchProcessor") {
-			batch.lightEffectBatch = std::make_unique<CLightEffectBatchProcessor>();
-			batch.lightEffectBatch->read(fp);
-		}
-		else if (typeName == "CSecurityCameraBatchProcessor") {
-			batch.securityCameraBatch = std::make_unique<CSecurityCameraBatchProcessor>();
-			batch.securityCameraBatch->read(fp);
-		}
-		else if (typeName == "CRealTreeBatchProcessor") {
-			batch.realTreeBatch = std::make_unique<CRealTreeBatchProcessor>();
-			batch.realTreeBatch->read(fp);
-		}
-		else if (typeName == "CTrafficLightBatchProcessor") {
-			batch.trafficLightBatch = std::make_unique<CTrafficLightBatchProcessor>();
-			batch.trafficLightBatch->read(fp);
-		}
-		else if (typeName == "CDynamicMediaBatchProcessor") {
-			batch.dynamicMediaBatch = std::make_unique<CDynamicMediaBatchProcessor>();
-			batch.dynamicMediaBatch->read(fp);
-		}
-		else if (typeName == "CBollardBatchProcessor") {
-			batch.bollardBatch = std::make_unique<CBollardBatchProcessor>();
-			batch.bollardBatch->read(fp);
-		}
+		if (typeName == "CGraphicBatchProcessor")
+			serializeAny<CGraphicBatchProcessor>(fp, batch.data);
+		else if (typeName == "CSoundPointBatchProcessor")
+			serializeAny<CSoundPointBatchProcessor>(fp, batch.data);
+		else if (typeName == "CBlackoutEffectBatchProcessor")
+			serializeAny<CBlackoutEffectBatchProcessor>(fp, batch.data);
+		else if (typeName == "CParticlesBatchProcessor")
+			serializeAny<CParticlesBatchProcessor>(fp, batch.data);
+		else if (typeName == "CDynamicLightBatchProcessor")
+			serializeAny<CDynamicLightBatchProcessor>(fp, batch.data);
+		else if (typeName == "CLightEffectBatchProcessor")
+			serializeAny<CLightEffectBatchProcessor>(fp, batch.data);
+		else if (typeName == "CSecurityCameraBatchProcessor")
+			serializeAny<CSecurityCameraBatchProcessor>(fp, batch.data);
+		else if (typeName == "CRealTreeBatchProcessor")
+			serializeAny<CRealTreeBatchProcessor>(fp, batch.data);
+		else if (typeName == "CTrafficLightBatchProcessor")
+			serializeAny<CTrafficLightBatchProcessor>(fp, batch.data);
+		else if (typeName == "CDynamicMediaBatchProcessor")
+			serializeAny<CDynamicMediaBatchProcessor>(fp, batch.data);
+		else if (typeName == "CBollardBatchProcessor")
+			serializeAny<CBollardBatchProcessor>(fp, batch.data);
 		else {
 			assert_file_crash(false && "IBatchProcessor not implemented");
 			return;
@@ -330,28 +322,29 @@ void batchFile::IBatchProcessor::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(batchProcessor);
 	REGISTER_MEMBER(batchProcessorUnk1);
 
-	if (graphicBatch)
-		ms.registerMember(NULL, *graphicBatch);
-	if (soundPointBatch)
-		ms.registerMember(NULL, *soundPointBatch);
-	if (blackoutEffectBatch)
-		ms.registerMember(NULL, *blackoutEffectBatch);
-	if (particlesBatch)
-		ms.registerMember(NULL, *particlesBatch);
-	if (dynamicLightBatch)
-		ms.registerMember(NULL, *dynamicLightBatch);
-	if (lightEffectBatch)
-		ms.registerMember(NULL, *lightEffectBatch);
-	if (securityCameraBatch)
-		ms.registerMember(NULL, *securityCameraBatch);
-	if (realTreeBatch)
-		ms.registerMember(NULL, *realTreeBatch);
-	if (trafficLightBatch)
-		ms.registerMember(NULL, *trafficLightBatch);
-	if (dynamicMediaBatch)
-		ms.registerMember(NULL, *dynamicMediaBatch);
-	if (bollardBatch)
-		ms.registerMember(NULL, *bollardBatch);
+	std::string typeName = batchProcessor.getReverseName();
+	if (typeName == "CGraphicBatchProcessor")
+		serializeAny<CGraphicBatchProcessor>(ms, data);
+	else if (typeName == "CSoundPointBatchProcessor")
+		serializeAny<CSoundPointBatchProcessor>(ms, data);
+	else if (typeName == "CBlackoutEffectBatchProcessor")
+		serializeAny<CBlackoutEffectBatchProcessor>(ms, data);
+	else if (typeName == "CParticlesBatchProcessor")
+		serializeAny<CParticlesBatchProcessor>(ms, data);
+	else if (typeName == "CDynamicLightBatchProcessor")
+		serializeAny<CDynamicLightBatchProcessor>(ms, data);
+	else if (typeName == "CLightEffectBatchProcessor")
+		serializeAny<CLightEffectBatchProcessor>(ms, data);
+	else if (typeName == "CSecurityCameraBatchProcessor")
+		serializeAny<CSecurityCameraBatchProcessor>(ms, data);
+	else if (typeName == "CRealTreeBatchProcessor")
+		serializeAny<CRealTreeBatchProcessor>(ms, data);
+	else if (typeName == "CTrafficLightBatchProcessor")
+		serializeAny<CTrafficLightBatchProcessor>(ms, data);
+	else if (typeName == "CDynamicMediaBatchProcessor")
+		serializeAny<CDynamicMediaBatchProcessor>(ms, data);
+	else if (typeName == "CBollardBatchProcessor")
+		serializeAny<CBollardBatchProcessor>(ms, data);
 }
 
 void batchFile::CGraphicBatchProcessor::registerMembers(MemberStructure & ms) {

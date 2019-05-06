@@ -10,10 +10,6 @@
 #include <SDL_keycode.h>
 #include <memory>
 
-class xbgFile;
-class xbgMipFile;
-class materialFile;
-class xbtFile;
 class Node;
 class MemberStructure;
 
@@ -60,16 +56,6 @@ void saveSettings();
 
 std::string readFile(const std::string &file);
 bool writeFile(const std::string &file, const std::string &contents);
-
-xbgFile& loadXBG(const std::string &path);
-xbgFile& loadXBG(uint32_t path);
-
-xbgMipFile& loadXBGMIP(const std::string& path);
-xbgMipFile& loadXBGMIP(uint32_t path);
-
-materialFile& loadMaterial(const std::string &path);
-
-std::shared_ptr<xbtFile> loadTexture(const char *path);
 
 GLuint loadResTexture(const std::string &path);
 

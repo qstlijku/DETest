@@ -49,7 +49,7 @@ public:
 	Camera camera;
 
 	SDL_Window* window;
-	SDL_GLContext context;
+	SDL_GLContext context, context2;
 
 	//Frame Buffer
 	GLuint fbo, fbo_texture, fbo_depth;

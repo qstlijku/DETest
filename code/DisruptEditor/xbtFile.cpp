@@ -11,7 +11,8 @@
 #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
 
-bool xbtFile::open(SDL_RWops *fp) {
+bool xbtFile::open(IBinaryArchive& reader) {
+	SDL_RWops* fp = reader.fp;
 	//Seek past xbt header
 	SDL_RWseek(fp, 8, RW_SEEK_CUR);
 	int32_t ddsOffset = SDL_ReadLE32(fp);
@@ -105,4 +106,12 @@ bool xbtFile::open(SDL_RWops *fp) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return true;
+}
+
+void xbtFile::bind(int slot) {
+	glActiveTexture(GL_TEXTURE0 + slot);
+	if (loaded)
+		glBindTexture(GL_TEXTURE_2D, id);
+	else
+		glBindTexture(GL_TEXTURE_2D, 0);
 }

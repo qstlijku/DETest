@@ -10,7 +10,7 @@
 #include "debug_draw.hpp"
 #include "DDRenderInterface.h"
 #include "glm/gtc/matrix_transform.hpp"
-#include "Common.h"
+#include "ResourceLoader.h"
 
 void CSectorHighRes::open(IBinaryArchive &fp) {
 	uint32_t magic = 1397901394;
@@ -208,20 +208,9 @@ void CSector::draw() {
 	float xOffset = xPos * 64;
 	float yOffset = yPos * 64;
 
-	glActiveTexture(GL_TEXTURE0);
-	CHECK_GL_ERROR();
-	glBindTexture(GL_TEXTURE_2D, getColorTexture()->id);
-	CHECK_GL_ERROR();
-
-	glActiveTexture(GL_TEXTURE1);
-	CHECK_GL_ERROR();
-	glBindTexture(GL_TEXTURE_2D, getDiffuseTexture()->id);
-	CHECK_GL_ERROR();
-
-	glActiveTexture(GL_TEXTURE2);
-	CHECK_GL_ERROR();
-	glBindTexture(GL_TEXTURE_2D, getMaskTexture()->id);
-	CHECK_GL_ERROR();
+	getColorTexture()->bind(0);
+	getDiffuseTexture()->bind(1);
+	getMaskTexture()->bind(2);
 
 	CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer()->bind();
 

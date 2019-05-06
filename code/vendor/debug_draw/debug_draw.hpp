@@ -170,15 +170,15 @@
 // These are hard constraints. If not enough, change and recompile.
 //
 #ifndef DEBUG_DRAW_MAX_STRINGS
-    #define DEBUG_DRAW_MAX_STRINGS 6553500
+    #define DEBUG_DRAW_MAX_STRINGS 65535
 #endif // DEBUG_DRAW_MAX_STRINGS
 
 #ifndef DEBUG_DRAW_MAX_POINTS
-    #define DEBUG_DRAW_MAX_POINTS 6553500
+    #define DEBUG_DRAW_MAX_POINTS 65535
 #endif // DEBUG_DRAW_MAX_POINTS
 
 #ifndef DEBUG_DRAW_MAX_LINES
-    #define DEBUG_DRAW_MAX_LINES 6553500
+    #define DEBUG_DRAW_MAX_LINES 65535
 #endif // DEBUG_DRAW_MAX_LINES
 
 //

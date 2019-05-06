@@ -4,7 +4,6 @@
 #include "DisruptTypes.h"
 #include "Vector.h"
 #include "Pair.h"
-#include <memory>
 #include "IBinaryArchive.h"
 #include <variant>
 
@@ -241,19 +240,19 @@ public:
 		CStringID batchProcessor;
 		uint32_t batchProcessorUnk1;
 
-		std::unique_ptr<CGraphicBatchProcessor> graphicBatch;
-		std::unique_ptr<CSoundPointBatchProcessor> soundPointBatch;
-		std::unique_ptr<CBlackoutEffectBatchProcessor> blackoutEffectBatch;
-		std::unique_ptr<CParticlesBatchProcessor> particlesBatch;
-		std::unique_ptr<CDynamicLightBatchProcessor> dynamicLightBatch;
-		std::unique_ptr<CLightEffectBatchProcessor> lightEffectBatch;
-		std::unique_ptr<CSecurityCameraBatchProcessor> securityCameraBatch;
-		std::unique_ptr<CRealTreeBatchProcessor> realTreeBatch;
-		std::unique_ptr<CTrafficLightBatchProcessor> trafficLightBatch;
-		std::unique_ptr<CDynamicMediaBatchProcessor> dynamicMediaBatch;
+		std::variant<CGraphicBatchProcessor,
+			CSoundPointBatchProcessor,
+			CBlackoutEffectBatchProcessor,
+			CParticlesBatchProcessor,
+			CDynamicLightBatchProcessor,
+			CLightEffectBatchProcessor,
+			CSecurityCameraBatchProcessor,
+			CRealTreeBatchProcessor,
+			CTrafficLightBatchProcessor,
+			CDynamicMediaBatchProcessor,
 
-		//Stubbed
-		std::unique_ptr<CBollardBatchProcessor> bollardBatch;
+			//Stubbed
+			CBollardBatchProcessor> data;
 
 		void registerMembers(MemberStructure &ms);
 	};
@@ -277,7 +276,7 @@ public:
 		bool has;
 		bool unk1;
 
-		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes
+		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes, also a cbatch file
 
 		uint32_t unk2;
 		Vector<CSceneBuilding> buildings;

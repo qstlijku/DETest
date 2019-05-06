@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <map>
+#include <mutex>
 #include "tinyxml2.h"
 #include "wluFile.h"
 #include "CSector.h"
@@ -17,6 +18,7 @@ public:
 	std::string loadingStatus;
 
 	Vector<CSector> sectors;
+	std::mutex mutex;
 
 	static void loadWLUAsync();
 	static void loadBatchAsync();

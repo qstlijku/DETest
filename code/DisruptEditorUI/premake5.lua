@@ -36,6 +36,7 @@ project "DisruptEditorUI"
 	{
 		--system
 		"Dbghelp",
+		"Opengl32",
 
 		"glad",
 		"tinyxml2",
