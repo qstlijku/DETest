@@ -207,10 +207,6 @@ std::string FH::getAbsoluteFilePath(const char *path) {
 }
 
 std::string FH::getAbsoluteFilePath(uint32_t path) {
-	auto itb = DB::instance().getFileByHash(path);
-	if (itb)
-		return getAbsoluteFilePath(itb->path.c_str());
-
 	//Search Unknown Files
 	uint32_t hash = path;
 	auto it = unknownFileMap[settings.patchDir].find(hash);
@@ -222,6 +218,11 @@ std::string FH::getAbsoluteFilePath(uint32_t path) {
 		if (it != unknownFileMap[base].end())
 			return it->second;
 	}
+
+	//Lookup filename from DB
+	auto itb = DB::instance().getFileByHash(path);
+	if (itb)
+		return getAbsoluteFilePath(itb->path.c_str());
 
 	SDL_Log("Could not load file %08x", path);
 

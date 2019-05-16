@@ -214,25 +214,26 @@ void wluFile::draw(bool drawImgui, bool draw3D) {
 	ImGui::PushItemWidth(-1.f);
 	static char searchWluBuffer[255] = { 0 };
 	ImGui::InputText("##Search", searchWluBuffer, sizeof(searchWluBuffer));
-	ImGui::ListBoxHeader("##Entity List");
 	bool foundSelectedEntity = false;
-	for (Node &entity : Entities->children) {
-		Attribute *hidName = entity.getAttribute("hidName");
+	if (ImGui::ListBoxHeader("##Entity List")) {
+		for (Node& entity : Entities->children) {
+			Attribute* hidName = entity.getAttribute("hidName");
 
-		char tempName[255] = { '\0' };
-		snprintf(tempName, sizeof(tempName), "%s##%p", hidName->buffer.data(), &entity);
+			char tempName[255] = { '\0' };
+			snprintf(tempName, sizeof(tempName), "%s##%p", hidName->buffer.data(), &entity);
 
-		if (std::string(tempName).find(searchWluBuffer) == std::string::npos) continue;
+			if (std::string(tempName).find(searchWluBuffer) == std::string::npos) continue;
 
-		bool selected = &entity == selectedEntity;
+			bool selected = &entity == selectedEntity;
 
-		if (ImGui::Selectable(tempName, selected))
-			selectedEntity = &entity;
+			if (ImGui::Selectable(tempName, selected))
+				selectedEntity = &entity;
 
-		if (&entity == selectedEntity)
-			foundSelectedEntity = true;
+			if (&entity == selectedEntity)
+				foundSelectedEntity = true;
+		}
+		ImGui::ListBoxFooter();
 	}
-	ImGui::ListBoxFooter();
 	ImGui::PopItemWidth();
 
 	char imGuiBuffer[1024];
