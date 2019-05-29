@@ -15,6 +15,7 @@ void CResourceDataBase::open(IBinaryArchive& fp) {
 
 	size = files.size();
 	fp.serialize(size);
+	SDL_assert_release(size == files.size());
 	for (uint32_t i = 0; i < size; ++i) {
 		fp.serialize(files[i].refType);
 	}
@@ -23,6 +24,9 @@ void CResourceDataBase::open(IBinaryArchive& fp) {
 
 	for (auto& it : unk1)
 		SDL_assert_release(it.unk1 < files.size());
+
+	for (auto& it : unk1)
+		SDL_assert_release(it.unk2 < files.size());
 
 	for (auto& it : files)
 		SDL_assert_release(it.refType < types.size());

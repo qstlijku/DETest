@@ -42,22 +42,16 @@ bool batchFile::open(IBinaryArchive &reader) {
 		//assert_file_crash(compound.unk3 == 0);
 
 		reader.serialize(srcFilename);
-		//SDL_Log("%s\n", srcFilename.c_str());
 
 		//Resources
 		reader.serializeNdVectorExternal(resources);
 
 		reader.serialize(physicsFile.id);
 
-		SDL_Log("CMBP Tell: %u\n\n", reader.tell());
 		componentMBP.read(reader);
-		SDL_Log("BMBP Tell: %u\n\n", reader.tell());
 		buildingMBP.read(reader);
-		SDL_Log("quadtreeCollidableMBP Tell: %u\n\n", reader.tell());
 		quadtreeCollidableMBP.read(reader);
-		SDL_Log("debrisSpawnerMBP Tell: %u\n\n", reader.tell());
 		debrisSpawnerMBP.read(reader);
-		SDL_Log("vegetationMBP Tell: %u\n\n", reader.tell());
 		vegetationMBP.read(reader);
 
 		reader.serialize(batchResource);
@@ -74,7 +68,6 @@ bool batchFile::open(IBinaryArchive &reader) {
 		path.id = SDL_ReadLE32(reader.fp);
 		std::string type = path.getReverseName();
 		if (type[0] != '_' && !type.empty())
-			SDL_Log("%u type=%s", offset, type.c_str());
 	}*/
 	
 
@@ -97,7 +90,6 @@ void batchFile::CComponentMultiBatchProcessor::read(IBinaryArchive& fp) {
 	uint32_t batchCount = batchProcessors.size();
 	fp.serialize(batchCount);
 	batchProcessors.resize(batchCount);
-	SDL_Log("batchCount=%u @%u", batchCount, fp.tell() - 4);
 
 	//void SerializeArray<T1>(IBinaryArchive &, T1 *, unsigned long) [with T1=CBatchModelProcessorsAndResources *]
 	for (uint32_t i = 0; i < batchCount; ++i) {
@@ -109,7 +101,6 @@ void batchFile::CComponentMultiBatchProcessor::read(IBinaryArchive& fp) {
 
 		CStringID typeID;
 		typeID.id = 0xE85D5889;
-		SDL_Log("CBatchModelProcessorsAndResources %u", fp.tell());
 		fp.serialize(typeID.id);
 		assert_file_crash(typeID.id == 0xE85D5889);
 
@@ -139,7 +130,6 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 	// void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=CSmartResourcePtr<CArchetypeResource>]
 	arche.read(fp);
 	//CResourceManager::GetResource((CPathID const &,CStringID const &))
-	SDL_Log("CBMPAR type=%s path=%s", arche.type.getReverseName().c_str(), arche.file.getReverseFilename().c_str());
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<IBatchProcessor *, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 	//unk1 = SDL_ReadLE32(fp);
@@ -148,7 +138,6 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 	uint32_t batchProcessorCount = processors.size();
 	fp.serialize(batchProcessorCount);
 	processors.resize(batchProcessorCount);
-	SDL_Log("batchProcessorCount=%u @%u", batchProcessorCount, fp.tell() - 4);
 
 	//void SerializeArray<T1>(IBinaryArchive &, T1 *, unsigned long) [with T1=IBatchProcessor *]
 	for (uint32_t i = 0; i < batchProcessorCount; ++i) {
@@ -162,7 +151,6 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 		fp.serialize(batch.batchProcessorUnk1);
 
 		std::string typeName = batch.batchProcessor.getReverseName();
-		SDL_Log("IBatchProcessor type=%s", typeName.c_str());
 
 		if (typeName == "CGraphicBatchProcessor")
 			serializeAny<CGraphicBatchProcessor>(fp, batch.data);
@@ -212,11 +200,9 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(unk10);
 	xbg.read(fp);
 
-	SDL_Log("Tell: %u\n\n", fp.tell());
 
 	materialSlots.read(fp);
 
-	SDL_Log("Tell2: %u\n\n", fp.tell());
 
 	fp.serialize(stride);
 
@@ -232,7 +218,6 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 
 	if (rangeCount) {
 		//CClusterHelper
-		SDL_Log("Tell3: %u\n\n", fp.tell());
 		CStringID type;
 		fp.serialize(type.id);
 		assert_file_crash(type.id == 0x2C9D950A);
@@ -252,12 +237,10 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unkc4);
 		fp.serialize(unkc5);
 
-		SDL_Log("Tell4: %u\n\n", fp.tell());
 
 		for (uint32_t j = 0; j < rangeCount; ++j)
 			ranges[j].read(fp);
 
-		SDL_Log("Tell5: %u\n\n", fp.tell());
 	}
 }
 
@@ -367,7 +350,6 @@ void batchFile::CGraphicBatchProcessor::registerMembers(MemberStructure & ms) {
 }
 
 void batchFile::CSoundPointBatchProcessor::read(IBinaryArchive& fp) {
-	SDL_Log("Tell: %u", fp.tell());
 	fp.serialize(unk1);
 	fp.serialize(libraryObject);
 
@@ -408,7 +390,6 @@ void batchFile::CSoundPointBatchProcessor::registerMembers(MemberStructure& ms) 
 }
 
 void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
-	SDL_Log("Tell: %u", fp.tell());
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 
@@ -419,7 +400,6 @@ void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
 	if (hasBatchInstanceIDs) {
 		//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchedInstanceID, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 		batchedInstanceID.read(fp);
-		SDL_Log("Tell: %u", fp.tell());
 	}
 
 	fp.serialize(BlackoutEffectRef);
@@ -455,11 +435,9 @@ void batchFile::CParticlesBatchProcessor::read(IBinaryArchive& fp) {
 		batchedInstanceID.read(fp);
 	}
 
-	SDL_Log("Tell: %u", fp.tell());
 
 	fp.serializeNdVector(hdls, 0x16BB23DD, unk3);
 
-	SDL_Log("Tell: %u", fp.tell());
 }
 
 void batchFile::CParticlesBatchProcessor::registerMembers(MemberStructure& ms) {
@@ -491,20 +469,16 @@ void batchFile::CDynamicLightBatchProcessor::registerMembers(MemberStructure& ms
 }
 
 void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
-	SDL_Log("Tell1: %u", fp.tell());
 	obj.read(fp);
-	SDL_Log("Tell2: %u", fp.tell());
 	fp.serialize(hasBatchInstanceIDs);
 	if (hasBatchInstanceIDs) {
 		//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchedInstanceID, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 		fp.serializeNdVectorExternal(batchedInstanceID);
 	}
 
-	SDL_Log("Tell3: %u", fp.tell());
 
 	//CSceneLightEffectInstance = 0xEB07AAAC
 	fp.serializeNdVector(instances, 0xEB07AAAC, unk2);
-	SDL_Log("Tell4: %u", fp.tell());
 }
 
 void batchFile::CLightEffectBatchProcessor::registerMembers(MemberStructure& ms) {
@@ -529,12 +503,9 @@ void batchFile::CSecurityCameraBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk6);
 		fp.serialize(unk7);
 		arche.read(fp);
-		SDL_Log("CSecurityCameraBatchProcessor type=%s path=%s", arche.type.getReverseName().c_str(), arche.file.getReverseFilename().c_str());
 		info.read(fp);
-		SDL_Log("Tell: %u", fp.tell());
 		fp.serialize(unk8);
 		fp.serializeNdVector(objects, 0x91B64372, unk9);
-		SDL_Log("Tell2: %u", fp.tell());
 	}
 }
 
@@ -678,7 +649,6 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 		CStringID type;
 		fp.serialize(type.id);
 		std::string typeName = type.getReverseName();
-		SDL_Log("%s", typeName.c_str());
 
 		auto& var = quadTrees[i];
 		if (typeName == "CQuadtreeCollidableBatchProcessorSDeepEllipse") {
@@ -690,7 +660,6 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 		} else {
 			assert_file_crash(false);
 		}
-		SDL_Log("%u", fp.tell());
 	}
 
 }
