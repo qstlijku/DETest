@@ -1,71 +1,57 @@
 #include "FileHandler.h"
 #include "Common.h"
 #include "Hash.h"
-#include "tinyfiles.h"
-#include <Shlwapi.h>
-#include <shlobj_core.h>
 #include "DB.h"
 #include "SDL_log.h"
+#include <filesystem>
+
+static std::string getExt(const std::filesystem::path& path) {
+	const std::string name = path.filename().generic_string();
+	return name.substr(name.find('.') + 1);
+}
 
 Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extFilter) {
-	std::unordered_map<std::string, tfFILE> files;
+	std::unordered_map<std::string, FileInfo> files;
 
 	for (const std::string &base : settings.searchPaths) {
 		std::string fullPath = base + dir;
-		if (!PathFileExistsA(fullPath.c_str())) continue;
+		if (!std::filesystem::exists(fullPath.c_str())) continue;
 
-		tfDIR dir;
-		tfDirOpen(&dir, fullPath.c_str());
-		while (dir.has_next) {
-			tfFILE file;
-			tfReadFile(&dir, &file);
-
-			if (!file.is_dir && files.count(file.name) == 0) {
-				if (extFilter.empty() || file.ext == extFilter) {
-					strncpy(file.path, file.path + base.size(), sizeof(file.path));
-					files[file.name] = file;
+		for (auto& p : std::filesystem::directory_iterator(fullPath)) {
+			std::string path = p.path().generic_string().substr(base.size());
+			if (p.is_regular_file() && files.count(path) == 0) {
+				std::string ext = getExt(p);
+				if (extFilter.empty() || ext == extFilter) {
+					FileInfo& fi = files[path];
+					fi.fullPath = path;
+					fi.ext = ext;
+					fi.name = p.path().filename().generic_string();
 				}
 			}
-
-			tfDirNext(&dir);
 		}
-		tfDirClose(&dir);
 	}
 
 	Vector<FileInfo> outFiles;
-	for (auto &file : files) {
-		FileInfo fi;
-		fi.name = file.second.name;
-		fi.fullPath = file.second.path;
-		fi.ext = file.second.ext;
-		outFiles.push_back(fi);
-	}
+	for (auto &file : files)
+		outFiles.push_back(file.second);
 	return outFiles;
 }
 
 Vector<FileInfo> FH::getFileListFromAbsDir(const std::string & fullDir, const std::string & extFilter) {
 	Vector<FileInfo> outFiles;
-	if (!PathFileExistsA(fullDir.c_str())) return outFiles;
+	if (!std::filesystem::exists(fullDir.c_str())) return outFiles;
 
-	tfDIR dir;
-	tfDirOpen(&dir, fullDir.c_str());
-	while (dir.has_next) {
-		tfFILE file;
-		tfReadFile(&dir, &file);
-
-		if (!file.is_dir) {
-			if (extFilter.empty() || file.ext == extFilter) {
-				FileInfo fi;
-				fi.name = file.name;
-				fi.fullPath = file.path;
-				fi.ext = file.ext;
-				outFiles.push_back(fi);
+	for (auto& p : std::filesystem::directory_iterator(fullDir)) {
+		if (p.is_regular_file()) {
+			std::string ext = getExt(p);
+			if (extFilter.empty() || ext == extFilter) {
+				FileInfo& fi = outFiles.emplace_back();
+				fi.fullPath = p.path().generic_string();
+				fi.ext = ext;
+				fi.name = p.path().filename().generic_string();
 			}
 		}
-
-		tfDirNext(&dir);
 	}
-	tfDirClose(&dir);
 
 	return outFiles;
 }
@@ -101,8 +87,8 @@ SDL_RWops* FH::openFileWrite(const std::string& path) {
 	//Create parent directories
 	std::size_t found = fullPath.find_last_of("/\\");
 	std::string parentDir = fullPath.substr(0, found);
-	int ret = SHCreateDirectoryExA(NULL, parentDir.c_str(), NULL);
-	SDL_assert_release(ret == ERROR_SUCCESS || ret == ERROR_FILE_EXISTS || ret == ERROR_ALREADY_EXISTS);
+	bool ret = std::filesystem::create_directories(parentDir);
+	SDL_assert_release(ret);
 
 	return SDL_RWFromFile(fullPath.c_str(), "wb");
 }
@@ -121,7 +107,7 @@ SDL_RWops * FH::openFile(uint32_t path) {
 	return fp;
 }
 
-std::string FH::getReverseFilename(uint32_t hash) {
+std::string FH::getReverseFilename(FileHash hash) {
 	auto it = DB::instance().getFileByHash(hash);
 	if (!it) {
 		char buffer[12];
@@ -132,73 +118,50 @@ std::string FH::getReverseFilename(uint32_t hash) {
 	return it->path;
 }
 
-static void handleUnknownPath(const char* base, std::unordered_map<uint32_t, std::string> &unknownFiles) {
-	tfDIR dir;
-	tfDirOpen(&dir, base);
-	while (dir.has_next) {
-		tfFILE file;
-		tfReadFile(&dir, &file);
+static void handleUnknownPath(const std::string &base, std::unordered_map<FileHash, std::string>& unknownFiles) {
+	for (auto& p : std::filesystem::directory_iterator(base)) {
+		if (p.is_regular_file() && p.path().filename().generic_string().size() > 8) {
+			std::string name = p.path().filename().generic_string().substr(0, 8);
 
-		if (!file.is_dir && strlen(file.name) > 8) {
-			file.name[8] = '\0';
-
-			uint32_t hash = std::stoul(file.name, NULL, 16);
+			uint32_t hash = std::stoul(name.c_str(), NULL, 16);
 			if (unknownFiles.count(hash) == 0) {
-				unknownFiles[hash] = file.path;
+				unknownFiles[hash] = p.path().generic_string();
 			}
 
 		}
 
-		tfDirNext(&dir);
 	}
-	tfDirClose(&dir);
 }
 
-static std::unordered_map<uint32_t, std::string> genListOfUnknown(const std::string &path) {
+static void genListOfUnknown(const std::string &path, std::unordered_map<FileHash, std::string> &unknownFiles) {
 	std::string unknownPath = path + "__UNKNOWN/";
-	std::unordered_map<uint32_t, std::string> unknownFiles;
-	if (!PathFileExistsA(unknownPath.c_str())) return unknownFiles;
+	
+	if (!std::filesystem::exists(unknownPath.c_str())) return;
 
-	tfDIR dir;
-	tfDirOpen(&dir, unknownPath.c_str());
-	while (dir.has_next) {
-		tfFILE file;
-		tfReadFile(&dir, &file);
-
-		if (file.is_dir && strcmp(file.name, ".") != 0 && strcmp(file.name, ".."))
-			handleUnknownPath(file.path, unknownFiles);
-
-		tfDirNext(&dir);
+	for (auto& p : std::filesystem::directory_iterator(unknownPath)) {
+		if (p.is_directory())
+			handleUnknownPath(p.path().generic_string(), unknownFiles);
 	}
-	tfDirClose(&dir);
-
-	return unknownFiles;
 }
 
-static std::unordered_map<std::string, std::unordered_map<uint32_t, std::string> > unknownFileMap;
+static std::unordered_map<FileHash, std::string> unknownFileMap;
 
 std::string FH::getAbsoluteFilePath(const char *path) {
 	char fullPath[512];
 	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
-	if (PathFileExistsA(fullPath))
+	if (std::filesystem::exists(fullPath))
 		return fullPath;
 	for (const std::string &base : settings.searchPaths) {
 		snprintf(fullPath, sizeof(fullPath), "%s%s", base.c_str(), path);
-		if (PathFileExistsA(fullPath))
+		if (std::filesystem::exists(fullPath))
 			return fullPath;
 	}
 
 	//Search Unknown Files
-	uint32_t hash = Hash::getFilenameHash(path);
-	auto it = unknownFileMap[settings.patchDir].find(hash);
-	if (it != unknownFileMap[settings.patchDir].end())
+	FileHash hash = Hash::getFilenameHash(path);
+	auto it = unknownFileMap.find(hash);
+	if (it != unknownFileMap.end())
 		return it->second;
-
-	for (const std::string &base : settings.searchPaths) {
-		it = unknownFileMap[base].find(hash);
-		if (it != unknownFileMap[base].end())
-			return it->second;
-	}
 
 	SDL_Log("Could not load file %s", path);
 
@@ -206,32 +169,25 @@ std::string FH::getAbsoluteFilePath(const char *path) {
 	return std::string();
 }
 
-std::string FH::getAbsoluteFilePath(uint32_t path) {
+std::string FH::getAbsoluteFilePath(FileHash hash) {
 	//Search Unknown Files
-	uint32_t hash = path;
-	auto it = unknownFileMap[settings.patchDir].find(hash);
-	if (it != unknownFileMap[settings.patchDir].end())
+	auto it = unknownFileMap.find(hash);
+	if (it != unknownFileMap.end())
 		return it->second;
 
-	for (const std::string &base : settings.searchPaths) {
-		it = unknownFileMap[base].find(hash);
-		if (it != unknownFileMap[base].end())
-			return it->second;
-	}
-
 	//Lookup filename from DB
-	auto itb = DB::instance().getFileByHash(path);
+	auto itb = DB::instance().getFileByHash(hash);
 	if (itb)
 		return getAbsoluteFilePath(itb->path.c_str());
 
-	SDL_Log("Could not load file %08x", path);
+	SDL_Log("Could not load file %08x", hash);
 
 	throw 3;
 	return "";
 }
 
 void FH::Init() {
-	unknownFileMap[settings.patchDir] = genListOfUnknown(settings.patchDir);
+	genListOfUnknown(settings.patchDir, unknownFileMap);
 	for (const std::string &base : settings.searchPaths)
-		unknownFileMap[base] = genListOfUnknown(base);
+		genListOfUnknown(base, unknownFileMap);
 }

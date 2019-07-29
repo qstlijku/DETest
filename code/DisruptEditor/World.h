@@ -21,7 +21,6 @@ public:
 	std::mutex mutex;
 
 	static void loadWLUAsync();
-	static void loadBatchAsync();
 	static void loadSectors();
 };
 

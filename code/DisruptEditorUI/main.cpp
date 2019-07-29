@@ -43,10 +43,14 @@
 #include "batchFile.h"
 #include "ResourceLoader.h"
 #include <glm/gtx/norm.hpp>
+#include "WaterMeshes.h"
+#include "CLODictionary.h"
+#include <filesystem>
 
 #include <Windows.h>
 #include <Shellapi.h>
 #include <DbgHelp.h>
+#include <RoadNetwork.h>
 static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
 	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile) {
@@ -133,123 +137,99 @@ int main(int argc, char **argv) {
 
 #if _DEBUG
 	{
+		/*{
+			//12 byte header?
+			//then total size
+			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/citylifedatadict.dat");
+			CBinaryArchiveReader reader(fp);
+			SDL_RWseek(fp, 36, RW_SEEK_SET);
+			CLODataDictionaries dict;
+			dict.read(reader);
+			SDL_RWclose(fp);
+		}
+
 		{
+			CCityLifeDataAndStateHandler state;
+			Vector<uint8_t> data = fromHexString("00000084000000900000668000000000000000840000000000000084000000000000000010929A090000000300000000000000020000000000000000000000000000002F00000000000000000000000200000000000000000000000100000000000000000000000000000000000000000000000100000000000000000000000000000148000000000000000000000000");
+			SDL_RWops* fp = SDL_RWFromConstMem(data.data(), data.size());
+			SDL_RWseek(fp, 36, RW_SEEK_SET);
+			CBinaryArchiveReader reader(fp);
+			reader.bigEndian = true;
+			state.read(reader);
+		}*/
+
+		/*{
 			CMoveResourceDataManager move;
 			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/combinedmovefile.bin");
 			CBinaryArchiveReader reader(fp);
 			move.open(reader);
 		}
 
-		FH::Init();
+		{
+			WaterMeshes db;
+			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/watermeshes.fcb");
+			CBinaryArchiveReader reader(fp);
+			db.open(reader);
+			SDL_RWclose(fp);
 
-		Vector<FileInfo> files;// = FH::getFileList("soundbinary", "spk");
-		//FILE* fpa = fopen("res/dare.txt", "ab");
-		for (auto it : files) {
-			it.name[8] = '\0';
-			//SDL_Log("Loading %s", file.name);
-
-			uint32_t objID;
-			sscanf(it.name.c_str(), "%08x", &objID);
-
-			DARE::instance().reset();
-			DARE::instance().addSoundResource(objID);
-
-			/*for (auto ita : DARE::instance().atomicObjects) {
-				fprintf(fpa, "%u,%u\n", objID, ita.first);
-				fflush(fpa);
-			}*/
-
-			/*for (auto it : DARE::instance().atomicObjects) {
-				sbaoFile &sbao = it.second.ao;
-				std::string typeName = sbao.type.getReverseName();
-				if (typeName != "ResourceDescriptor") continue;
-
-				BaseResourceDescriptor &brd = sbao.resourceDescriptor->pResourceDesc;
-
-				typeName = brd.type.getReverseName();
-				if (typeName == "SampleResourceDescriptor") {
-					if (brd.sampleResourceDescriptor->CompressionFormat == 2 || brd.sampleResourceDescriptor->CompressionFormat == 1 || (brd.sampleResourceDescriptor->stToolSourceFormat.bStream && brd.sampleResourceDescriptor->stToolSourceFormat.uSndDataZeroLatencyMemPart.refAtomicId != 0xFFFFFFFF)) {
-						uint32_t spkID = it.second.spkFile;
-						uint32_t sbaoID = brd.sampleResourceDescriptor->getHelpfulId();
-
-						char buffer[160];
-						snprintf(buffer, sizeof(buffer), "C:\\Users\\Jonathan\\Desktop\\english_sbao\\%08x_%08x_%u.wav", spkID, sbaoID, brd.sampleResourceDescriptor->CompressionFormat);
-						try {
-							brd.sampleResourceDescriptor->saveDecoded(buffer);
-						}
-						catch (...) {
-							int a = 0;
-						}
-
-					}
-				}
-				else if(typeName == "MultiTrackResourceDescriptor") {
-					int a = 1;
-				}
-				else if (typeName == "GranularResourceDescriptor") {
-					/*uint32_t spkID = it.second.spkFile;
-					uint32_t sbaoID = brd.granularResourceDescriptor->getHelpfulId();
-
-					char buffer[160];
-					snprintf(buffer, sizeof(buffer), "C:\\Users\\Jonathan\\Desktop\\gran_sbao\\%08x_%08x_%u.wav", spkID, sbaoID, brd.granularResourceDescriptor->m_compression);
-					try {
-						brd.granularResourceDescriptor->saveDecoded(buffer);
-					}
-					catch (...) {
-						int a = 0;
-					}*/
-				/*}
-			}*/
-
-			/*for (auto it : DARE::instance().atomicObjects) {
-				sbaoFile &sbao = *it.second.ao;
-				uint32_t spkID = it.second.spkFile;
-				uint32_t sbaoID = it.first;
-
-				char buffer[160];
-				snprintf(buffer, sizeof(buffer), "C:\\Users\\Jonathan\\Desktop\\spk_windy_city\\%08x_%08x.spk.xml", spkID, sbaoID);
-
-				std::string xml = serializeToXML(sbao);
-				FILE *fp = fopen(buffer, "wb");
-				fwrite(xml.c_str(), 1, xml.size(), fp);
-				fclose(fp);
-			}*/
+			db.indexes.clear();
+			db.meshes.clear();
+			fp = FH::openFileWrite("worlds/windy_city/generated/watermeshes.fcb");
+			CBinaryArchiveWriter writer(fp);
+			db.open(writer);
+			SDL_RWclose(fp);
 		}
+
+		{
+			CResourceDataBase db;
+			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/windy_city_depload.dat");
+			CBinaryArchiveReader reader(fp);
+			db.open(reader);
+			writeFile("db.xml", serializeToXML(db));
+		}*/
+
+
+		/*{
+			RoadNetwork move;
+			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/roadnetwork/roadnetwork_lowres.rnf");
+			CBinaryArchiveReader reader(fp);
+			move.read(reader);
+		}*/
 	}
 #endif
 
 	{
+		//These two need to be set up before anything else
+		std::future<void> fileHandlerF = std::async(FH::Init);
+		std::future<void> dbF = std::async([]() { DB::instance(); });
+
+		loadingScreen->setTitle("Scanning Files");
+		loadingScreen->waitForFuture(fileHandlerF);
 		loadingScreen->setTitle("Setting Up Database");
-		std::future<void> f = std::async(FH::Init);
-		loadingScreen->waitForFuture(f);
+		loadingScreen->waitForFuture(dbF);
 
-		f = std::async([]() { DB::instance(); });
-		loadingScreen->waitForFuture(f);
-
-		loadingScreen->setTitle("Loading Entity Library");
-		f = std::async(loadEntityLibrary);
-		loadingScreen->waitForFuture(f);
-
-		loadingScreen->setTitle("Loading Language Files");
-		//Dialog::instance();
-
-		/*SDL_PumpEvents();
-		loadingScreen->setTitle("Loading Particle Library");
-		world.particles = loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml"));*/
-
-		world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
+		std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
+		std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml")); });
+		std::future<void> loadWLUF = std::async(world.loadWLUAsync);
+		std::future<void> loadSectorF = std::async(world.loadSectors);
 
 		std::thread resourceLoader(resourceLoaderThread);
 		resourceLoader.detach();
 
-		std::thread sectorThread(world.loadSectors);
-		sectorThread.detach();
+		world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
 
-		std::thread wluThread(world.loadWLUAsync);
-		wluThread.detach();
+		loadingScreen->setTitle("Loading Entity Library");
+		loadingScreen->waitForFuture(loadEntityLibraryF);
+		loadingScreen->setTitle("Loading Particle Library");
+		loadingScreen->waitForFuture(particlesF);
+		loadingScreen->setTitle("Loading World Load Units");
+		loadingScreen->waitForFuture(loadWLUF);
+		loadingScreen->setTitle("Loading World Sectors");
+		loadingScreen->waitForFuture(loadSectorF);
 
-		std::thread batchThread(world.loadBatchAsync);
-		batchThread.detach();
+		//Unused for now
+		//loadingScreen->setTitle("Loading Language Files");
+		//Dialog::instance();
 	}
 
 	Uint32 ticks = SDL_GetTicks();

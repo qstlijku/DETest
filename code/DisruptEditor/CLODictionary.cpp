@@ -41,7 +41,12 @@ void CCityLifeSingleObjectData::read(IBinaryArchive& fp) {
 	fp.serialize(objectData);
 	TestSerialize(fp);
 	fp.serialize(unk1);
-	//TODO
+	if (unk1) {
+		TestSerialize(fp);
+		fp.serialize(Layer);
+		fp.serialize(unk2);
+		fp.serialize(unk3);
+	}
 }
 
 void CCityLifeObjectData::read(IBinaryArchive& fp) {

@@ -3,6 +3,8 @@
 #include "Vector.h"
 struct SDL_RWops;
 
+typedef uint32_t FileHash;
+
 struct FileInfo {
 	std::string fullPath;
 	std::string name;
@@ -19,7 +21,7 @@ namespace FH {
 
 	SDL_RWops* openFile(const char *path);
 	SDL_RWops* openFileWrite(const std::string &path);
-	SDL_RWops* openFile(uint32_t path);
+	SDL_RWops* openFile(FileHash hash);
 
-	std::string getReverseFilename(uint32_t hash);
+	std::string getReverseFilename(FileHash hash);
 }

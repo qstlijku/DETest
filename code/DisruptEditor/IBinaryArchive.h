@@ -130,6 +130,6 @@ inline void IBinaryArchive::serializeNdVector(Vector<T>& vec, uint32_t typeId, u
 }
 
 template<typename T>
-inline void IBinaryArchive::serialize(T & value) {
+__forceinline void IBinaryArchive::serialize(T & value) {
 	value.read(*this);
 }

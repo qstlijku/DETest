@@ -1,11 +1,17 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <string>
+
+class IBinaryArchive;
+class MemberStructure;
 
 class locFile {
 public:
-	bool open(const char* filename);
-	std::unordered_map<uint32_t, std::string> uncompiledStrings;
+	void open(IBinaryArchive &fp);
+
+	void registerMembers(MemberStructure& ms);
+	int16_t language;
+	std::map<uint32_t, std::wstring> uncompiledStrings;
 };
 

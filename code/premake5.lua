@@ -77,6 +77,7 @@ workspace "DisruptEditor"
 	
 	group "Tools"
 	include "./ConvertMaterials"
+	include "./ConvertLoc"
 	
 	group "Vendor"
 	include "vendor/glad"

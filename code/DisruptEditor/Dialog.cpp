@@ -3,7 +3,6 @@
 #include "Common.h"
 #include <SDL_log.h>
 #include <SDL_rwops.h>
-#include "tinyfiles.h"
 #include "FileHandler.h"
 
 Dialog::Dialog() {
@@ -11,7 +10,7 @@ Dialog::Dialog() {
 	dialogmanagerindices = readFCB(FH::openFile("dialog/dialogmanagerindices.dat"));
 	speechLength = readFCB(FH::openFile("generated/sound/speechlength.bin"));
 
-	tfDIR dir;
+	/*tfDIR dir;
 	tfDirOpen(&dir, FH::getAbsoluteFilePath("dialog/behaviortrees").c_str());
 	while (dir.has_next) {
 		tfFILE file;
@@ -27,7 +26,7 @@ Dialog::Dialog() {
 
 		tfDirNext(&dir);
 	}
-	tfDirClose(&dir);
+	tfDirClose(&dir);*/
 
 	SDL_RWops *fp = FH::openFile("soundbinary/soundidlinelinks.slid");
 	uint32_t count = SDL_ReadLE32(fp);

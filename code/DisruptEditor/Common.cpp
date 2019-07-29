@@ -9,7 +9,6 @@
 #include <SDL_log.h>
 #include <fstream>
 #include "NBCF.h"
-#include "tinyfiles.h"
 #include "stb_image.h"
 #include "FileHandler.h"
 #include "Serialization.h"

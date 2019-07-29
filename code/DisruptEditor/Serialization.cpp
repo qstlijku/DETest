@@ -2,6 +2,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include <SDL_stdinc.h>
 
 //////////////String Serialization
 
@@ -94,6 +95,13 @@ void toString<glm::mat4>(char *buf, size_t bufSize, glm::mat4 value) {
 template <>
 void toString<std::string>(char *buf, size_t bufSize, std::string value) {
 	strncpy(buf, value.c_str(), bufSize);
+}
+
+template <>
+void toString<std::wstring>(char* buf, size_t bufSize, std::wstring value) {
+	char* dst = SDL_iconv_string("UTF-8", "UTF-16", (const char*)value.c_str(), value.size() * 2 + 2);
+	strncpy(buf, dst, bufSize);
+	SDL_free(dst);
 }
 
 template <>
@@ -197,6 +205,15 @@ void fromString<std::string>(const char *buf, std::string &value) {
 		value = buf;
 }
 
+template <>
+void fromString<std::wstring>(const char* buf, std::wstring& value) {
+	if (buf) {
+		char* dst = SDL_iconv_string("UTF-16", "UTF-8", buf, strlen(buf) + 1);
+		value = std::wstring((wchar_t*)dst);
+		SDL_free(dst);
+	}
+}
+
 template <typename T>
 void displayImGui(const char* name, T &value) {
 	ImGui::PushID(&value);
@@ -280,6 +297,7 @@ REG_MEMBER(glm::vec4)
 REG_MEMBER(glm::quat)
 REG_MEMBER(glm::mat4)
 REG_MEMBER(std::string)
+REG_MEMBER(std::wstring)
 
 size_t XMLNumChildren(tinyxml2::XMLElement* it) {
 	size_t count = 0;

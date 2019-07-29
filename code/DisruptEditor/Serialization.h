@@ -60,6 +60,7 @@ public:
 	REG_MEMBER(glm::quat)
 	REG_MEMBER(glm::mat4)
 	REG_MEMBER(std::string)
+	REG_MEMBER(std::wstring)
 #undef REG_MEMBER
 
 	enum Type { TOXML, FROMXML, IMGUI };

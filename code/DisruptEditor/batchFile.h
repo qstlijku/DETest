@@ -26,16 +26,12 @@ public:
 		void registerMembers(MemberStructure &ms);
 	};
 	struct compoundHeader {
-		uint32_t unk1;
-		uint32_t unk2;
-		uint32_t unk3;
-		uint32_t unk4;
-		uint32_t bridgeSize;
-		uint32_t unk6;
-
-		uint32_t unk7;
-		uint32_t unk8;
-		uint32_t unk9;
+		double unk1;
+		double unk2;
+		double unk3;
+		double unk4;
+		bool unk5;
+		uint64_t unk6;
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure &ms);
 	};

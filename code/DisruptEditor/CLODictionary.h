@@ -47,6 +47,10 @@ struct CCityLifeSingleObjectData {
 	CCityLifeObjectData objectData;
 	bool unk1;
 
+	uint32_t Layer;//0x80
+	bool unk2;
+	bool unk3;
+
 	void read(IBinaryArchive& fp);
 };
 
@@ -64,6 +68,20 @@ struct CEnticerAction {
 	void read(IBinaryArchive& fp);
 };
 
+struct SVigilanteAttractedSettings {
+	CStringID VigilanteType;
+	CStringID VigilanteLayer;
+	bool bTriggerOnProximity;
+	float fTriggerOnProximityDistance;
+
+	void read(IBinaryArchive& fp) {
+		fp.serialize(VigilanteType);
+		fp.serialize(VigilanteLayer);
+		fp.serialize(bTriggerOnProximity);
+		fp.serialize(fTriggerOnProximityDistance);
+	}
+};
+
 struct CEnticerData {
 	CCityLifeSingleObjectData singleObjectData;
 	CEnticerDescription entdescDescription;
@@ -72,6 +90,10 @@ struct CEnticerData {
 	uint32_t entcontContext;
 	CGameplayQuality<bool> ActivationMandatory;
 	uint32_t fActivationProba;
+
+	SVigilanteAttractedSettings VigilanteAttractedSettings;//0xA0
+
+	bool bIsPillsDealer;
 
 	typedef uint32_t EMValueCLO_FLEE_DIRECTION;
 	typedef uint32_t EMValue_ENTICER_SETUPBEHAVIORS;
@@ -503,20 +525,6 @@ struct CAttractorData {
 			fp.serialize(unk22);
 			fp.serialize(unk23);
 		}
-	}
-};
-
-struct SVigilanteAttractedSettings {
-	CStringID VigilanteType;
-	CStringID VigilanteLayer;
-	bool bTriggerOnProximity;
-	float fTriggerOnProximityDistance;
-
-	void read(IBinaryArchive& fp) {
-		fp.serialize(VigilanteType);
-		fp.serialize(VigilanteLayer);
-		fp.serialize(bTriggerOnProximity);
-		fp.serialize(fTriggerOnProximityDistance);
 	}
 };
 
