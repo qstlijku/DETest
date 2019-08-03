@@ -121,15 +121,15 @@ std::shared_ptr<VertexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::get
 			}
 		}
 
-		vertexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(float), VertexBufferOptions::BUFFER_STATIC);
+		//vertexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(float), VertexBufferOptions::BUFFER_STATIC);
 		isDirty = false;
 	}
 
 	return vertexBuffer;
 }
 
-std::shared_ptr<VertexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer() {
-	static std::shared_ptr<VertexBuffer> indexBuffer;
+std::shared_ptr<IndexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer() {
+	static std::shared_ptr<IndexBuffer> indexBuffer;
 	if (!indexBuffer) {
 		Vector<uint16_t> data;
 		
@@ -170,7 +170,7 @@ std::shared_ptr<VertexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::get
 			}
 		} while (y < 65);
 
-		indexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
+		//indexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
 	}
 	return indexBuffer;
 }
@@ -204,7 +204,7 @@ void CSector::open(IBinaryArchive & fp) {
 }
 
 void CSector::draw() {
-	std::shared_ptr<CSectorHighRes> hiRes = getHiRes();
+	/*std::shared_ptr<CSectorHighRes> hiRes = getHiRes();
 	float xOffset = xPos * 64;
 	float yOffset = yPos * 64;
 
@@ -246,7 +246,7 @@ void CSector::draw() {
 	}
 
 	glDisableVertexAttribArray(0);
-	CHECK_GL_ERROR();
+	CHECK_GL_ERROR();*/
 }
 
 void CSector::save() {

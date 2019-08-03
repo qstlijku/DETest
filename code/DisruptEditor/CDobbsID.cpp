@@ -1,8 +1,8 @@
 #include "CDobbsID.h"
 
+#include "Serialization.h"
 #include "Hash.h"
 #include "DB.h"
-#include "Serialization.h"
 
 CDobbsID::CDobbsID(const std::string &filename) {
 	id = Hash::gearDobbsHash((const uint8_t*)filename.c_str(), filename.size());

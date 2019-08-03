@@ -5,7 +5,6 @@
 #include <map>
 #include <unordered_map>
 #include "glm/glm.hpp"
-#include "glad.h"
 #include <SDL_rwops.h>
 #include <SDL_keycode.h>
 #include <memory>
@@ -57,6 +56,6 @@ void saveSettings();
 std::string readFile(const std::string &file);
 bool writeFile(const std::string &file, const std::string &contents);
 
-GLuint loadResTexture(const std::string &path);
+uint32_t loadResTexture(const std::string &path);
 
 #include "imgui.h"

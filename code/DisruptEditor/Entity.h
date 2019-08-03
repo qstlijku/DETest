@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NBCF.h"
-#include "glad.h"
 #include <map>
 #include <unordered_map>
 
@@ -13,4 +12,4 @@ Node* findEntityByUID(uint32_t UID);
 
 void drawComponent(Node *entity, Node *node, bool drawImGui, bool draw3D);
 
-GLuint generateEntityIcon(Node *entity);
+uint32_t generateEntityIcon(Node *entity);

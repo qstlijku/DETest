@@ -92,7 +92,6 @@ static std::mutex mutex;
 static std::queue<std::shared_ptr<ResourceLoadRequestBase>> requests;
 
 void resourceLoaderThread() {
-	SDL_GL_MakeCurrent(RenderInterface::instance().window, RenderInterface::instance().context2);
 	while (true) {
 		mutex.lock();
 		bool emptyRequests = requests.empty();

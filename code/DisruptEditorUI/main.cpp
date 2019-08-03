@@ -1,4 +1,3 @@
-#include "glad.h"
 #include <SDL.h>
 #include "Colors.h"
 #include "Common.h"
@@ -12,8 +11,6 @@
 #include <unordered_map>
 #include "Hash.h"
 #include "imgui.h"
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl.h"
 #include "LoadingScreen.h"
 #include "Dialog.h"
 #include "Entity.h"
@@ -51,6 +48,8 @@
 #include <Shellapi.h>
 #include <DbgHelp.h>
 #include <RoadNetwork.h>
+#include <SDL_syswm.h>
+#include <imgui_impl_sdl.h>
 static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
 	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile) {
@@ -81,56 +80,10 @@ int main(int argc, char **argv) {
 	SDL_LogSetOutputFunction(LogOutputFunction, fopen("DisruptEditor.log", "wb"));
 
 	LoadingScreen *loadingScreen = new LoadingScreen;
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 	reloadSettings();
 
-	SDL_Window* window = SDL_CreateWindow("Disrupt Editor v" DE_VERSIONSTR, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, settings.windowSize.x, settings.windowSize.y, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
-	if (window == NULL) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create window", SDL_GetError(), NULL);
-		return 1;
-	}
-	SDL_GLContext glcontext = SDL_GL_CreateContext(window);
-	SDL_GLContext glcontext2 = SDL_GL_CreateContext(window);
-	if (glcontext == NULL || glcontext2 == NULL) {
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create gl context", SDL_GetError(), window);
-		return 1;
-	}
-	//Share Lists
-	BOOL error = wglShareLists((HGLRC)glcontext, (HGLRC)glcontext2);
-	if (error == FALSE) {
-		DWORD errorCode = GetLastError();
-		LPVOID lpMsgBuf;
-		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)& lpMsgBuf, 0, NULL);
-		MessageBox(NULL, (LPCTSTR)lpMsgBuf, L"Error", MB_OK | MB_ICONINFORMATION);
-		LocalFree(lpMsgBuf);
-		exit(0);
-	}
-	SDL_GL_MakeCurrent(window, glcontext);
-
-	SDL_GL_SetSwapInterval(1);
-	gladLoadGL();
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui_ImplSDL2_InitForOpenGL(window, glcontext);
-	ImGui_ImplOpenGL3_Init("#version 130");
-	ImGui::StyleColorsDark(NULL);
-	RenderInterface::instance().window = window;
-	RenderInterface::instance().context = glcontext;
-	RenderInterface::instance().context2 = glcontext2;
-	dd::initialize(&RenderInterface::instance());
+	SDL_Window *window = RenderInterface::instance().window;
 
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
@@ -243,15 +196,6 @@ int main(int argc, char **argv) {
 
 	bool windowOpen = true;
 	while (windowOpen) {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplSDL2_NewFrame(window);
-		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
-		glClearColor(0.2f, 0.2f, 0.2f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		glBindVertexArray(RenderInterface::instance().VertexArrayID);
-		glEnable(GL_DEPTH_TEST);
-
 		float delta = (SDL_GetTicks() - ticks) / 1000.f;
 		ticks = SDL_GetTicks();
 		if (delta > 0.5f)
@@ -259,11 +203,13 @@ int main(int argc, char **argv) {
 
 		RenderInterface &renderInterface = RenderInterface::instance();
 
-		SDL_GetWindowSize(window, &renderInterface.windowSize.x, &renderInterface.windowSize.y);
-		glViewport(0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y);
-		renderInterface.View = glm::lookAtLH(camera.location, camera.lookingAt, camera.up);
-		renderInterface.Projection = glm::perspective(settings.fov, (float)renderInterface.windowSize.x / renderInterface.windowSize.y, settings.near_plane, settings.far_plane);
-		renderInterface.VP = renderInterface.Projection * renderInterface.View;
+		glm::ivec2 windowSize;
+		SDL_GetWindowSize(window, &windowSize.x, &windowSize.y);
+		renderInterface.sceneCB.windowSize = windowSize;
+		renderInterface.sceneCB.View = glm::lookAtLH(camera.location, camera.lookingAt, camera.up);
+		renderInterface.sceneCB.Projection = glm::perspective(settings.fov, (float)windowSize.x / windowSize.y, settings.near_plane, settings.far_plane);
+		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
+		RenderInterface::instance().newFrame();
 
 		world.mutex.lock();
 
@@ -281,19 +227,18 @@ int main(int argc, char **argv) {
 			ImGui::Text("Resource Loader: %i %s", resources, file.c_str());
 			ImGui::End();
 		}
-
-		glBindVertexArray(RenderInterface::instance().VertexArrayID);
-		CHECK_GL_ERROR();
 		
-		if (settings.drawTerrain) {
+		dd::xzSquareGrid(-50, 50, 0, 1, blue);
+
+		/*if (settings.drawTerrain) {
 			RenderInterface::instance().terrain.use();
 			size_t maxSectors = world.sectors.size();
 			for (size_t i = 0; i < maxSectors; ++i)
 				world.sectors[i].draw();
-		}
+		}*/
 
 		//Draw XBG
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		/*glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		RenderInterface::instance().model.use();
 		glm::mat4 MVP = RenderInterface::instance().VP;
@@ -320,10 +265,10 @@ int main(int argc, char **argv) {
 		if (xbg) {
 			ImGui::SliderInt("Lod", &selLod, 0, xbg->lods.size() - 1);
 			xbg->draw(selLod);
-		}
+		}*/
 
 		//Draw Building Batches
-		for (auto& it : world.batches) {
+		/*for (auto& it : world.batches) {
 			auto& component = it.second->componentMBP;
 			for (auto& it : component.batchProcessors) {
 				for (auto& it : it.processors) {
@@ -356,8 +301,8 @@ int main(int argc, char **argv) {
 			}
 			
 			/*if (!building.buildingResources.empty())
-				std::string a = serializeToXML(*it.second);*/
-		}
+				std::string a = serializeToXML(*it.second);*//*
+		}*/
 
 		ImGui::InputFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
 
@@ -366,10 +311,7 @@ int main(int argc, char **argv) {
 		if (!ImGui::IsAnyWindowHovered())
 			camera.update(delta);
 
-		dd::flush(0);
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		SDL_GL_SwapWindow(window);
+		RenderInterface::instance().endFrame();
 		frameCount++;
 
 		SDL_Event event;
@@ -412,6 +354,10 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
+
+	ImGui::DestroyContext();
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 
 	return 0;
 }

@@ -803,7 +803,7 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	if (fp.isReading()) {
 		Vector<uint8_t> data;
 		fp.serializeNdVectorExternal_pod(data);
-		vertex = createVertexBuffer(data.data(), data.size(), BUFFER_STATIC, GL_ARRAY_BUFFER);
+		//vertex = createVertexBuffer(data.data(), data.size(), BUFFER_STATIC, GL_ARRAY_BUFFER);
 	} else {
 		SDL_assert_release(false);
 	}
@@ -813,7 +813,7 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	if (fp.isReading()) {
 		Vector<uint8_t> data;
 		fp.serializeNdVectorExternal_pod(data);
-		index = createVertexBuffer(data.data(), data.size(), BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
+		//index = createVertexBuffer(data.data(), data.size(), BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
 	}
 	else {
 		SDL_assert_release(false);
@@ -907,7 +907,7 @@ void xbgFile::GeomMips::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::draw(int selLod) {
-	if (!loaded) return;
+	/*if (!loaded) return;
 	if (lods.empty()) return;
 
 	if (selLod >= lods.size())
@@ -967,5 +967,5 @@ void xbgFile::draw(int selLod) {
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(8);
-	}
+	}*/
 }

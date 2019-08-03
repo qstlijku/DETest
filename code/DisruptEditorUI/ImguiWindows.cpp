@@ -4,9 +4,11 @@
 #include "Common.h"
 #include "Hash.h"
 #include "World.h"
-#include <shellapi.h>
 #include "Version.h"
 #include "FileHandler.h"
+
+#include <Windows.h>
+#include <shellapi.h>
 
 void UI::displayTopMenu() {
 	std::map<std::string, bool> &windows = settings.openWindows;

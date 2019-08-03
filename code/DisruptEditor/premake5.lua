@@ -15,7 +15,6 @@ project "DisruptEditor"
 	includedirs
 	{
 		".",
-		"../vendor/glad",
 		"../vendor/SDL2",
 		"../vendor/tinyxml2",
 		"../vendor/glm",
@@ -35,7 +34,6 @@ project "DisruptEditor"
 		--system
 		"Shlwapi",
 
-		"glad",
 		"tinyxml2",
 		"sqlite3",
 

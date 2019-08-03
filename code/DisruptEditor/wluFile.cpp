@@ -256,7 +256,7 @@ void wluFile::draw(bool drawImgui, bool draw3D) {
 		RenderInterface &renderInterface = RenderInterface::instance();
 
 		ImGuizmo::RecomposeMatrixFromComponents(&pos.x, &angles.x, scale, &matrix[0][0]);
-		EditTransform(&renderInterface.View[0][0], &renderInterface.Projection[0][0], &matrix[0][0]);
+		EditTransform(&renderInterface.sceneCB.View[0][0], &renderInterface.sceneCB.Projection[0][0], &matrix[0][0]);
 		ImGuizmo::DecomposeMatrixToComponents(&matrix[0][0], &pos.x, &angles.x, scale);
 		ImGui::Separator();
 

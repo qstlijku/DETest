@@ -20,11 +20,11 @@ void SplineLoftHiRes::open(IBinaryArchive& fp) {
 		};
 		Vector<UnkStr> verticies;
 		fp.serializeNdVectorExternal(verticies);
-		vertexBuffer = createVertexBuffer(verticies.data(), verticies.size() * sizeof(UnkStr), VertexBufferOptions::BUFFER_STATIC);
+		//vertexBuffer = createVertexBuffer(verticies.data(), verticies.size() * sizeof(UnkStr), VertexBufferOptions::BUFFER_STATIC);
 
 		Vector<uint16_t> indicies;
 		fp.serializeNdVectorExternal_pod(indicies);
-		indexBuffer = createVertexBuffer(indicies.data(), indicies.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
+		//indexBuffer = createVertexBuffer(indicies.data(), indicies.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC);
 	} else {
 		//TODO
 		SDL_assert_release(false);
@@ -34,7 +34,7 @@ void SplineLoftHiRes::open(IBinaryArchive& fp) {
 }
 
 void SplineLoftHiRes::draw() {
-	vertexBuffer->bind();
+	/*vertexBuffer->bind();
 	indexBuffer->bind();
 
 	glEnableVertexAttribArray(0);
@@ -54,7 +54,7 @@ void SplineLoftHiRes::draw() {
 	CHECK_GL_ERROR();
 
 	glDisableVertexAttribArray(0);
-	CHECK_GL_ERROR();
+	CHECK_GL_ERROR();*/
 }
 
 void LoftShape::open(IBinaryArchive& fp) {

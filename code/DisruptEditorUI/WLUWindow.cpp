@@ -9,6 +9,7 @@
 #include "Hash.h"
 #include "imgui.h"
 #include "World.h"
+#include <SDL_log.h>
 
 static std::shared_ptr<wluFile> currentWlu;
 
@@ -141,7 +142,7 @@ void UI::displayWLU() {
 							if (last != glm::vec3())
 								dd::line(&last[0], &pos[0], red);
 							else
-								dd::projectedText((char*)hidName->buffer.data(), &pos.x, red, &renderInterface.VP[0][0], 0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y, 0.5f);
+								dd::projectedText((char*)hidName->buffer.data(), &pos.x, red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
 							last = pos;
 						}
 					}
@@ -161,13 +162,13 @@ void UI::displayWLU() {
 							if (last != glm::vec3())
 								dd::line(&last[0], &pos[0], red);
 							else
-								dd::projectedText((char*)hidName->buffer.data(), &pos.x, red, &renderInterface.VP[0][0], 0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y, 0.5f);
+								dd::projectedText((char*)hidName->buffer.data(), &pos.x, red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
 							last = pos;
 						}
 					}
 
 					if (glm::distance(pos, renderInterface.camera.location) < settings.textDrawDistance)
-						dd::projectedText((char*)hidName->buffer.data(), &pos.x, white, &renderInterface.VP[0][0], 0, 0, renderInterface.windowSize.x, renderInterface.windowSize.y, 0.5f);
+						dd::projectedText((char*)hidName->buffer.data(), &pos.x, white, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
 					if (needsCross)
 						dd::cross(&pos.x, 0.25f);
 

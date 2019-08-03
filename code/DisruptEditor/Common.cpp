@@ -61,9 +61,9 @@ bool writeFile(const std::string & file, const std::string &contents) {
 	return false;
 }
 
-static std::unordered_map<std::string, GLuint> texturesRes;
-GLuint loadResTexture(const std::string &path) {
-	if (texturesRes.count(path) == 0) {
+static std::unordered_map<std::string, uint32_t> texturesRes;
+uint32_t loadResTexture(const std::string &path) {
+	/*if (texturesRes.count(path) == 0) {
 		int width, height, bpc;
 		uint8_t *pixels = stbi_load(("res/" + path).c_str(), &width, &height, &bpc, 0);
 		if (!pixels) return 0;
@@ -88,7 +88,7 @@ GLuint loadResTexture(const std::string &path) {
 		texturesRes[path] = id;
 		free(pixels);
 		return id;
-	}
+	}*/
 	return texturesRes[path];
 }
 

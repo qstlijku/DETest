@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "imgui.h"
+#include <glm/glm.hpp>
 
 #define REGISTER_MEMBER(x) ms.registerMember(#x, x)
 

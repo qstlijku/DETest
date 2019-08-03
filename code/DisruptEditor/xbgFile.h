@@ -11,12 +11,12 @@ You may not use this file without permission
 #include <stdint.h>
 #include "Vector.h"
 #include <string>
-#include "GLHelper.h"
 #include "CPathID.h"
 #include "CStringID.h"
 #include "glm/glm.hpp"
 #include "NBCF.h"
 #include <memory>
+#include "DDRenderInterface.h"
 
 class IBinaryArchive;
 class MemberStructure;
@@ -476,7 +476,7 @@ public:
 
 	struct SGfxBuffers {
 		std::shared_ptr<VertexBuffer> vertex;
-		std::shared_ptr<VertexBuffer> index;
+		std::shared_ptr<IndexBuffer> index;
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);
 	};

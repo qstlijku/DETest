@@ -17,7 +17,6 @@ project "DisruptEditorUI"
 	{
 		".",
 		"../DisruptEditor",
-		"../vendor/glad",
 		"../vendor/SDL2",
 		"../vendor/tinyxml2",
 		"../vendor/glm",
@@ -36,9 +35,8 @@ project "DisruptEditorUI"
 	{
 		--system
 		"Dbghelp",
-		"Opengl32",
+		"D3d11",
 
-		"glad",
 		"tinyxml2",
 		"sqlite3",
 

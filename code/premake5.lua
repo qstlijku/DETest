@@ -80,7 +80,6 @@ workspace "DisruptEditor"
 	include "./ConvertLoc"
 	
 	group "Vendor"
-	include "vendor/glad"
 	include "vendor/tinyxml2"
 	include "vendor/imgui"
 	include "vendor/sqlite3"

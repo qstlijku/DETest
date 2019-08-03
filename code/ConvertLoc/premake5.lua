@@ -16,7 +16,6 @@ project "ConvertLoc"
 	{
 		".",
 		"../DisruptEditor",
-		"../vendor/glad",
 		"../vendor/SDL2",
 		"../vendor/tinyxml2",
 		"../vendor/glm",
@@ -33,7 +32,6 @@ project "ConvertLoc"
 
 	links
 	{
-		"glad",
 		"tinyxml2",
 		"sqlite3",
 

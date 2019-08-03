@@ -3,10 +3,10 @@
 #include <stdint.h>
 #include <vector>
 #include "CPathID.h"
-#include "GLHelper.h"
 #include <memory>
 #include <array>
 #include "xbtFile.h"
+#include "DDRenderInterface.h"
 
 class IBinaryArchive;
 class MemberStructure;
@@ -44,7 +44,7 @@ public:
 		static double DecompressHeight(uint16_t packed);
 
 		std::shared_ptr<VertexBuffer> getVertexBuffer();
-		static std::shared_ptr<VertexBuffer> getIndexBuffer();
+		static std::shared_ptr<IndexBuffer> getIndexBuffer();
 	private:
 		//DisruptEditorData
 		std::shared_ptr<VertexBuffer> vertexBuffer;

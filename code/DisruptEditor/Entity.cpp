@@ -79,7 +79,7 @@ void drawComponent(Node *entity, Node *node, bool drawImGui, bool draw3D) {
 
 std::unordered_set<std::string> eiBroken;
 
-GLuint generateEntityIcon(Node *entity) {
+uint32_t generateEntityIcon(Node *entity) {
 	char path[500];
 	snprintf(path, sizeof(path), "elcache/%s.png", entity->getAttribute("hidName")->buffer.data());
 	if (eiBroken.count(path)) return loadResTexture("loading.png");
@@ -87,7 +87,7 @@ GLuint generateEntityIcon(Node *entity) {
 	//TODO:
 	return loadResTexture("loading.png");
 
-	GLuint image = loadResTexture(path);
+	/*GLuint image = loadResTexture(path);
 	if (image != 0) return image;
 
 	Node *Components = entity->findFirstChild("Components");
@@ -113,10 +113,10 @@ GLuint generateEntityIcon(Node *entity) {
 
 				RenderInterface::instance().saveFBO(savePath);
 				return loadResTexture(path);
-			}*/
+			}*//*
 		}
 	}
 
 	eiBroken.emplace(path);
-	return loadResTexture("loading.png");
+	return loadResTexture("loading.png");*/
 }
