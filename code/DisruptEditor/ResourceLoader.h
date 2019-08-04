@@ -7,9 +7,6 @@ class xbgFile;
 class materialFile;
 class xbtFile;
 
-void resourceLoaderThread();
-void getResourceLoaderProgress(int& progress, std::string& filename);
-
 std::shared_ptr<xbgFile> loadXBG(const char *path);
 std::shared_ptr<xbgFile> loadXBG(uint32_t path);
 

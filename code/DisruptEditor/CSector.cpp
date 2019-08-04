@@ -121,7 +121,25 @@ std::shared_ptr<VertexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::get
 			}
 		}
 
-		//vertexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(float), VertexBufferOptions::BUFFER_STATIC);
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC bufferDesc;
+		bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		bufferDesc.ByteWidth = sizeof(float) * data.size();
+		bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bufferDesc.CPUAccessFlags = 0;
+		bufferDesc.MiscFlags = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = data.data();
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		// Create the vertex buffer.
+		vertexBuffer = std::make_shared<VertexBuffer>();
+		HRESULT hr = RenderInterface::instance().g_pd3dDevice->CreateBuffer(&bufferDesc, &InitData, &vertexBuffer->pVertexBuffer);
+		vertexBuffer->stride = sizeof(float) * 3;
+
 		isDirty = false;
 	}
 
@@ -170,7 +188,17 @@ std::shared_ptr<IndexBuffer> CSectorHighRes::CSceneTerrainSectorPackedData::getI
 			}
 		} while (y < 65);
 
-		//indexBuffer = createVertexBuffer(data.data(), data.size() * sizeof(uint16_t), VertexBufferOptions::BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
+		indexBuffer = std::make_shared<IndexBuffer>();
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = data.data();
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(short) * data.size(), D3D11_BIND_INDEX_BUFFER);
+		RenderInterface::instance().g_pd3dDevice->CreateBuffer(
+			&indexBufferDesc,
+			&indexBufferData,
+			&indexBuffer->pIndexBuffer);
+		indexBuffer->size = data.size();
 	}
 	return indexBuffer;
 }
@@ -201,52 +229,6 @@ void CSector::open(IBinaryArchive & fp) {
 
 	size_t size = fp.size();
 	SDL_assert_release(fp.tell() == fp.size());
-}
-
-void CSector::draw() {
-	/*std::shared_ptr<CSectorHighRes> hiRes = getHiRes();
-	float xOffset = xPos * 64;
-	float yOffset = yPos * 64;
-
-	getColorTexture()->bind(0);
-	getDiffuseTexture()->bind(1);
-	getMaskTexture()->bind(2);
-
-	CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer()->bind();
-
-	glEnableVertexAttribArray(0);
-	CHECK_GL_ERROR();
-
-	for (int x = 0; x < 4; ++x) {
-		for (int y = 0; y < 4; ++y) {
-			auto &map = hiRes->getMap(x, y);
-			auto vertexBuffer = map.getVertexBuffer();
-			vertexBuffer->bind();
-
-			glVertexAttribPointer(
-				0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-				3,                  // size
-				GL_FLOAT,  // type
-				GL_FALSE,           // normalized?
-				3 * sizeof(float),  // stride
-				(void*)0            // array buffer offset
-			);
-			CHECK_GL_ERROR();
-
-			glm::mat4 MVP = RenderInterface::instance().VP * glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - 2048, (yOffset + y * 64) - 2560, 0));
-			glUniformMatrix4fv(RenderInterface::instance().terrain.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-			CHECK_GL_ERROR();
-
-			glUniform2f(RenderInterface::instance().terrain.uniforms["UVOffset"], x / 4.f, y / 4.f);
-			CHECK_GL_ERROR();
-
-			glDrawElements(GL_TRIANGLE_STRIP, CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer()->size / sizeof(uint16_t), GL_UNSIGNED_SHORT, 0);
-			CHECK_GL_ERROR();
-		}
-	}
-
-	glDisableVertexAttribArray(0);
-	CHECK_GL_ERROR();*/
 }
 
 void CSector::save() {

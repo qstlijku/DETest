@@ -23,8 +23,8 @@ std::string materialFile::getCommandPath(const char* name) {
 void materialFile::bind() {
 	if (!loaded) return;
 
-	auto& diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
-	diffuse->bind(0);
+	//auto& diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
+	//diffuse->bind(0);
 }
 
 bool materialFile::open(IBinaryArchive &fp) {

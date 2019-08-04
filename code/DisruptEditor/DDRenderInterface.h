@@ -10,16 +10,29 @@
 
 class VertexBuffer {
 public:
+	~VertexBuffer() {
+		pVertexBuffer->Release();
+	}
+	ID3D11Buffer* pVertexBuffer = NULL;
+	UINT stride = 0;
 };
 
 class IndexBuffer {
 public:
-
+	~IndexBuffer() {
+		pIndexBuffer->Release();
+	}
+	ID3D11Buffer* pIndexBuffer = NULL;
+	UINT size = 0;
 };
 
 class Texture {
 public:
-	ID3D11Texture2D* pTexture = NULL;
+	~Texture() {
+		pTexture->Release();
+		pResource->Release();
+	}
+	ID3D11Resource* pTexture = NULL;
 	ID3D11ShaderResourceView* pResource = NULL;
 };
 
@@ -29,7 +42,7 @@ public:
 
 	void newFrame();
 	void endFrame();
-
+	void setupState(ID3D11DeviceContext* context);
 
 	//
 	// These are called by dd::flush() before any drawing and after drawing is finished.

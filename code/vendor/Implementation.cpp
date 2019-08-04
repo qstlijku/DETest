@@ -7,6 +7,8 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #define DR_WAV_IMPLEMENTATION
 
+#include "../vendor/DirectXTex/DDSTextureLoader.cpp"
+
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "stb_truetype.h"

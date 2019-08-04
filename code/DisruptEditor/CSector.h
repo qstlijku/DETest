@@ -61,7 +61,6 @@ public:
 class CSector {
 public:
 	void open(IBinaryArchive &fp);
-	void draw();
 	void save();
 
 	CPathID lowRes, hiRes;

@@ -10,8 +10,6 @@
 #include <map>
 #include <unordered_map>
 #include "Hash.h"
-#include "imgui.h"
-#include "LoadingScreen.h"
 #include "Dialog.h"
 #include "Entity.h"
 #include "DominoBox.h"
@@ -79,121 +77,18 @@ int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_LogSetOutputFunction(LogOutputFunction, fopen("DisruptEditor.log", "wb"));
 
-	LoadingScreen *loadingScreen = new LoadingScreen;
-
 	reloadSettings();
 
 	SDL_Window *window = RenderInterface::instance().window;
-
+	if (settings.maximized)
+		SDL_MaximizeWindow(window);
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
 
-#if _DEBUG
-	{
-		/*{
-			//12 byte header?
-			//then total size
-			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/citylifedatadict.dat");
-			CBinaryArchiveReader reader(fp);
-			SDL_RWseek(fp, 36, RW_SEEK_SET);
-			CLODataDictionaries dict;
-			dict.read(reader);
-			SDL_RWclose(fp);
-		}
-
-		{
-			CCityLifeDataAndStateHandler state;
-			Vector<uint8_t> data = fromHexString("00000084000000900000668000000000000000840000000000000084000000000000000010929A090000000300000000000000020000000000000000000000000000002F00000000000000000000000200000000000000000000000100000000000000000000000000000000000000000000000100000000000000000000000000000148000000000000000000000000");
-			SDL_RWops* fp = SDL_RWFromConstMem(data.data(), data.size());
-			SDL_RWseek(fp, 36, RW_SEEK_SET);
-			CBinaryArchiveReader reader(fp);
-			reader.bigEndian = true;
-			state.read(reader);
-		}*/
-
-		/*{
-			CMoveResourceDataManager move;
-			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/combinedmovefile.bin");
-			CBinaryArchiveReader reader(fp);
-			move.open(reader);
-		}
-
-		{
-			WaterMeshes db;
-			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/watermeshes.fcb");
-			CBinaryArchiveReader reader(fp);
-			db.open(reader);
-			SDL_RWclose(fp);
-
-			db.indexes.clear();
-			db.meshes.clear();
-			fp = FH::openFileWrite("worlds/windy_city/generated/watermeshes.fcb");
-			CBinaryArchiveWriter writer(fp);
-			db.open(writer);
-			SDL_RWclose(fp);
-		}
-
-		{
-			CResourceDataBase db;
-			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/windy_city_depload.dat");
-			CBinaryArchiveReader reader(fp);
-			db.open(reader);
-			writeFile("db.xml", serializeToXML(db));
-		}*/
-
-
-		/*{
-			RoadNetwork move;
-			SDL_RWops* fp = FH::openFile("worlds/windy_city/generated/roadnetwork/roadnetwork_lowres.rnf");
-			CBinaryArchiveReader reader(fp);
-			move.read(reader);
-		}*/
-	}
-#endif
-
-	{
-		//These two need to be set up before anything else
-		std::future<void> fileHandlerF = std::async(FH::Init);
-		std::future<void> dbF = std::async([]() { DB::instance(); });
-
-		loadingScreen->setTitle("Scanning Files");
-		loadingScreen->waitForFuture(fileHandlerF);
-		loadingScreen->setTitle("Setting Up Database");
-		loadingScreen->waitForFuture(dbF);
-
-		std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
-		std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml")); });
-		std::future<void> loadWLUF = std::async(world.loadWLUAsync);
-		std::future<void> loadSectorF = std::async(world.loadSectors);
-
-		std::thread resourceLoader(resourceLoaderThread);
-		resourceLoader.detach();
-
-		world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
-
-		loadingScreen->setTitle("Loading Entity Library");
-		loadingScreen->waitForFuture(loadEntityLibraryF);
-		loadingScreen->setTitle("Loading Particle Library");
-		loadingScreen->waitForFuture(particlesF);
-		loadingScreen->setTitle("Loading World Load Units");
-		loadingScreen->waitForFuture(loadWLUF);
-		loadingScreen->setTitle("Loading World Sectors");
-		loadingScreen->waitForFuture(loadSectorF);
-
-		//Unused for now
-		//loadingScreen->setTitle("Loading Language Files");
-		//Dialog::instance();
-	}
+	//Start World Loader
+	std::thread worldLoaderThread(world.loaderThread);
 
 	Uint32 ticks = SDL_GetTicks();
-	uint64_t frameCount = 0;
-
-	if (settings.maximized)
-		SDL_MaximizeWindow(window);
-	SDL_ShowWindow(window);
-	delete loadingScreen;
-	loadingScreen = NULL;
-
 	bool windowOpen = true;
 	while (windowOpen) {
 		float delta = (SDL_GetTicks() - ticks) / 1000.f;
@@ -213,29 +108,33 @@ int main(int argc, char **argv) {
 
 		world.mutex.lock();
 
-		UI::displayTopMenu();
-		UI::displayTempWindows();
-		UI::displayWindows();
+		if (world.readyToRender) {
+			UI::displayTopMenu();
+			UI::displayTempWindows();
+			UI::displayWindows();
 
-		int resources;
-		std::string file;
-		getResourceLoaderProgress(resources, file);
-		if (world.loadingProgress != 1.f || resources > 0 || true) {
-			ImGui::SetNextWindowPos(ImVec2(15, 25), ImGuiCond_Always);
-			ImGui::Begin("Loading", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
-			ImGui::Text("%i%% %s", (int)(world.loadingProgress * 100), world.loadingStatus.c_str());
-			ImGui::Text("Resource Loader: %i %s", resources, file.c_str());
+			if (settings.drawTerrain && world.pd3dCommandList)
+				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
+
+		} else {
+			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);
+			ImGui::Begin("Loading Disrupt Editor", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+			const char* messages[]{
+				"Reticulating Splines...",
+				"I brought this on Clara. Brought her into my mess...",
+				"And then go forward and back, then put one foot forward",
+				"You wouldn't download a car",
+			};
+			static int num = time(NULL) % (sizeof(messages) / sizeof(messages[0]));
+			ImGui::Text(messages[num]);
+
+			ImGui::ProgressBar(world.loadingProgress, ImVec2(-1.0f, 0.0f), world.loadingStatus.c_str());
 			ImGui::End();
-		}
-		
-		dd::xzSquareGrid(-50, 50, 0, 1, blue);
 
-		/*if (settings.drawTerrain) {
-			RenderInterface::instance().terrain.use();
-			size_t maxSectors = world.sectors.size();
-			for (size_t i = 0; i < maxSectors; ++i)
-				world.sectors[i].draw();
-		}*/
+			dd::xzSquareGrid(-50, 50, 0, 1, blue);
+		}
 
 		//Draw XBG
 		/*glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -304,7 +203,7 @@ int main(int argc, char **argv) {
 				std::string a = serializeToXML(*it.second);*//*
 		}*/
 
-		ImGui::InputFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
+		//ImGui::InputFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
 
 		world.mutex.unlock();
 
@@ -312,7 +211,6 @@ int main(int argc, char **argv) {
 			camera.update(delta);
 
 		RenderInterface::instance().endFrame();
-		frameCount++;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {

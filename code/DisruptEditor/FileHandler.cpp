@@ -165,7 +165,6 @@ std::string FH::getAbsoluteFilePath(const char *path) {
 
 	SDL_Log("Could not load file %s", path);
 
-	throw 3;
 	return std::string();
 }
 
@@ -182,8 +181,7 @@ std::string FH::getAbsoluteFilePath(FileHash hash) {
 
 	SDL_Log("Could not load file %08x", hash);
 
-	throw 3;
-	return "";
+	return std::string();
 }
 
 void FH::Init() {

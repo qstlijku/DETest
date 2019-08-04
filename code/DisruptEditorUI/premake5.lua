@@ -36,6 +36,7 @@ project "DisruptEditorUI"
 		--system
 		"Dbghelp",
 		"D3d11",
+		"dxguid",
 
 		"tinyxml2",
 		"sqlite3",
