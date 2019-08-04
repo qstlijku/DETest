@@ -40,13 +40,14 @@ https://hg.libsdl.org/SDL/file/05aff4771d9a/include/SDL_keycode.h#l325
 # Features
 
 * WLU Editing (Export/Import as XML)
-* Display of some xbgs
+* Display of XBGs (Editing later)
 * Material Editing
+* Audio Editing (DARE)
+* Terrain Editing (No Holes yet!)
+* Display of Compound batch files (Editing soon)
 
 # Roadmap
 
-* Finish compound cbatch files
-* XBG Redering/Export
-* SBAO
+* Havok Physics
 * CBox Editor
-* Cache Files for faster loading
+* Localization editing (.loc)
