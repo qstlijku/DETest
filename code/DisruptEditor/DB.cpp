@@ -85,7 +85,7 @@ std::string DB::getStrFromDobbs(uint32_t hash) {
 uint32_t DB::getSpkFromSBAO(uint32_t resID) {
 	try {
 		uint32_t spk;
-		*db << "select spk from dare where sbao=?;" << resID >> spk;
+		*db << "select spk from dare where sbao=? LIMIT 1;" << resID >> spk;
 		return spk;
 	}
 	catch (...) { }

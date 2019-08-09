@@ -43,6 +43,13 @@ sbaoFile& DARE::loadAtomicObject(uint32_t res) {
 	if (atomicObjects.count(res) == 0)
 		addAtomicObject(res);
 
+	//Do A lookup for the spk with the correct sbao
+	if (atomicObjects.count(res) == 0) {
+		uint32_t spk = DB::instance().getSpkFromSBAO(res);
+		if(spk != -1)
+			addSoundResource(spk);
+	}
+	
 	SDL_assert_release(atomicObjects.count(res));
 	return atomicObjects[res];
 }
