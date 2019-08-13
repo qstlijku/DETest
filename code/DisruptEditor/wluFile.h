@@ -35,7 +35,7 @@ public:
 	bool open(SDL_RWops* fp);
 	void serialize(SDL_RWops* fp);
 
-	void draw(bool drawImgui = false, bool draw3D = false);
+	void draw(bool drawImgui = false);
 	
 	Node root;
 

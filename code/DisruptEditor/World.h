@@ -30,6 +30,7 @@ public:
 	void drawTerrain(ID3D11DeviceContext* context);
 
 	ID3D11CommandList* pd3dCommandList = NULL;
+	std::vector< ID3D11CommandList* > wluLists;
 };
 
 extern World world;

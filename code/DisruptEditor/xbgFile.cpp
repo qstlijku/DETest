@@ -803,7 +803,15 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	if (fp.isReading()) {
 		Vector<uint8_t> data;
 		fp.serializeNdVectorExternal_pod(data);
-		//vertex = createVertexBuffer(data.data(), data.size(), BUFFER_STATIC, GL_ARRAY_BUFFER);
+		vertex = std::make_shared<VertexBuffer>();
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = data.data();
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(data.size(), D3D11_BIND_VERTEX_BUFFER);
+
+		RenderInterface::instance().g_pd3dDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertex->pVertexBuffer);
 	} else {
 		SDL_assert_release(false);
 	}
@@ -813,7 +821,18 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	if (fp.isReading()) {
 		Vector<uint8_t> data;
 		fp.serializeNdVectorExternal_pod(data);
-		//index = createVertexBuffer(data.data(), data.size(), BUFFER_STATIC, GL_ELEMENT_ARRAY_BUFFER);
+
+		index = std::make_shared<IndexBuffer>();
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = data.data();
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(data.size(), D3D11_BIND_INDEX_BUFFER);
+		RenderInterface::instance().g_pd3dDevice->CreateBuffer(
+			&indexBufferDesc,
+			&indexBufferData,
+			&index->pIndexBuffer);
+		index->size = data.size() / sizeof(short);
 	}
 	else {
 		SDL_assert_release(false);
@@ -904,68 +923,4 @@ void xbgFile::GeomMips::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(path);
-}
-
-void xbgFile::draw(int selLod) {
-	/*if (!loaded) return;
-	if (lods.empty()) return;
-
-	if (selLod >= lods.size())
-		return;
-
-	LOD &lod = lods[selLod];
-
-	for (auto &mesh : lod.meshes) {
-		glUniform1f(RenderInterface::instance().model.uniforms["scale"], mesh.unk2);
-
-		GLenum pType = GL_TRIANGLES;
-		switch (mesh.primitiveType) {
-		case 0:
-			pType = GL_TRIANGLES;
-			break;
-		case 7:
-			pType = GL_POINTS;
-			break;
-		default:
-			SDL_assert_release(false && "Unhandled Primitive Type");
-		}
-
-		loadMaterial(materialResources.materials[mesh.matID].file.c_str())->bind();
-		
-		int bufferIndex = selLod;
-
-		int baseOffset = mesh.drawCall.unk1;
-
-		buffers[bufferIndex].vertex->bind();
-		buffers[bufferIndex].index->bind();
-		SDL_assert_release(buffers[bufferIndex].index->size % sizeof(short) == 0);
-
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(
-			0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_SHORT,  // type
-			GL_TRUE,           // normalized?
-			mesh.vertexStride,  // stride
-			(void*)baseOffset            // array buffer offset
-		);
-		glEnableVertexAttribArray(8);
-		glVertexAttribPointer(
-			8,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-			2,                  // size
-			GL_SHORT,  // type
-			GL_TRUE,           // normalized?
-			mesh.vertexStride,  // stride
-			(void*)(baseOffset + 8)            // array buffer offset
-		);
-
-		// Draw the triangles
-		GLint id;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &id);
-		glDrawElements(pType, mesh.drawCall.primitiveCount, GL_UNSIGNED_SHORT, (void*)(mesh.drawCall.unk4 * 2));
-		
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(8);
-	}*/
 }

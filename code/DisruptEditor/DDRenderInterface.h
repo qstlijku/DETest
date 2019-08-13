@@ -11,7 +11,8 @@
 class VertexBuffer {
 public:
 	~VertexBuffer() {
-		pVertexBuffer->Release();
+		if(pVertexBuffer)
+			pVertexBuffer->Release();
 	}
 	ID3D11Buffer* pVertexBuffer = NULL;
 	UINT stride = 0;
@@ -20,7 +21,8 @@ public:
 class IndexBuffer {
 public:
 	~IndexBuffer() {
-		pIndexBuffer->Release();
+		if(pIndexBuffer)
+			pIndexBuffer->Release();
 	}
 	ID3D11Buffer* pIndexBuffer = NULL;
 	UINT size = 0;
@@ -29,8 +31,10 @@ public:
 class Texture {
 public:
 	~Texture() {
-		pTexture->Release();
-		pResource->Release();
+		if(pTexture)
+			pTexture->Release();
+		if(pResource)
+			pResource->Release();
 	}
 	ID3D11Resource* pTexture = NULL;
 	ID3D11ShaderResourceView* pResource = NULL;

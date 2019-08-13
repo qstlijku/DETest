@@ -206,7 +206,7 @@ void EditTransform(const float *cameraView, float *cameraProjection, float* matr
 	ImGuizmo::Manipulate(cameraView, cameraProjection, mCurrentGizmoOperation, mCurrentGizmoMode, matrix, NULL, useSnap ? &snap[0] : NULL);
 }
 
-void wluFile::draw(bool drawImgui, bool draw3D) {
+void wluFile::draw(bool drawImgui) {
 	Node *Entities = root.findFirstChild("Entities");
 	if (!Entities) return;
 

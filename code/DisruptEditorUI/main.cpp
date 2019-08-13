@@ -116,6 +116,8 @@ int main(int argc, char **argv) {
 			if (settings.drawTerrain && world.pd3dCommandList)
 				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
 
+			for(auto &it : world.wluLists)
+				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it, TRUE);
 		} else {
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 			ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);

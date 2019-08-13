@@ -8,6 +8,9 @@
 #include <RML.h>
 #include "Entity.h"
 #include <glm\gtc\matrix_transform.hpp>
+#include <Hash.h>
+#include <ResourceLoader.h>
+#include <xbgFile.h>
 
 World world;
 
@@ -101,6 +104,107 @@ void World::loaderThread() {
 	assert(hr == S_OK);
 
 	world.readyToRender = true;
+
+	//Start Drawing WLUs
+	for (auto& it : world.wlus) {
+		ID3D11CommandList* pList = NULL;
+		RenderInterface::instance().setupState(pDeferredContext);
+
+		pDeferredContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
+		pDeferredContext->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
+
+		Node* Entities = it.second->root.findFirstChild("Entities");
+		for (Node& entityRef : Entities->children) {
+			Node* entityPtr = &entityRef;
+			Attribute* ArchetypeGuid = entityRef.getAttribute("ArchetypeGuid");
+			if (ArchetypeGuid) {
+				uint32_t uid = Hash::getFilenameHash((const char*)ArchetypeGuid->buffer.data());
+				entityPtr = findEntityByUID(uid);
+				if (!entityPtr) {
+					SDL_Log("Could not find %s\n", ArchetypeGuid->buffer.data());
+					SDL_assert_release(false && "Could not lookup entity by archtype, check that dlc_solo is loaded first before other packfiles");
+					entityPtr = &entityRef;
+				}
+			}
+
+			Node* Components = entityPtr->findFirstChild("Components");
+			if (!Components) continue;
+
+			Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
+			if (!CGraphicComponent) continue;
+
+			Attribute* XBG = CGraphicComponent->getAttribute(0x3182766C);
+			if (!XBG) continue;
+			if (XBG->buffer.size() <= 5) continue;
+
+			auto &model = loadXBG((char*)XBG->buffer.data());
+
+			glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
+			glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
+
+			glm::mat4 modelMatrix = glm::translate(glm::mat4(), pos);
+			modelMatrix = glm::rotate(modelMatrix, angles.x, glm::vec3(1, 0, 0));
+			modelMatrix = glm::rotate(modelMatrix, angles.y, glm::vec3(0, 1, 0));
+			modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
+			RenderInterface::instance().objectCB.Model = modelMatrix;
+
+			auto& lod = model->lods[0];
+			pDeferredContext->IASetIndexBuffer(model->buffers[0].index->pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+			for (auto& mesh : lod.meshes) {
+				RenderInterface::instance().objectCB.UVScale = glm::vec2(mesh.unk2);
+				pDeferredContext->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
+
+				D3D_PRIMITIVE_TOPOLOGY pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+				switch (mesh.primitiveType) {
+				case 0:
+					pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					break;
+				case 7:
+					pType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+					break;
+				default:
+					SDL_assert_release(false && "Unhandled Primitive Type");
+				}
+				pDeferredContext->IASetPrimitiveTopology(pType);
+
+				//loadMaterial(materialResources.materials[mesh.matID].file.c_str())->bind();
+
+				int bufferIndex = 0;
+
+				UINT offset = mesh.drawCall.unk1;
+				UINT stride = mesh.vertexStride;
+				pDeferredContext->IASetVertexBuffers(0, 1, &model->buffers[bufferIndex].vertex->pVertexBuffer, &stride, &offset);
+				pDeferredContext->IASetIndexBuffer(model->buffers[bufferIndex].index->pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+				SDL_assert_release(model->buffers[bufferIndex].index->size % sizeof(short) == 0);
+
+				static std::unordered_map<uint32_t, ID3D11InputLayout*> layouts;
+				if (layouts.count(mesh.vertexFormat) == 0) {
+					const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+					{
+						//DXGI_FORMAT_R32G32B32_SINT
+					  { "POSITION", 0, DXGI_FORMAT_R16G16B16A16_SNORM, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					  { "TEXCOORD", 1, DXGI_FORMAT_R16G16B16A16_SNORM, 0, 8,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					};
+					RenderInterface::instance().g_pd3dDevice->CreateInputLayout(
+						vertexDesc,
+						ARRAYSIZE(vertexDesc),
+						RenderInterface::instance().model.vShaderBlob->GetBufferPointer(),
+						RenderInterface::instance().model.vShaderBlob->GetBufferSize(),
+						&layouts[mesh.vertexFormat]);
+				}
+				pDeferredContext->IASetInputLayout(layouts[mesh.vertexFormat]);
+
+				// Draw the triangles
+				pDeferredContext->DrawIndexed(mesh.drawCall.primitiveCount, mesh.drawCall.unk4, 0);
+			}
+		}
+
+		hr = pDeferredContext->FinishCommandList(FALSE, &pList);
+		assert(hr == S_OK);
+		world.mutex.lock();
+		world.wluLists.push_back(pList);
+		world.mutex.unlock();
+	}
 }
 
 void World::drawTerrain(ID3D11DeviceContext* context) {

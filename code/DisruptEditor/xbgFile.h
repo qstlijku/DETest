@@ -496,7 +496,6 @@ public:
 
 	bool loaded = false;
 
-	void draw(int selLod);
 	void registerMembers(MemberStructure &ms);
 };
 
