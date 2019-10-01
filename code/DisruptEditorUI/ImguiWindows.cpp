@@ -105,18 +105,21 @@ void UI::displayTopMenu() {
 	if (ImGui::BeginMenu("Credits")) {
 		ImGui::Text("Disrupt Editor v%s", DE_VERSIONSTR);
 		if (ImGui::Selectable("Check for updates"))
-			ShellExecute(0, 0, L"https://ci.appveyor.com/project/j301scott/disrupteditor/build/artifacts", 0, 0, SW_SHOW);
+			ShellExecute(0, 0, L"https://github.com/j301scott/DisruptEditor/releases", 0, 0, SW_SHOW);
 		ImGui::Separator();
 		if (ImGui::Selectable("Watch Dogs Modding Discord"))
 			ShellExecute(0, 0, L"https://discord.gg/rTQcfDD", 0, 0, SW_SHOW);
 		ImGui::Separator();
-		if (ImGui::Selectable("Disrupt Editor - Jon"))
-			ShellExecute(0, 0, L"https://github.com/j301scott/DisruptEditor", 0, 0, SW_SHOW);
 		if (ImGui::Selectable("FCBastard - Fireboyd78"))
-			ShellExecute(0, 0, L"https://github.com/Fireboyd78/", 0, 0, SW_SHOW);
+			ShellExecute(0, 0, L"https://github.com/Fireboyd78", 0, 0, SW_SHOW);
+		if (ImGui::Selectable("Premake help - Force67"))
+			ShellExecute(0, 0, L"https://github.com/Force67", 0, 0, SW_SHOW);
 		if (ImGui::Selectable("Gibbed.Disrupt - Gibbed"))
-			ShellExecute(0, 0, L"https://github.com/gibbed/", 0, 0, SW_SHOW);
-
+			ShellExecute(0, 0, L"https://github.com/gibbed", 0, 0, SW_SHOW);
+		if (ImGui::Selectable("Disrupt Editor - Jon"))
+			ShellExecute(0, 0, L"https://github.com/j301scott", 0, 0, SW_SHOW);
+		if (ImGui::Selectable("Gibbed.Disrupt Updates - MrWasdennnoch"))
+			ShellExecute(0, 0, L"https://github.com/wasdennnoch", 0, 0, SW_SHOW);
 		ImGui::EndMenu();
 	}
 	ImGui::EndMainMenuBar();
