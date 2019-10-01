@@ -32,16 +32,6 @@ static void promptGameDir() {
 	settings.gameDir = settings.gameDir.substr(0, settings.gameDir.size() - strlen("bin/Watch_Dogs.exe"));
 }
 
-static void promptPatchDir() {
-	SDL_ShowSimpleMessageBox(0, "Disrupt Editor Setup", "Please select the (patch) folder to save data to", NULL);
-	const char* dir = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN | NOC_FILE_DIALOG_DIR, NULL, NULL, NULL);
-	if (!dir) {
-		exit(0);
-	}
-
-	settings.patchDir = dir;
-}
-
 void reloadSettings() {
 	std::string contents = readFile("settings.xml");
 	unserializeFromXML(settings, contents.c_str());
@@ -52,7 +42,7 @@ void reloadSettings() {
 	}
 
 	if (settings.patchDir.empty() || !std::filesystem::exists(settings.patchDir)) {
-		promptPatchDir();
+		settings.patchDir = "patch/";
 		saveSettings();
 	}
 }

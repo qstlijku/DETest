@@ -2,7 +2,51 @@
 
 #include <SDL.h>
 
-static void appDecompressLZX(byte* CompressedBuffer, int CompressedSize, byte* UncompressedBuffer, int UncompressedSize, int windowSize);
+//XCompress
+typedef enum _XMEMCODEC_TYPE {
+	XMEMCODEC_DEFAULT = 0,
+	XMEMCODEC_LZX = 1
+} XMEMCODEC_TYPE;
+typedef void* XMEMDECOMPRESSION_CONTEXT;
+typedef struct _XMEMCODEC_PARAMETERS_LZX {
+	DWORD Flags;
+	DWORD WindowSize;
+	DWORD CompressionPartitionSize;
+} XMEMCODEC_PARAMETERS_LZX;
+typedef HRESULT (*XMemCreateDecompressionContext)(
+	XMEMCODEC_TYPE                  CodecType,
+	CONST VOID* pCodecParams,
+	DWORD                           Flags,
+	XMEMDECOMPRESSION_CONTEXT* pContext
+);
+static XMemCreateDecompressionContext _XMemCreateDecompressionContext;
+typedef HRESULT (*XMemDecompress)(
+	XMEMDECOMPRESSION_CONTEXT       Context,
+	VOID* pDestination,
+	SIZE_T* pDestSize,
+	CONST VOID* pSource,
+	SIZE_T                          SrcSize
+);
+static XMemDecompress _XMemDecompress;
+typedef VOID (*XMemDestroyDecompressionContext)(
+	XMEMDECOMPRESSION_CONTEXT       Context
+);
+static XMemDestroyDecompressionContext _XMemDestroyDecompressionContext;
+
+void InitXCompress() {
+	HMODULE hModule = LoadLibrary(L"res/xcompress64.dll");
+	if (!hModule) {
+		SDL_ShowSimpleMessageBox(0, "Error", "xcompress64.dll is missing from res/", NULL);
+		exit(0);
+	}
+
+	_XMemCreateDecompressionContext = (XMemCreateDecompressionContext)GetProcAddress(hModule, "XMemCreateDecompressionContext");
+	SDL_assert_release(_XMemCreateDecompressionContext);
+	_XMemDecompress = (XMemDecompress)GetProcAddress(hModule, "XMemDecompress");
+	SDL_assert_release(_XMemDecompress);
+	_XMemDestroyDecompressionContext = (XMemDestroyDecompressionContext)GetProcAddress(hModule, "XMemDestroyDecompressionContext");
+	SDL_assert_release(_XMemDestroyDecompressionContext);
+}
 
 DatFat::DatFat(const std::string &filename) {
 	std::string fatFile = filename;
@@ -39,7 +83,7 @@ DatFat::DatFat(const std::string &filename) {
 		FileEntry &fe = files[a];
 		fe.realSize = (b >> 3) & 0x1FFFFFFFu;
 		fe.compression = (FileEntry::Compression) ((b >> 0) & 0x00000007u);
-		fe.offset = (d << 3) & 0xffffffff;
+		fe.offset = ((uint64_t)d) << 3;
 		fe.offset |= (c >> 29) & 0x00000007u;
 		fe.size = (c >> 0) & 0x1FFFFFFFu;
 	}
@@ -78,6 +122,9 @@ SDL_RWops* DatFat::openRead(uint32_t hash) {
 		if (it->second.compression == FileEntry::Compression::None) {
 			return SDL_RWFromConstMem(datPtr + it->second.offset, it->second.size);
 		} else if (it->second.compression == FileEntry::Compression::Xbox) {
+			uint8_t* data = (uint8_t*)malloc(it->second.realSize);
+			uint8_t* dataIt = data;
+
 			SDL_RWops *dat = SDL_RWFromConstMem(datPtr + it->second.offset, it->second.size);
 			uint32_t magic = SDL_ReadBE32(dat);
 			SDL_assert_release(magic == 0x0FF512EE);
@@ -103,18 +150,34 @@ SDL_RWops* DatFat::openRead(uint32_t hash) {
 
 			int32_t largestCompressedChunkSize = SDL_ReadBE32(dat);
 
-			uint8_t* uncompressedBytes = new uint8_t[largestUncompressedChunkSize];
 			uint8_t* compressedBytes = new uint8_t[largestCompressedChunkSize];
 
 			int64_t remaining = uncompressedSize;
 			while (remaining > 0) {
+				XMEMDECOMPRESSION_CONTEXT context;
+				XMEMCODEC_PARAMETERS_LZX param;
+				param.Flags = 0;
+				param.WindowSize = windowSize;
+				param.CompressionPartitionSize = chunkSize;
+				HRESULT ret = _XMemCreateDecompressionContext(XMEMCODEC_LZX, &param, 1, &context);
+				SDL_assert_release(ret == S_OK);
+
 				int32_t compressedChunkSize = SDL_ReadBE32(dat);
 				SDL_RWread(dat, compressedBytes, 1, compressedChunkSize);
-				appDecompressLZX(compressedBytes, compressedChunkSize, uncompressedBytes, largestUncompressedChunkSize, windowSize);
-				//remaining -= actualUncompressedChunkSize;
+				
+				SIZE_T uncompressedChunkSize = largestUncompressedChunkSize;
+				ret = _XMemDecompress(context, dataIt, &uncompressedChunkSize, compressedBytes, compressedChunkSize);
+				SDL_assert_release(ret == S_OK);
+
+				dataIt += uncompressedChunkSize;
+
+				_XMemDestroyDecompressionContext(context);
+				remaining -= uncompressedChunkSize;
 			}
 
-			uint8_t* data = (uint8_t*) malloc(it->second.realSize);
+			SDL_assert_release(dataIt == data + it->second.realSize);
+
+			delete[] compressedBytes;
 
 			SDL_RWops *fp = SDL_RWFromConstMem(data, it->second.realSize);
 			fp->close = mem_close;
@@ -126,113 +189,4 @@ SDL_RWops* DatFat::openRead(uint32_t hash) {
 	}
 
 	return NULL;
-}
-
-
-////////////////////
-// Compression
-////////////////////
-
-
-#include "mspack.h"
-#include "lzx.h"
-
-// https://github.com/gildor2/UModel/blob/master/Unreal/UnCoreCompression.cpp
-typedef unsigned char byte;
-struct appDecompressLZX_file {
-	byte* buf;
-	int			bufSize;
-	int			pos;
-	int			rest;
-};
-
-static int appDecompressLZX_read(struct appDecompressLZX_file* file, void* buffer, int bytes) {
-	//guard(mspack_read);
-
-	if (!file->rest) {
-		// read block header
-		if (file->buf[file->pos] == 0xFF) {
-			// [0]   = FF
-			// [1,2] = uncompressed block size
-			// [3,4] = compressed block size
-			file->rest = (file->buf[file->pos + 3] << 8) | file->buf[file->pos + 4];
-			file->pos += 5;
-		} else {
-			// [0,1] = compressed size
-			file->rest = (file->buf[file->pos + 0] << 8) | file->buf[file->pos + 1];
-			file->pos += 2;
-		}
-		if (file->rest > file->bufSize - file->pos)
-			file->rest = file->bufSize - file->pos;
-	}
-	if (bytes > file->rest) bytes = file->rest;
-	if (!bytes) return 0;
-
-	// copy block data
-	memcpy(buffer, file->buf + file->pos, bytes);
-	file->pos += bytes;
-	file->rest -= bytes;
-
-	return bytes;
-	//unguard;
-}
-
-static int appDecompressLZX_write(struct appDecompressLZX_file* file, void* buffer, int bytes) {
-	//guard(mspack_write);
-	//assert(file->pos + bytes <= file->bufSize);
-	memcpy(file->buf + file->pos, buffer, bytes);
-	file->pos += bytes;
-	return bytes;
-	//unguard;
-}
-
-static void* appDecompressLZX_alloc(struct mspack_system* self, size_t bytes) {
-	return /*appMalloc*/malloc(bytes);
-}
-
-static void appDecompressLZX_free(void* ptr) {
-	/*appFree*/free(ptr);
-}
-
-static void appDecompressLZX_copy(void* src, void* dst, size_t bytes) {
-	memcpy(dst, src, bytes);
-}
-
-static struct mspack_system lzxSys =
-{
-	NULL,				// open
-	NULL,				// close
-	(int (*)(mspack_file *, void *, int)) & appDecompressLZX_read,
-	(int (*)(mspack_file*, void*, int)) & appDecompressLZX_write,
-	NULL,				// seek
-	NULL,				// tell
-	NULL,				// message
-	&appDecompressLZX_alloc,
-	&appDecompressLZX_free,
-	&appDecompressLZX_copy
-};
-
-static void appDecompressLZX(byte* CompressedBuffer, int CompressedSize, byte* UncompressedBuffer, int UncompressedSize, int windowSize) {
-	//guard(appDecompressLZX);
-
-	// setup streams
-	struct appDecompressLZX_file src, dst;
-	src.buf = CompressedBuffer;
-	src.bufSize = CompressedSize;
-	src.pos = 0;
-	src.rest = 0;
-	dst.buf = UncompressedBuffer;
-	dst.bufSize = UncompressedSize;
-	dst.pos = 0;
-	// prepare decompressor
-	struct lzxd_stream* lzxd = lzxd_init(&lzxSys, (mspack_file*)& src, (mspack_file*)& dst, 17, 0, 256 * 1024, UncompressedSize, 0);
-	//assert(lzxd);
-	// decompress
-	int r = lzxd_decompress(lzxd, UncompressedSize);
-	if (r != MSPACK_ERR_OK)
-		return; //appError("lzxd_decompress(%d,%d) returned %d", CompressedSize, UncompressedSize, r);
-	// free resources
-	lzxd_free(lzxd);
-
-	//unguard;
 }

@@ -93,6 +93,7 @@ SDL_RWops* FH::openFileWrite(const std::string& path) {
 }
 
 void FH::Init() {
+	InitXCompress();
 	dats.reserve(60);
 
 	AddDatFat(settings.gameDir + "data_win64/patch1.fat");

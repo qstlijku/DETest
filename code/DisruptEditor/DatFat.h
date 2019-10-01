@@ -8,6 +8,8 @@
 
 struct SDL_RWops;
 
+void InitXCompress();
+
 class DatFat {
 public:
 	DatFat(const std::string &filename);
