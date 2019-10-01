@@ -1,53 +1,33 @@
 ## Disrupt Editor
 
-[![Build status](https://ci.appveyor.com/api/projects/status/tpcpf00rbkk8i1n0?svg=true)](https://ci.appveyor.com/project/j301scott/disrupteditor)
+# Download
 
-Latest Build: https://ci.appveyor.com/project/j301scott/disrupteditor/build/artifacts
+You can download stable builds from the [Releases](https://github.com/j301scott/DisruptEditor/releases) Page
+
+You can also download unstable builds from GitHub [Actions](https://github.com/j301scott/DisruptEditor/actions)
 
 # Setup
+Run Disrupt Editor, it will first prompt you for where the Watch_Dogs.exe file is
 
-1. Run Disrupt Editor, it will automatically create a settings.xml for you to fill in
-2. Assuming Z:/scratch/bin is where you extracted each of the fat/dat files, add them to searchPaths like so:
-patchDir is where modified files like wlu and cbatch are written. Files in the patchDir will always take precedence
-```xml
-<searchPaths>
-    <Elem>Z:/scratch/bin/patch_unpack/</Elem>
-    <Elem>Z:/scratch/bin/dlc_solo_unpack/</Elem>
-    <Elem>Z:/scratch/bin/dlc_solo_english_unpack/</Elem>
-    <Elem>Z:/scratch/bin/dlc_pill_people_unpack/</Elem>
-    <Elem>Z:/scratch/bin/windy_city_unpack/</Elem>
-    <Elem>Z:/scratch/bin/windy_city_english_unpack/</Elem>
-    <Elem>Z:/scratch/bin/shaders_unpack/</Elem>
-    <Elem>Z:/scratch/bin/shadersobj_unpack/</Elem>
-    <Elem>Z:/scratch/bin/sound_unpack/</Elem>
-    <Elem>Z:/scratch/bin/sound_english_unpack/</Elem>
-    <Elem>Z:/scratch/bin/common_unpack/</Elem>
-</searchPaths>
-<patchDir>C:/Program Files/Ubisoft/WATCH_DOGS/bin/patch/</patchDir>
+# Documentation
+
+Documentation is located on the [Wiki](https://github.com/j301scott/DisruptEditor/wiki)
+
+# Building
+
+It is highly recommended that you use the builds from the releases page
+
+Disrupt Editor has these build requirements:
+* 64-bit Windows
+* Visual Studio 2019
+* CMake
+
 ```
-3. Configure camera keyboard settings keyForward, keyBackward, etc. with https://wiki.libsdl.org/SDLScancodeLookup
-keyFast, keySlow with
-https://hg.libsdl.org/SDL/file/05aff4771d9a/include/SDL_keycode.h#l325
+mkdir Build
+cd Build
+cmake -G "Visual Studio 16 2019" ..
+```
 
-# Default Controls
-* W A S D - Move Camera
-* R - Ascend
-* F - Descend
-* Shift - Increase camera speed
-* Ctrl - Decrease camera speed
-* Middle mouse button - Rotate camera
+# Contributing
 
-# Features
-
-* WLU Editing (Export/Import as XML)
-* Display of XBGs (Editing later)
-* Material Editing
-* Audio Editing (DARE)
-* Terrain Editing (No Holes yet!)
-* Display of Compound batch files (Editing soon)
-
-# Roadmap
-
-* Havok Physics
-* CBox Editor
-* Localization editing (.loc)
+Contributions are highly welcome! Check on the [Project Board](https://github.com/j301scott/DisruptEditor/projects/1) for things that need to be done
