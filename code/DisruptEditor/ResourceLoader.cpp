@@ -12,8 +12,8 @@
 #include <queue>
 #include <unordered_map>
 
-static std::unordered_map<uint32_t, std::shared_ptr<xbgFile>> xbgs;
-static std::unordered_map<uint32_t, std::shared_ptr<materialFile>> materials;
+static std::unordered_map<CPathID, std::shared_ptr<xbgFile>> xbgs;
+static std::unordered_map<CPathID, std::shared_ptr<materialFile>> materials;
 static std::unordered_map<std::string, std::shared_ptr<xbtFile>> textures;
 
 static xbgMipFile loadXBGMIP(const std::string& path) {
@@ -27,28 +27,11 @@ static xbgMipFile loadXBGMIP(const std::string& path) {
 	return model;
 }
 
-std::shared_ptr<xbgFile> loadXBG(const char *path) {
-	uint32_t hash = Hash::getFilenameHash(path);
+std::shared_ptr<xbgFile> loadXBG(CPathID hash) {
 	std::shared_ptr<xbgFile> model = xbgs[hash];
 	if (!model) {
 		model = xbgs[hash] = std::make_shared<xbgFile>();
-		SDL_RWops* fp = FH::openFile(path);
-		if (!fp)
-			return model;
-
-		CBinaryArchiveReader reader(fp);
-		model->open(reader);
-		SDL_RWclose(fp);
-		model->loaded = true;
-	}
-	return model;
-}
-
-std::shared_ptr<xbgFile> loadXBG(uint32_t hash) {
-	std::shared_ptr<xbgFile> model = xbgs[hash];
-	if (!model) {
-		model = xbgs[hash] = std::make_shared<xbgFile>();
-		SDL_RWops* fp = FH::openFile(hash);
+		SDL_RWops* fp = FH::openFileHash(hash);
 		if (!fp)
 			return model;
 

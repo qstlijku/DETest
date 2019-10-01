@@ -6,7 +6,9 @@
 #include "IBinaryArchive.h"
 #include "DB.h"
 
-CPathID::CPathID(const std::string &filename) {
+CPathID::CPathID(const std::string &filename) : CPathID(filename.c_str()) { }
+
+CPathID::CPathID(const char *filename) {
 	id = Hash::getFilenameHash(filename);
 }
 

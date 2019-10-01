@@ -1,9 +1,8 @@
 #pragma once
+#include "CPathID.h"
 #include <string>
 #include "Vector.h"
 struct SDL_RWops;
-
-typedef uint32_t FileHash;
 
 struct FileInfo {
 	std::string fullPath;
@@ -18,7 +17,7 @@ namespace FH {
 	Vector<FileInfo> getFileListFromAbsDir(const std::string &dir, const std::string &extFilter = std::string());
 
 	SDL_RWops* openFile(const char *path);
-	SDL_RWops* openFile(FileHash hash);
+	SDL_RWops* openFileHash(CPathID hash);
 
 	SDL_RWops* openFileWrite(const std::string& path);
 }

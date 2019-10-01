@@ -68,11 +68,10 @@ SDL_RWops * FH::openFile(const char *path) {
 		return SDL_RWFromFile(fullPath, "rb");
 
 	//Return by hash
-	CPathID pid(path);
-	return openFile(pid.id);
+	return openFileHash(path);
 }
 
-SDL_RWops * FH::openFile(uint32_t path) {
+SDL_RWops * FH::openFileHash(CPathID path) {
 	for (auto& it : dats) {
 		SDL_RWops* fp = it.openRead(path);
 		if (fp)

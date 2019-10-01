@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <stdio.h>
 #include <memory>
-#include <Windows.h>
+#include "CPathID.h"
 
 struct SDL_RWops;
 
@@ -14,7 +14,7 @@ class DatFat {
 public:
 	DatFat(const std::string &filename);
 	~DatFat();
-	SDL_RWops* openRead(uint32_t hash);
+	SDL_RWops* openRead(CPathID hash);
 
 	struct FileEntry {
 		uint64_t offset;
@@ -28,10 +28,10 @@ public:
 		};
 		Compression compression;
 	};
-	std::unordered_map<uint32_t, FileEntry> files;
+	std::unordered_map<CPathID, FileEntry> files;
 
-	HANDLE file = NULL;
-	HANDLE fileMapping = NULL;
+	void* file = NULL;
+	void* fileMapping = NULL;
 	const uint8_t* datPtr = NULL;
 };
 

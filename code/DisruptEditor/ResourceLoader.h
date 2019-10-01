@@ -1,14 +1,13 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include "CPathID.h"
 
 class xbgFile;
 class materialFile;
 class xbtFile;
 
-std::shared_ptr<xbgFile> loadXBG(const char *path);
-std::shared_ptr<xbgFile> loadXBG(uint32_t path);
+std::shared_ptr<xbgFile> loadXBG(CPathID path);
 
 std::shared_ptr<materialFile> loadMaterial(const char *path);
 

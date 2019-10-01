@@ -1,6 +1,7 @@
 #include "DatFat.h"
 
 #include <SDL.h>
+#include <Windows.h>
 
 //XCompress
 typedef enum _XMEMCODEC_TYPE {
@@ -116,7 +117,7 @@ static int mem_close(SDL_RWops* context) {
 	return 0;
 }
 
-SDL_RWops* DatFat::openRead(uint32_t hash) {
+SDL_RWops* DatFat::openRead(CPathID hash) {
 	auto it = files.find(hash);
 	if (it != files.end()) {
 		if (it->second.compression == FileEntry::Compression::None) {

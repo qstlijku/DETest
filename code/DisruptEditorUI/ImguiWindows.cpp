@@ -14,6 +14,8 @@ void UI::displayTopMenu() {
 	std::map<std::string, bool> &windows = settings.openWindows;
 
 	ImGui::BeginMainMenuBar();
+	if (ImGui::MenuItem("File Browser"))
+		windows["FileBrowser"] ^= true;
 	if (ImGui::MenuItem("Entity Library"))
 		windows["EntityLibrary"] ^= true;
 	if (ImGui::MenuItem("CBatch"))
