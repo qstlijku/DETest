@@ -75,7 +75,8 @@ static void LogOutputFunction(void* userdata, int category, SDL_LogPriority prio
 int main(int argc, char **argv) {
 	SetUnhandledExceptionFilter(HandleException);
 	SDL_Init(SDL_INIT_EVERYTHING);
-	SDL_LogSetOutputFunction(LogOutputFunction, fopen("DisruptEditor.log", "wb"));
+	if(!IsDebuggerPresent())
+		SDL_LogSetOutputFunction(LogOutputFunction, fopen("DisruptEditor.log", "wb"));
 
 	reloadSettings();
 

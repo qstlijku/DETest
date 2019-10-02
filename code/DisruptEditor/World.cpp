@@ -16,20 +16,21 @@ World world;
 
 void World::loadWLUAsync() {
 	Vector<FileInfo> files = FH::getFileList("worlds/windy_city/generated/wlu", "xml.data.fcb");
-	int i = 0;
 	for (FileInfo& file : files) {
 		
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
 		SDL_RWops* fp = FH::openFile(file.fullPath.c_str());
-		wlu->open(fp);
-		SDL_RWclose(fp);
-		world.mutex.lock();
-		world.wlus[file.name] = wlu;
-		world.loadingStatus = file.name;
-		++i;
-		world.loadingProgress = (float)i / files.size();
-		world.mutex.unlock();
+		if (fp) {
+			wlu->open(fp);
+			SDL_RWclose(fp);
+
+			world.mutex.lock();
+			world.wlus[file.name] = wlu;
+			world.mutex.unlock();
+		} else {
+			SDL_Log("Failed to open %s", file.fullPath.c_str());
+		}
 	}
 }
 

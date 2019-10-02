@@ -2,15 +2,15 @@
 
 #include <sqlite_modern_cpp.h>
 #include "Hash.h"
-#include "Version.h"
 #include "SDL_log.h"
+#include <filesystem>
 
 DB::DB() {
 	db = new sqlite::database("Disrupt1.db");
 
-	int version;
+	uint64_t version;
 	*db << "PRAGMA user_version;" >> version;
-	if (version != DE_VERSION)
+	if (version != 200)
 		reinit();
 }
 
@@ -92,6 +92,10 @@ uint32_t DB::getSpkFromSBAO(uint32_t resID) {
 	return -1;
 }
 
+uint64_t DB::getVersion() {
+	return std::filesystem::last_write_time("res/Watch Dogs.filelist").time_since_epoch().count();
+}
+
 void DB::reinit() {
 	if (db)
 		delete db;
@@ -101,7 +105,7 @@ void DB::reinit() {
 	db = new sqlite::database("Disrupt1.db");
 
 	*db << "begin;";
-	*db << "PRAGMA user_version = 200;";
+	*db << ("PRAGMA user_version = " + std::to_string(getVersion()) + ";");
 
 	*db <<
 		"create table if not exists files ("

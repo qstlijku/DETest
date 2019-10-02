@@ -27,6 +27,8 @@ public:
 
 	uint32_t getSpkFromSBAO(uint32_t resID);
 
+	uint64_t getVersion();
+
 	void reinit();
 	static DB& instance();
 private:

@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Hash.h"
 #include "DB.h"
+#include "sqlite_modern_cpp.h"
 #include "SDL_log.h"
 #include <filesystem>
 #include <DatFat.h>
@@ -14,26 +15,50 @@ static std::string getExt(const std::filesystem::path& path) {
 	return name.substr(name.find('.') + 1);
 }
 
+static std::string getName(const std::filesystem::path& path) {
+	const std::string name = path.filename().generic_string();
+	return name.substr(0, name.find('.'));
+}
+
 Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extFilter) {
 	std::unordered_map<std::string, FileInfo> files;
 
-	/*for (const std::string &base : settings.searchPaths) {
-		std::string fullPath = base + dir;
-		if (!std::filesystem::exists(fullPath.c_str())) continue;
-
+	//Search patch
+	try {
+		std::string fullPath = settings.patchDir + dir;
 		for (auto& p : std::filesystem::directory_iterator(fullPath)) {
-			std::string path = p.path().generic_string().substr(base.size());
+			std::string path = p.path().generic_string().substr(settings.patchDir.size());
 			if (p.is_regular_file() && files.count(path) == 0) {
-				std::string ext = getExt(p);
+				std::string ext = getExt(path);
 				if (extFilter.empty() || ext == extFilter) {
 					FileInfo& fi = files[path];
 					fi.fullPath = path;
 					fi.ext = ext;
-					fi.name = p.path().filename().generic_string();
+					fi.name = getName(path);
 				}
 			}
 		}
-	}*/
+	} catch (...) {
+	}
+
+	//Search DB
+	try {
+		std::string param(dir);
+		std::replace(param.begin(), param.end(), '/', '\\');
+		param += '%';
+		*DB::instance().db << "SELECT path FROM files WHERE path LIKE ?;" << param >>
+			[&](std::string path) {
+			std::string ext = getExt(path);
+			if (extFilter.empty() || ext == extFilter) {
+				FileInfo& fi = files[path];
+				fi.fullPath = path;
+				fi.ext = ext;
+				fi.name = getName(path);
+			}
+		};
+	} catch (std::exception& e) {
+		SDL_Log("%s", e.what());
+	}
 
 	Vector<FileInfo> outFiles;
 	for (auto &file : files)
