@@ -101,7 +101,7 @@ void UI::displayTopMenu() {
 	}
 
 	if (ImGui::BeginMenu("Credits")) {
-		ImGui::Text("Disrupt Editor v" DE_VERSIONSTR);
+		ImGui::Text("Disrupt Editor v%s", DE_VERSIONSTR);
 		if (ImGui::Selectable("Check for updates"))
 			ShellExecute(0, 0, L"https://ci.appveyor.com/project/j301scott/disrupteditor/build/artifacts", 0, 0, SW_SHOW);
 		ImGui::Separator();

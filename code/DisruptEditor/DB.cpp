@@ -101,7 +101,7 @@ void DB::reinit() {
 	db = new sqlite::database("Disrupt1.db");
 
 	*db << "begin;";
-	*db << "PRAGMA user_version = " DE_VERSIONSTR ";";
+	*db << "PRAGMA user_version = 200;";
 
 	*db <<
 		"create table if not exists files ("

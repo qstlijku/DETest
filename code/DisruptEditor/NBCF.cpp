@@ -362,7 +362,8 @@ std::string Node::getHashName() {
 
 Node readFCB(SDL_RWops * fp) {
 	Node root;
-	readFCB(CBinaryArchiveReader(fp), root);
+	CBinaryArchiveReader reader(fp);
+	readFCB(reader, root);
 	return root;
 }
 

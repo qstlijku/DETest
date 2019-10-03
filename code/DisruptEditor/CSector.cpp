@@ -274,13 +274,15 @@ void CSector::save() {
 	char filename[80];
 	snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdat", sectorID);
 	SDL_RWops* fp = FH::openFileWrite(filename);
-	open(CBinaryArchiveWriter(fp));
+	CBinaryArchiveWriter writer(fp);
+	open(writer);
 	SDL_RWclose(fp);
 
 	if (highRes) {
 		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdhr", sectorID);
 		fp = FH::openFileWrite(filename);
-		highRes->open(CBinaryArchiveWriter(fp));
+		CBinaryArchiveWriter writer(fp);
+		highRes->open(writer);
 		SDL_RWclose(fp);
 	}
 }

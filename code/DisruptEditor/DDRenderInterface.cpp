@@ -11,7 +11,7 @@
 #include <d3dcompiler.h>
 
 RenderInterface::RenderInterface() {
-	window = SDL_CreateWindow("Disrupt Editor v" DE_VERSIONSTR, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, settings.windowSize.x, settings.windowSize.y, SDL_WINDOW_RESIZABLE);
+	window = SDL_CreateWindow("Disrupt Editor", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, settings.windowSize.x, settings.windowSize.y, SDL_WINDOW_RESIZABLE);
 	if (window == NULL) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Could not create window", SDL_GetError(), NULL);
 		exit(0);

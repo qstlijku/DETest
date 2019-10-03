@@ -16,27 +16,45 @@
 #include "IBinaryArchive.h"
 #include <future>
 #include "DDRenderInterface.h"
+#include <noc_file_dialog.h>
+#include <filesystem>
 
 Settings settings;
+
+static void promptGameDir() {
+	SDL_ShowSimpleMessageBox(0, "Disrupt Editor Setup", "Please select the main Watch_Dogs.exe file in the next window", NULL);
+	const char* dir = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "Watch Dogs Exe\0Watch_Dogs.exe\0", NULL, NULL);
+	if (!dir) {
+		exit(0);
+	}
+
+	settings.gameDir = dir;
+	settings.gameDir = settings.gameDir.substr(0, settings.gameDir.size() - strlen("bin/Watch_Dogs.exe"));
+}
+
+static void promptPatchDir() {
+	SDL_ShowSimpleMessageBox(0, "Disrupt Editor Setup", "Please select the (patch) folder to save data to", NULL);
+	const char* dir = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN | NOC_FILE_DIALOG_DIR, NULL, NULL, NULL);
+	if (!dir) {
+		exit(0);
+	}
+
+	settings.patchDir = dir;
+}
 
 void reloadSettings() {
 	std::string contents = readFile("settings.xml");
 	unserializeFromXML(settings, contents.c_str());
-	if (settings.searchPaths.empty() || settings.patchDir.empty()) {
-		//Fill with sample files
+
+	if (settings.gameDir.empty() || !std::filesystem::exists(settings.gameDir)) {
+		promptGameDir();
 		saveSettings();
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Disrupt Editor is not configured", "You must first setup Disrupt Editor by editing settings.xml\nPlease see the readme for more details.", NULL);
-		exit(0);
 	}
 
-	//Check to make sure searchPaths have trailing slash
-	for (std::string &path : settings.searchPaths) {
-		if (path.back() != '/' && path.back() != '\\')
-			path.push_back('/');
+	if (settings.patchDir.empty() || !std::filesystem::exists(settings.patchDir)) {
+		promptPatchDir();
+		saveSettings();
 	}
-
-	if (settings.patchDir.back() != '/' && settings.patchDir.back() != '\\')
-		settings.patchDir.push_back('/');
 }
 
 void saveSettings() {
@@ -93,7 +111,9 @@ uint32_t loadResTexture(const std::string &path) {
 }
 
 void Settings::registerMembers(MemberStructure & ms) {
-	REGISTER_MEMBER(searchPaths);
+	//REGISTER_MEMBER(searchPaths);
+	REGISTER_MEMBER(gameDir);
+	REGISTER_MEMBER(soundLang);
 	REGISTER_MEMBER(patchDir);
 
 	REGISTER_MEMBER(near_plane);

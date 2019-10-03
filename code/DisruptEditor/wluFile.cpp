@@ -25,13 +25,14 @@ bool wluFile::open(SDL_RWops* fp) {
 	uint32_t magic = SDL_ReadLE32(fp);
 	SDL_RWseek(fp, 0, RW_SEEK_SET);
 	bool ret;
+	CBinaryArchiveReader reader(fp);
 	if (magic == 1111577413) {
 		//WD1 File
-		ret = openWD1(CBinaryArchiveReader(fp));
+		ret = openWD1(reader);
 		isWD2 = false;
 	} else if (magic == 4129362901) {
 		//WD2 File
-		ret = openWD2(CBinaryArchiveReader(fp));
+		ret = openWD2(reader);
 		isWD2 = true;
 	}
 

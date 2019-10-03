@@ -1,17 +1,18 @@
 #pragma once
 
 #include <string>
-#include <map>
-#include "Vector.h"
+#include <unordered_map>
 #include <stdio.h>
 #include <memory>
+#include <Windows.h>
 
 struct SDL_RWops;
 
 class DatFat {
 public:
 	DatFat(const std::string &filename);
-	Vector<uint8_t> openRead(uint32_t hash);
+	~DatFat();
+	SDL_RWops* openRead(uint32_t hash);
 
 	struct FileEntry {
 		uint64_t offset;
@@ -25,7 +26,10 @@ public:
 		};
 		Compression compression;
 	};
-	SDL_RWops* dat;
-	std::map<uint64_t, FileEntry> files;
+	std::unordered_map<uint32_t, FileEntry> files;
+
+	HANDLE file = NULL;
+	HANDLE fileMapping = NULL;
+	const uint8_t* datPtr = NULL;
 };
 

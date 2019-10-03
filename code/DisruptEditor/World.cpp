@@ -68,13 +68,11 @@ static void setLoadingStatus(const char* str, float progress = 0.f) {
 
 void World::loaderThread() {
 	//These two need to be set up before anything else
-	std::future<void> fileHandlerF = std::async(FH::Init);
-	std::future<void> dbF = std::async([]() { DB::instance(); });
+	setLoadingStatus("Scanning Files");
+	FH::Init();
 
-	setLoadingStatus("Scanning Unknown Files");
-	fileHandlerF.get();
 	setLoadingStatus("Setting Up Database");
-	dbF.get();
+	DB::instance();
 
 	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
 	std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml")); });
@@ -137,7 +135,7 @@ void World::loaderThread() {
 			if (!XBG) continue;
 			if (XBG->buffer.size() <= 5) continue;
 
-			auto &model = loadXBG((char*)XBG->buffer.data());
+			auto model = loadXBG((char*)XBG->buffer.data());
 
 			glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
 			glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");

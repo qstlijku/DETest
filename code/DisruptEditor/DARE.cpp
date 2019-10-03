@@ -10,7 +10,8 @@ void DARE::addSoundResource(uint32_t res) {
 
 	SDL_RWops *fp = FH::openFile(buffer);
 	spkFile &spk = spks[res];
-	spk.open(CBinaryArchiveReader(fp));
+	CBinaryArchiveReader reader(fp);
+	spk.open(reader);
 	SDL_RWclose(fp);
 }
 
@@ -21,7 +22,8 @@ void DARE::addAtomicObject(uint32_t res) {
 	SDL_RWops *fp = FH::openFile(buffer);
 	if (fp) {
 		sbaoFile &sbao = atomicObjects[res];
-		sbao.open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
+		CBinaryArchiveReader reader(fp);
+		sbao.open(reader, SDL_RWsize(fp));
 		SDL_RWclose(fp);
 	}
 }

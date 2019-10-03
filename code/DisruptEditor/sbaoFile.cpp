@@ -379,7 +379,8 @@ std::vector<short> SampleResourceDescriptor::decode() {
 				SDL_RWops* fp = FH::openFile(buffer);
 				if (fp) {
 					sbaoFile sbao;
-					sbao.open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
+					CBinaryArchiveReader reader(fp);
+					sbao.open(reader, SDL_RWsize(fp));
 					SDL_RWclose(fp);
 					SndData& second = std::get<SndData>(sbao.data);
 					sndData.rawData.insert(sndData.rawData.end(), second.rawData.begin(), second.rawData.end());
@@ -845,7 +846,8 @@ std::vector<short> MultiTrackResourceDescriptor::decode(int layer) {
 		SDL_RWops* fp = FH::openFile(buffer);
 		if (fp) {
 			sbaoFile sbao;
-			sbao.open(CBinaryArchiveReader(fp), SDL_RWsize(fp));
+			CBinaryArchiveReader reader(fp);
+			sbao.open(reader, SDL_RWsize(fp));
 			SDL_RWclose(fp);
 			tempRawData = std::get<SndData>(sbao.data).rawData;
 			mem = SDL_RWFromConstMem(tempRawData.data(), tempRawData.size());

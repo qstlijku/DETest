@@ -17,7 +17,9 @@ typedef uint32_t SDL_Keymod_V;
 
 struct Settings {
 	//Filesystem Settings
-	Vector<std::string> searchPaths;
+	//Vector<std::string> searchPaths;
+	std::string gameDir;
+	std::string soundLang = "english";
 	std::string patchDir;
 
 	//Graphics Settings

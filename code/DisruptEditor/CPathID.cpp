@@ -4,13 +4,21 @@
 #include "Hash.h"
 #include "Serialization.h"
 #include "IBinaryArchive.h"
+#include "DB.h"
 
 CPathID::CPathID(const std::string &filename) {
 	id = Hash::getFilenameHash(filename);
 }
 
 std::string CPathID::getReverseFilename() {
-	return FH::getReverseFilename(id);
+	auto it = DB::instance().getFileByHash(id);
+	if (!it) {
+		char buffer[12];
+		snprintf(buffer, sizeof(buffer), "_%08x", id);
+		return std::string(buffer);
+	}
+
+	return it->path;
 }
 
 void CPathID::read(IBinaryArchive& fp) {
@@ -19,9 +27,11 @@ void CPathID::read(IBinaryArchive& fp) {
 
 void CPathID::registerMembers(MemberStructure & ms) {
 	switch (ms.type) {
-	case MemberStructure::TOXML:
-		ms.registerMember(NULL, getReverseFilename());
+	case MemberStructure::TOXML: {
+		std::string temp = getReverseFilename();
+		ms.registerMember(NULL, temp);
 		break;
+	}
 	case MemberStructure::FROMXML: {
 		std::string temp;
 		ms.registerMember(NULL, temp);

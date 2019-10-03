@@ -20,7 +20,8 @@ static xbgMipFile loadXBGMIP(const std::string& path) {
 	SDL_RWops* fp = FH::openFile(path.c_str());
 	xbgMipFile model;
 	if (fp) {
-		model.open(CBinaryArchiveReader(fp));
+		CBinaryArchiveReader reader(fp);
+		model.open(reader);
 		SDL_RWclose(fp);
 	}
 	return model;

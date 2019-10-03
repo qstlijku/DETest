@@ -14,9 +14,11 @@ std::string CDobbsID::getReverseName() {
 
 void CDobbsID::registerMembers(MemberStructure & ms) {
 	switch (ms.type) {
-	case MemberStructure::TOXML:
-		ms.registerMember(NULL, getReverseName());
+	case MemberStructure::TOXML: {
+		std::string temp = getReverseName();
+		ms.registerMember(NULL, temp);
 		break;
+	}
 	case MemberStructure::FROMXML: {
 		std::string temp;
 		ms.registerMember(NULL, temp);

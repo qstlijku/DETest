@@ -4,6 +4,10 @@
 #include "DB.h"
 #include "SDL_log.h"
 #include <filesystem>
+#include <DatFat.h>
+#include <CPathID.h>
+
+static std::vector<DatFat> dats;
 
 static std::string getExt(const std::filesystem::path& path) {
 	const std::string name = path.filename().generic_string();
@@ -13,7 +17,7 @@ static std::string getExt(const std::filesystem::path& path) {
 Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extFilter) {
 	std::unordered_map<std::string, FileInfo> files;
 
-	for (const std::string &base : settings.searchPaths) {
+	/*for (const std::string &base : settings.searchPaths) {
 		std::string fullPath = base + dir;
 		if (!std::filesystem::exists(fullPath.c_str())) continue;
 
@@ -29,7 +33,7 @@ Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extF
 				}
 			}
 		}
-	}
+	}*/
 
 	Vector<FileInfo> outFiles;
 	for (auto &file : files)
@@ -56,30 +60,25 @@ Vector<FileInfo> FH::getFileListFromAbsDir(const std::string & fullDir, const st
 	return outFiles;
 }
 
-static int mem_close(SDL_RWops * context) {
-	if (context) {
-		free(context->hidden.mem.base);
-		SDL_FreeRW(context);
-	}
-	return 0;
+SDL_RWops * FH::openFile(const char *path) {
+	//Check if file in patch dir exists
+	char fullPath[512];
+	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
+	if (std::filesystem::exists(fullPath))
+		return SDL_RWFromFile(fullPath, "rb");
+
+	//Return by hash
+	CPathID pid(path);
+	return openFile(pid.id);
 }
 
-SDL_RWops * FH::openFile(const char *path) {
-	std::string fullPath = getAbsoluteFilePath(path);
-	SDL_RWops *fp = SDL_RWFromFile(fullPath.c_str(), "rb");
-	if (!fp) return NULL;
-	size_t size = SDL_RWsize(fp);
-	void *data = malloc(size);
-	SDL_RWread(fp, data, 1, size);
-	SDL_RWclose(fp);
-
-	if (size == 0)
-		size = 1;
-
-	fp = SDL_RWFromConstMem(data, size);
-	fp->close = mem_close;
-
-	return fp;
+SDL_RWops * FH::openFile(uint32_t path) {
+	for (auto& it : dats) {
+		SDL_RWops* fp = it.openRead(path);
+		if (fp)
+			return fp;
+	}
+	return NULL;
 }
 
 SDL_RWops* FH::openFileWrite(const std::string& path) {
@@ -93,99 +92,33 @@ SDL_RWops* FH::openFileWrite(const std::string& path) {
 	return SDL_RWFromFile(fullPath.c_str(), "wb");
 }
 
-SDL_RWops * FH::openFile(uint32_t path) {
-	SDL_RWops *fp = SDL_RWFromFile(getAbsoluteFilePath(path).c_str(), "rb");
-	if (!fp) return NULL;
-	size_t size = SDL_RWsize(fp);
-	void *data = malloc(size);
-	SDL_RWread(fp, data, 1, size);
-	SDL_RWclose(fp);
-
-	fp = SDL_RWFromConstMem(data, size);
-	fp->close = mem_close;
-
-	return fp;
-}
-
-std::string FH::getReverseFilename(FileHash hash) {
-	auto it = DB::instance().getFileByHash(hash);
-	if (!it) {
-		char buffer[12];
-		snprintf(buffer, sizeof(buffer), "_%08x", hash);
-		return std::string(buffer);
-	}
-
-	return it->path;
-}
-
-static void handleUnknownPath(const std::string &base, std::unordered_map<FileHash, std::string>& unknownFiles) {
-	for (auto& p : std::filesystem::directory_iterator(base)) {
-		if (p.is_regular_file() && p.path().filename().generic_string().size() > 8) {
-			std::string name = p.path().filename().generic_string().substr(0, 8);
-
-			uint32_t hash = std::stoul(name.c_str(), NULL, 16);
-			if (unknownFiles.count(hash) == 0) {
-				unknownFiles[hash] = p.path().generic_string();
-			}
-
-		}
-
-	}
-}
-
-static void genListOfUnknown(const std::string &path, std::unordered_map<FileHash, std::string> &unknownFiles) {
-	std::string unknownPath = path + "__UNKNOWN/";
-	
-	if (!std::filesystem::exists(unknownPath.c_str())) return;
-
-	for (auto& p : std::filesystem::directory_iterator(unknownPath)) {
-		if (p.is_directory())
-			handleUnknownPath(p.path().generic_string(), unknownFiles);
-	}
-}
-
-static std::unordered_map<FileHash, std::string> unknownFileMap;
-
-std::string FH::getAbsoluteFilePath(const char *path) {
-	char fullPath[512];
-	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
-	if (std::filesystem::exists(fullPath))
-		return fullPath;
-	for (const std::string &base : settings.searchPaths) {
-		snprintf(fullPath, sizeof(fullPath), "%s%s", base.c_str(), path);
-		if (std::filesystem::exists(fullPath))
-			return fullPath;
-	}
-
-	//Search Unknown Files
-	FileHash hash = Hash::getFilenameHash(path);
-	auto it = unknownFileMap.find(hash);
-	if (it != unknownFileMap.end())
-		return it->second;
-
-	SDL_Log("Could not load file %s", path);
-
-	return std::string();
-}
-
-std::string FH::getAbsoluteFilePath(FileHash hash) {
-	//Search Unknown Files
-	auto it = unknownFileMap.find(hash);
-	if (it != unknownFileMap.end())
-		return it->second;
-
-	//Lookup filename from DB
-	auto itb = DB::instance().getFileByHash(hash);
-	if (itb)
-		return getAbsoluteFilePath(itb->path.c_str());
-
-	SDL_Log("Could not load file %08x", hash);
-
-	return std::string();
-}
-
 void FH::Init() {
-	genListOfUnknown(settings.patchDir, unknownFileMap);
-	for (const std::string &base : settings.searchPaths)
-		genListOfUnknown(base, unknownFileMap);
+	dats.reserve(60);
+
+	AddDatFat(settings.gameDir + "data_win64/patch1.fat");
+	AddDatFat(settings.gameDir + "data_win64/patch.fat");
+
+	AddDatFat(settings.gameDir + "data_win64/common.fat");
+	AddDatFat(settings.gameDir + "data_win64/shaders.fat");
+	AddDatFat(settings.gameDir + "data_win64/shadersobj.fat");
+	AddDatFat(settings.gameDir + "data_win64/sound.fat");
+	AddDatFat(settings.gameDir + "data_win64/sound_" + settings.soundLang + ".fat");
+
+	AddDatFat(settings.gameDir + "data_win64/worlds/windy_city/windy_city.fat");
+	AddDatFat(settings.gameDir + "data_win64/worlds/windy_city/windy_city_" + settings.soundLang + ".fat");
+
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
+
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_pill_people/dlc_pill_people.fat");
+
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_solo/dlc_solo.fat");
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_solo/dlc_solo_" + settings.soundLang + ".fat");
+
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
+}
+
+void FH::AddDatFat(const std::string& filename) {
+	dats.emplace_back(filename);
 }
