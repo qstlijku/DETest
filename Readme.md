@@ -20,13 +20,8 @@ It is highly recommended that you use the builds from the releases page
 Disrupt Editor has these build requirements:
 * 64-bit Windows
 * Visual Studio 2019
-* CMake
 
-```
-mkdir Build
-cd Build
-cmake -G "Visual Studio 16 2019" ..
-```
+Run pmake.cmd to build the project
 
 # Contributing
 

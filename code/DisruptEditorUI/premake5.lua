@@ -3,6 +3,7 @@ project "DisruptEditorUI"
     language "C++"
 	kind "WindowedApp"
 	postbuildcommands "{COPY} $(SolutionDir)../code/vendor/SDL2/SDL2.dll %{cfg.targetdir}"
+	postbuildcommands "{COPY} $(SolutionDir)../res/ %{cfg.targetdir}/res/"
 	libdirs { "$(SolutionDir)../code/vendor/SDL2" }
 
 	vpaths
