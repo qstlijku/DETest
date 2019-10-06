@@ -106,6 +106,14 @@ inline void IBinaryArchive::serializeNdVectorExternal_pod(Vector<T>& vec) {
 	}
 }
 
+template<>
+inline void IBinaryArchive::serializeNdVectorExternal_pod(Vector<uint8_t>& vec) {
+	uint32_t count = vec.size();
+	serialize(count);
+	vec.resize(count);
+	memBlock(vec.data(), 1, count);
+}
+
 template<typename T>
 inline void IBinaryArchive::serializeNdVector(Vector<T>& vec, uint32_t typeId, uint32_t &unk) {
 	if (isReading()) {
