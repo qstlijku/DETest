@@ -1,9 +1,7 @@
 
-project "DisruptEditorUI"
+project "ConvertXBG"
     language "C++"
-	kind "WindowedApp"
-	postbuildcommands "{COPY} $(SolutionDir)../code/vendor/SDL2/SDL2.dll %{cfg.targetdir}"
-	postbuildcommands "{COPY} $(SolutionDir)../res/ %{cfg.targetdir}/res/"
+	kind "ConsoleApp"
 	libdirs { "$(SolutionDir)../code/vendor/SDL2" }
 	debugdir "%{cfg.targetdir}"
 
@@ -36,7 +34,6 @@ project "DisruptEditorUI"
 	links
 	{
 		--system
-		"Dbghelp",
 		"D3d11",
 		"dxguid",
 

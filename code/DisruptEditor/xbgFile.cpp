@@ -192,6 +192,7 @@ void xbgFile::MaterialResources::read(IBinaryArchive & fp, uint32_t lods) {
 }
 
 void xbgFile::MaterialResources::registerMembers(MemberStructure & ms) {
+	REGISTER_MEMBER(unk0);
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(materials);
 }
@@ -305,7 +306,14 @@ void xbgFile::ReflexSystem::read(IBinaryArchive &fp) {
 			SDL_assert_release(offset + size == fp.tell());
 		}
 		else {
-			SDL_assert_release(false);
+			Vector<uint8_t> data(4 * 1000 * 1000);
+			SDL_RWops* temp = SDL_RWFromMem(data.data(), data.size());
+			writeFCBA(temp, root);
+
+			uint32_t size = SDL_RWtell(temp);
+			fp.serialize(size);
+			fp.memBlock(data.data(), 1, size);
+			fp.pad(4);
 		}
 	}
 }
@@ -316,8 +324,7 @@ void xbgFile::ReflexSystem::registerMembers(MemberStructure & ms) {
 		if (ms.type == ms.TOXML) {
 			root.serializeXML(*ms.printer);
 		} else if (ms.type == ms.FROMXML) {
-			//TODO!
-			SDL_assert_release(false);
+			root.deserializeXML(ms.it->LastChildElement());
 		}
 	}
 }
@@ -795,64 +802,57 @@ enum EBufferType {
 	DISPLAY_LIST = 5
 };
 
+void xbgFile::SGfxBuffers::createBuffers() {
+	vertex = std::make_shared<VertexBuffer>();
+	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+	vertexBufferData.pSysMem = vertexData.data();
+	vertexBufferData.SysMemPitch = 0;
+	vertexBufferData.SysMemSlicePitch = 0;
+	CD3D11_BUFFER_DESC vertexBufferDesc(vertexData.size(), D3D11_BIND_VERTEX_BUFFER);
+	RenderInterface::instance().g_pd3dDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertex->pVertexBuffer);
+
+	index = std::make_shared<IndexBuffer>();
+	D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+	indexBufferData.pSysMem = indexData.data();
+	indexBufferData.SysMemPitch = 0;
+	indexBufferData.SysMemSlicePitch = 0;
+	CD3D11_BUFFER_DESC indexBufferDesc(indexData.size(), D3D11_BIND_INDEX_BUFFER);
+	RenderInterface::instance().g_pd3dDevice->CreateBuffer(
+		&indexBufferDesc,
+		&indexBufferData,
+		&index->pIndexBuffer);
+	index->size = indexData.size() / sizeof(short);
+}
+
 void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	//<unnamed>::ReadGfxBuffers(const unsigned char *&, SGfxBuffers &, unsigned long, bool)
 	
 	//CBufferRenderResource::Create(Device3D::EBufferType 0, const IRenderResourceCommandTrackerDecoratorFactory & (addi r4, r27, unk_107D7CDA@l), unsigned long, unsigned long 1, const void *, bool 0, bool 0, unsigned long 0, bool, bool)
 	fp.pad(4);
-	if (fp.isReading()) {
-		Vector<uint8_t> data;
-		fp.serializeNdVectorExternal_pod(data);
-		vertex = std::make_shared<VertexBuffer>();
-
-		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-		vertexBufferData.pSysMem = data.data();
-		vertexBufferData.SysMemPitch = 0;
-		vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC vertexBufferDesc(data.size(), D3D11_BIND_VERTEX_BUFFER);
-
-		RenderInterface::instance().g_pd3dDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &vertex->pVertexBuffer);
-	} else {
-		SDL_assert_release(false);
-	}
+	fp.serializeNdVectorExternal_pod(vertexData);
 	
 	//CBufferRenderResource::Create(Device3D::EBufferType 1, const IRenderResourceCommandTrackerDecoratorFactory &, unsigned long, unsigned long, const void *, bool, bool, unsigned long, bool, bool)
 	fp.pad(4);
-	if (fp.isReading()) {
-		Vector<uint8_t> data;
-		fp.serializeNdVectorExternal_pod(data);
-
-		index = std::make_shared<IndexBuffer>();
-		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-		indexBufferData.pSysMem = data.data();
-		indexBufferData.SysMemPitch = 0;
-		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(data.size(), D3D11_BIND_INDEX_BUFFER);
-		RenderInterface::instance().g_pd3dDevice->CreateBuffer(
-			&indexBufferDesc,
-			&indexBufferData,
-			&index->pIndexBuffer);
-		index->size = data.size() / sizeof(short);
-	}
-	else {
-		SDL_assert_release(false);
-	}
+	fp.serializeNdVectorExternal_pod(indexData);
 
 	//Device3D::CBuffer::Create(Device3D::EBufferType, Device3D::EBufferUsage, unsigned long elementSize, unsigned long elementCount, const void * ptr, bool)
 }
 
 void xbgFile::SGfxBuffers::registerMembers(MemberStructure & ms) {
-	/*if (ms.type == ms.TOXML) {
-		Vector<uint8_t> data = getVertexBuffer(vertex);
-		std::string v = toBase64String(data.data(), data.size());
+	if (ms.type == ms.TOXML) {
+		std::string v = toBase64String(vertexData.data(), vertexData.size());
 		ms.registerMember("vertex", v);
 
-		data = getVertexBuffer(index);
-		v = toBase64String(data.data(), data.size());
+		v = toBase64String(indexData.data(), indexData.size());
 		ms.registerMember("index", v);
 	} else if(ms.type == ms.FROMXML) {
-		SDL_assert_release(false);
-	}*/
+		std::string v;
+		ms.registerMember("vertex", v);
+		vertexData = fromBase64String(v);
+
+		ms.registerMember("index", v);
+		indexData = fromBase64String(v);
+	}
 }
 
 void xbgFile::registerMembers(MemberStructure & ms) {

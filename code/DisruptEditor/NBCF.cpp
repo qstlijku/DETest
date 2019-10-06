@@ -19,6 +19,19 @@ uint32_t ReadCountA(SDL_RWops *fp, bool &isOffset, bool bigEndian) {
 	return bigEndian ? SDL_ReadBE32(fp) : SDL_ReadLE32(fp);
 }
 
+void WriteCountA(SDL_RWops* fp, uint32_t value, bool bigEndian) {
+	bool isOffset = false;
+	if (isOffset || value >= 0xFE) {
+		SDL_WriteU8(fp, isOffset ? 0xFE : 0xFF);
+		if (bigEndian)
+			SDL_WriteBE32(fp, value);
+		else
+			SDL_WriteLE32(fp, value);
+	} else {
+		SDL_WriteU8(fp, value & 0xFF);
+	}
+}
+
 uint32_t ReadCountB(SDL_RWops *fp, bool &isOffset, bool bigEndian) {
 	size_t pos = SDL_RWtell(fp);
 
@@ -83,14 +96,14 @@ void Attribute::deserializeA(SDL_RWops * fp, bool bigEndian) {
 	}
 }
 
-void Attribute::deserialize(SDL_RWops * fp, bool bigEndian) {
+void Attribute::deserializeB(SDL_RWops * fp, bool bigEndian) {
 	size_t offset = SDL_RWtell(fp);
 
 	bool isOffset;
 	int32_t c = ReadCountB(fp, isOffset, bigEndian);
 	if (isOffset) {
 		SDL_RWseek(fp, c, RW_SEEK_SET);
-		deserialize(fp, bigEndian);
+		deserializeB(fp, bigEndian);
 		SDL_RWseek(fp, offset + 4, RW_SEEK_SET);
 	} else {
 		SDL_assert_release(c < 1024 * 400);//Hard limit of 400 kb
@@ -99,8 +112,14 @@ void Attribute::deserialize(SDL_RWops * fp, bool bigEndian) {
 	}
 }
 
-void Attribute::serialize(SDL_RWops * fp) {
+void Attribute::serializeB(SDL_RWops * fp) {
 	writeSize(fp, buffer.size());
+	SDL_RWwrite(fp, buffer.data(), 1, buffer.size());
+}
+
+void Attribute::serializeA(SDL_RWops* fp) {
+	SDL_WriteLE32(fp, name.id);
+	WriteCountA(fp, buffer.size(), false);
 	SDL_RWwrite(fp, buffer.data(), 1, buffer.size());
 }
 
@@ -166,7 +185,7 @@ std::string Attribute::getHumanReadable() {
 	return toHexString(buffer.data(), buffer.size());
 }
 
-void Node::deserialize(SDL_RWops* fp, bool bigEndian) {
+void Node::deserializeB(SDL_RWops* fp, bool bigEndian) {
 	size_t pos = SDL_RWtell(fp);
 
 	bool isOffset;
@@ -174,7 +193,7 @@ void Node::deserialize(SDL_RWops* fp, bool bigEndian) {
 
 	if (isOffset) {
 		SDL_RWseek(fp, c, RW_SEEK_SET);
-		deserialize(fp, bigEndian);
+		deserializeB(fp, bigEndian);
 		SDL_RWseek(fp, pos + 4, RW_SEEK_SET);
 	} else {
 		name.id = bigEndian ? SDL_ReadBE32(fp) : SDL_ReadLE32(fp);
@@ -205,7 +224,7 @@ void Node::deserialize(SDL_RWops* fp, bool bigEndian) {
 		if (flag)
 			SDL_RWseek(fp, pos2, RW_SEEK_SET);
 		for (auto &attribute : attributes) {
-			attribute.deserialize(fp, bigEndian);
+			attribute.deserializeB(fp, bigEndian);
 		}
 
 		size_t a = SDL_RWtell(fp);
@@ -218,7 +237,7 @@ void Node::deserialize(SDL_RWops* fp, bool bigEndian) {
 
 		children.resize(c);
 		for (int index = 0; index < c; ++index)
-			children[index].deserialize(fp, bigEndian);
+			children[index].deserializeB(fp, bigEndian);
 	}
 }
 
@@ -249,7 +268,7 @@ void Node::deserializeA(SDL_RWops * fp, Vector<Node*> &list, bool bigEndian) {
 		children[index].deserializeA(fp, list, bigEndian);
 }
 
-void Node::serialize(SDL_RWops * fp) {
+void Node::serializeB(SDL_RWops * fp) {
 	writeSize(fp, children.size());
 	SDL_WriteLE32(fp, name.id);
 
@@ -275,13 +294,25 @@ void Node::serialize(SDL_RWops * fp) {
 		SDL_WriteLE32(fp, attribute.name.id);
 	}
 	for (auto &attribute : attributes) {
-		attribute.serialize(fp);
+		attribute.serializeB(fp);
 	}
 
 	//Write Children
 	for (auto &child : children) {
-		child.serialize(fp);
+		child.serializeB(fp);
 	}
+}
+
+void Node::serializeA(SDL_RWops* fp) {
+	WriteCountA(fp, children.size(), false);
+	SDL_WriteLE32(fp, name.id);
+
+	WriteCountA(fp, attributes.size(), false);
+	for (auto& it : attributes)
+		it.serializeA(fp);
+
+	for (auto& it : children)
+		it.serializeA(fp);
 }
 
 void Node::deserializeXML(const tinyxml2::XMLElement *node) {
@@ -391,7 +422,7 @@ void readFCB(IBinaryArchive & fp, Node &root) {
 	}
 
 	if (head.version == 16389) {
-		root.deserialize(fp.fp, fp.bigEndian);
+		root.deserializeB(fp.fp, fp.bigEndian);
 	}
 	else if (head.version == 3) {
 		Vector<Node*> list;
@@ -405,6 +436,17 @@ void readFCB(IBinaryArchive & fp, Node &root) {
 	fp.padding = orig_padding;
 }
 
+void writeFCBA(SDL_RWops* fp, Node& node) {
+	fcbHeader fcb;
+	memcpy(fcb.magic, "nbCF", 4);
+	fcb.version = 3;
+	fcb.totalObjectCount = 1 + node.countNodes();
+	fcb.totalValueCount = fcb.totalObjectCount - 1;
+
+	SDL_RWwrite(fp, &fcb, sizeof(fcb), 1);
+	node.serializeA(fp);
+}
+
 void writeFCBB(SDL_RWops *fp, Node &node) {
 	fcbHeader fcb;
 	memcpy(fcb.magic, "nbCF", 4);
@@ -413,7 +455,7 @@ void writeFCBB(SDL_RWops *fp, Node &node) {
 	fcb.totalValueCount = fcb.totalObjectCount - 1;
 
 	SDL_RWwrite(fp, &fcb, sizeof(fcb), 1);
-	node.serialize(fp);
+	node.serializeB(fp);
 }
 
 void fcbHeader::swapEndian() {

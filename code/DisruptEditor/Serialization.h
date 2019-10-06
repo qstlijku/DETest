@@ -23,6 +23,16 @@ inline std::string toString(T value) {
 	return str;
 }
 
+template<>
+inline std::string toString(std::string value) {
+	return value;
+}
+
+template<>
+inline std::string toString(const char *value) {
+	return value;
+}
+
 template <typename T>
 void fromString(const char *buf, T &value);
 

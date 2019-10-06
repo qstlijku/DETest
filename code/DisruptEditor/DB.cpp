@@ -2,15 +2,19 @@
 
 #include <sqlite_modern_cpp.h>
 #include "Hash.h"
-#include "SDL_log.h"
+#include "SDL.h"
 #include <filesystem>
 
-DB::DB() {
-	db = new sqlite::database("Disrupt1.db");
+std::string base = SDL_GetBasePath();
 
-	uint64_t version;
+DB::DB() {
+	dbPath = base + "Disrupt1.db";
+
+	db = new sqlite::database(dbPath);
+
+	uint32_t version;
 	*db << "PRAGMA user_version;" >> version;
-	if (version != 200)
+	if (version != getVersion())
 		reinit();
 }
 
@@ -93,7 +97,7 @@ uint32_t DB::getSpkFromSBAO(uint32_t resID) {
 }
 
 uint64_t DB::getVersion() {
-	return std::filesystem::last_write_time("res/Watch Dogs.filelist").time_since_epoch().count();
+	return 200;// std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time("res/").time_since_epoch()).count() - 1470170898;
 }
 
 void DB::reinit() {
@@ -101,8 +105,8 @@ void DB::reinit() {
 		delete db;
 
 	//Delete File
-	fclose(fopen("Disrupt1.db", "wb"));
-	db = new sqlite::database("Disrupt1.db");
+	fclose(fopen(dbPath.c_str(), "wb"));
+	db = new sqlite::database(dbPath);
 
 	*db << "begin;";
 	*db << ("PRAGMA user_version = " + std::to_string(getVersion()) + ";");
@@ -118,7 +122,7 @@ void DB::reinit() {
 	uint32_t hash;
 
 	//Fill with Known files
-	FILE* fp = fopen("res/Watch Dogs.filelist", "r");
+	FILE* fp = fopen((base + "res/Watch Dogs.filelist").c_str(), "r");
 	auto ps = *db << "insert into files (hash,path,type) values (?,?,?);";
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		buffer[strlen(buffer) - 1] = '\0';
@@ -134,7 +138,7 @@ void DB::reinit() {
 	fclose(fp);
 
 	//Fill with known FNV
-	fp = fopen("res/arches.txt", "r");
+	fp = fopen((base + "res/arches.txt").c_str(), "r");
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		buffer[strlen(buffer) - 1] = '\0';
 		hash = Hash::getFilenameHash(buffer);
@@ -148,7 +152,7 @@ void DB::reinit() {
 	}
 	fclose(fp);
 
-	fp = fopen("res/archeBrute.txt", "r");
+	fp = fopen((base + "res/archeBrute.txt").c_str(), "r");
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		buffer[strlen(buffer) - 1] = '\0';
 		hash = Hash::getFilenameHash(buffer);
@@ -172,10 +176,10 @@ void DB::reinit() {
 		"   type text not null"
 		");";
 
-	handleCRCFile("res/classNames.txt", "ClassNames");
-	handleCRCFile("res/exeStrings.txt", "etc");
-	handleCRCFile("res/strings.txt", "etc");
-	handleCRCFile("res/materialNames.txt", "Material");
+	handleCRCFile((base + "res/classNames.txt").c_str(), "ClassNames");
+	handleCRCFile((base + "res/exeStrings.txt").c_str(), "etc");
+	handleCRCFile((base + "res/strings.txt").c_str(), "etc");
+	handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
 
 	//Dare
 	*db <<
@@ -183,7 +187,7 @@ void DB::reinit() {
 		"   spk integer not null,"
 		"   sbao integer not null"
 		");";
-	fp = fopen("res/dare.txt", "r");
+	fp = fopen((base + "res/dare.txt").c_str(), "r");
 	auto psa = *db << "insert into dare (spk,sbao) values (?,?);";
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		buffer[strlen(buffer) - 1] = '\0';

@@ -50,7 +50,7 @@ void loadEntityLibrary() {
 
 		SDL_RWseek(fp, offset, RW_SEEK_SET);
 		Node entityParent;
-		entityParent.deserialize(fp, false);
+		entityParent.deserializeB(fp, false);
 		addEntity(UID, *entityParent.children.begin());
 
 		SDL_RWseek(fp, curOffset, RW_SEEK_SET);

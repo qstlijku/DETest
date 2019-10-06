@@ -32,6 +32,7 @@ public:
 	void reinit();
 	static DB& instance();
 private:
+	std::string dbPath;
 	void handleCRCFile(const char* file, const char* type);
 };
 

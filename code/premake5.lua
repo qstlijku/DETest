@@ -78,6 +78,7 @@ workspace "DisruptEditor"
 	group "Tools"
 	include "./ConvertMaterials"
 	include "./ConvertLoc"
+    include "./ConvertXBG"
 	
 	group "Vendor"
 	include "vendor/tinyxml2"

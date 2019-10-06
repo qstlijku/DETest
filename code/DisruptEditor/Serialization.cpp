@@ -54,42 +54,42 @@ void toString<int64_t>(char *buf, size_t bufSize, int64_t value) {
 
 template <>
 void toString<float>(char *buf, size_t bufSize, float value) {
-	snprintf(buf, (int)bufSize, "%f", value);
+	snprintf(buf, (int)bufSize, "%.8g", value);
 }
 
 template <>
 void toString<double>(char *buf, size_t bufSize, double value) {
-	snprintf(buf, (int)bufSize, "%f", value);
+	snprintf(buf, (int)bufSize, "%.17g", value);
 }
 
 template <>
 void toString<glm::vec2>(char *buf, size_t bufSize, glm::vec2 value) {
-	snprintf(buf, (int)bufSize, "%f,%f", value.x, value.y);
+	snprintf(buf, (int)bufSize, "%.8g,%.8g", value.x, value.y);
 }
 
 template <>
 void toString<glm::ivec2>(char *buf, size_t bufSize, glm::ivec2 value) {
-	snprintf(buf, (int)bufSize, "%i,%i", value.x, value.y);
+	snprintf(buf, (int)bufSize, "%d,%d", value.x, value.y);
 }
 
 template <>
 void toString<glm::vec3>(char *buf, size_t bufSize, glm::vec3 value) {
-	snprintf(buf, (int)bufSize, "%f,%f,%f", value.x, value.y, value.z);
+	snprintf(buf, (int)bufSize, "%.8g,%.8g,%.8g", value.x, value.y, value.z);
 }
 
 template <>
 void toString<glm::vec4>(char *buf, size_t bufSize, glm::vec4 value) {
-	snprintf(buf, (int)bufSize, "%f,%f,%f,%f", value.x, value.y, value.z, value.w);
+	snprintf(buf, (int)bufSize, "%.8g,%.8g,%.8g,%.8g", value.x, value.y, value.z, value.w);
 }
 
 template <>
 void toString<glm::quat>(char* buf, size_t bufSize, glm::quat value) {
-	snprintf(buf, (int)bufSize, "%f,%f,%f,%f", value.x, value.y, value.z, value.w);
+	snprintf(buf, (int)bufSize, "%.8g,%.8g,%.8g,%.8g", value.x, value.y, value.z, value.w);
 }
 
 template <>
 void toString<glm::mat4>(char *buf, size_t bufSize, glm::mat4 value) {
-	snprintf(buf, (int)bufSize, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f", value[0][0], value[0][1], value[0][2], value[0][3], value[1][0], value[1][1], value[1][2], value[1][3], value[2][0], value[2][1], value[2][2], value[2][3], value[3][0], value[3][1], value[3][2], value[3][3]);
+	snprintf(buf, (int)bufSize, "%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g,%.8g", value[0][0], value[0][1], value[0][2], value[0][3], value[1][0], value[1][1], value[1][2], value[1][3], value[2][0], value[2][1], value[2][2], value[2][3], value[3][0], value[3][1], value[3][2], value[3][3]);
 }
 
 template <>
@@ -161,12 +161,12 @@ void fromString<int64_t>(const char *buf, int64_t &value) {
 
 template <>
 void fromString<float>(const char *buf, float &value) {
-	value = atof(buf);
+	sscanf(buf, "%f", &value);
 }
 
 template <>
 void fromString<double>(const char *buf, double &value) {
-	value = atof(buf);
+	sscanf(buf, "%lf", &value);
 }
 
 template <>
@@ -176,7 +176,7 @@ void fromString<glm::vec2>(const char *buf, glm::vec2 &value) {
 
 template <>
 void fromString<glm::ivec2>(const char *buf, glm::ivec2 &value) {
-	sscanf(buf, "%i,%i", &value.x, &value.y);
+	sscanf(buf, "%d,%d", &value.x, &value.y);
 }
 
 template <>

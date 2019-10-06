@@ -1,5 +1,7 @@
 #include "HexBase64.h"
 
+// Hex
+
 std::string toHexString(const void * ptr, size_t size) {
 	std::string ret;
 	const uint8_t *p = (const uint8_t*)ptr;
@@ -44,80 +46,123 @@ std::vector<uint8_t> fromHexString(const std::string &str) {
 	return buffer;
 }
 
-const static char lookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const static char padchar = '=';
-std::string toBase64String(const void * ptr, size_t size) {
-	std::string str;
-	const uint8_t *p = (const uint8_t*)ptr;
+// Base64
+/*
+   base64.cpp and base64.h
 
-	int outputSize = 4 * ((size / 3) + (size % 3 > 0 ? 1 : 0));
-	str.reserve(outputSize);
+   base64 encoding and decoding with C++.
 
-	for (size_t i = 0; i < size; i += 3) {
-		int padding = (i + 3) - size;
-		uint32_t tmp = 0;
+   Version: 1.01.00
 
-		switch (padding) {
-		case 2:
-			tmp |= (p[i] << 16);
-			break;
-		case 1:
-			tmp |= (p[i] << 16) | (p[i + 1] << 8);
-			break;
-		default:
-			tmp |= (p[i] << 16) | (p[i + 1] << 8) | (p[i + 2]);
-			break;
-		}
+   Copyright (C) 2004-2017 René Nyffenegger
 
-		str += lookup[(tmp & 0xfc0000) >> 18];
-		str += lookup[(tmp & 0x03f000) >> 12];
-		str += padding > 1 ? padchar : lookup[(tmp & 0x000fc0) >> 6];
-		str += padding > 0 ? padchar : lookup[(tmp & 0x00003f)];
-	}
+   This source code is provided 'as-is', without any express or implied
+   warranty. In no event will the author be held liable for any damages
+   arising from the use of this software.
 
-	return str;
+   Permission is granted to anyone to use this software for any purpose,
+   including commercial applications, and to alter it and redistribute it
+   freely, subject to the following restrictions:
+
+   1. The origin of this source code must not be misrepresented; you must not
+	  claim that you wrote the original source code. If you use this source code
+	  in a product, an acknowledgment in the product documentation would be
+	  appreciated but is not required.
+
+   2. Altered source versions must be plainly marked as such, and must not be
+	  misrepresented as being the original source code.
+
+   3. This notice may not be removed or altered from any source distribution.
+
+   René Nyffenegger rene.nyffenegger@adp-gmbh.ch
+
+*/
+
+static const std::string base64_chars =
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyz"
+"0123456789+/";
+
+static inline bool is_base64(unsigned char c) {
+	return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-static char dlookup[256];
-static bool dlookupok = false;
-const char *getdlookup() {
-	if (!dlookupok) {
-		memset(dlookup, 0, sizeof(dlookup));
-		for (int i = 0; i < strlen(lookup); i++)
-			dlookup[(int)lookup[i]] = i;
-		dlookupok = true;
+std::string toBase64String(const void * ptr, size_t size) {
+	const uint8_t* bytes_to_encode = (uint8_t*)ptr;
+
+	std::string ret;
+	int i = 0;
+	int j = 0;
+	unsigned char char_array_3[3];
+	unsigned char char_array_4[4];
+
+	while (size--) {
+		char_array_3[i++] = *(bytes_to_encode++);
+		if (i == 3) {
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			for (i = 0; (i < 4); i++)
+				ret += base64_chars[char_array_4[i]];
+			i = 0;
+		}
 	}
-	return dlookup;
+
+	if (i) {
+		for (j = i; j < 3; j++)
+			char_array_3[j] = '\0';
+
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+
+		for (j = 0; (j < i + 1); j++)
+			ret += base64_chars[char_array_4[j]];
+
+		while ((i++ < 3))
+			ret += '=';
+
+	}
+
+	return ret;
 }
 
 std::vector<uint8_t> fromBase64String(const std::string &str) {
-	const char *dlookup = getdlookup();
-	std::vector<uint8_t> decoded;
+	int in_len = str.size();
+	int i = 0;
+	int j = 0;
+	int in_ = 0;
+	unsigned char char_array_4[4], char_array_3[3];
+	std::vector<uint8_t> ret;
 
-	int outputSize = (str.size() / 4) * 3;
-	decoded.reserve(outputSize);
+	while (in_len-- && (str[in_] != '=') && is_base64(str[in_])) {
+		char_array_4[i++] = str[in_]; in_++;
+		if (i == 4) {
+			for (i = 0; i < 4; i++)
+				char_array_4[i] = base64_chars.find(char_array_4[i]);
 
-	char ch[4];
-	int padding = 0;
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-	for (int i = 0; i < str.size(); i += 4) {
-		for (int j = 0; j < 4; j++) {
-			if (str[i + j] == padchar) {
-				ch[j] = '\0';
-				padding++;
-			}
-			else {
-				ch[j] = dlookup[str[i + j]];
-			}
+			for (i = 0; (i < 3); i++)
+				ret.push_back(char_array_3[i]);
+			i = 0;
 		}
-
-		uint32_t tmp = 0;
-		tmp |= (ch[0] << 18) | (ch[1] << 12) | (ch[2] << 6) | ch[3];
-
-		decoded.push_back((tmp & 0xff0000) >> 16);
-		decoded.push_back((tmp & 0xff00) >> 8);
-		decoded.push_back((tmp & 0xff));
 	}
 
-	return decoded;
+	if (i) {
+		for (j = 0; j < i; j++)
+			char_array_4[j] = base64_chars.find(char_array_4[j]);
+
+		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+
+		for (j = 0; (j < i - 1); j++) 
+			ret.push_back(char_array_3[j]);
+	}
+
+	return ret;
 }

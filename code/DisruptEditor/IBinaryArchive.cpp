@@ -108,9 +108,9 @@ void IBinaryArchive::serialize(glm::mat4& value) {
 }
 
 void IBinaryArchive::serialize(std::string& value) {
-	uint32_t len = (uint32_t)value.size();
+	uint32_t len = (uint32_t)value.size() + 1;
 	serialize(len);
-	value.resize(len + 1, '\0');
+	value.resize(len, '\0');
 	memBlock(value.data(), 1, len);
 }
 

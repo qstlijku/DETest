@@ -15,9 +15,9 @@
 World world;
 
 void World::loadWLUAsync() {
+	int i = 0;
 	Vector<FileInfo> files = FH::getFileList("worlds/windy_city/generated/wlu", "xml.data.fcb");
 	for (FileInfo& file : files) {
-		
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
 		SDL_RWops* fp = FH::openFile(file.fullPath.c_str());
@@ -27,6 +27,9 @@ void World::loadWLUAsync() {
 
 			world.mutex.lock();
 			world.wlus[file.name] = wlu;
+			++i;
+			world.loadingStatus = file.name;
+			world.loadingProgress = (float)i / files.size();
 			world.mutex.unlock();
 		} else {
 			SDL_Log("Failed to open %s", file.fullPath.c_str());
@@ -103,6 +106,7 @@ void World::loaderThread() {
 	assert(hr == S_OK);
 
 	world.readyToRender = true;
+	return;
 
 	//Start Drawing WLUs
 	for (auto& it : world.wlus) {
@@ -121,7 +125,7 @@ void World::loaderThread() {
 				entityPtr = findEntityByUID(uid);
 				if (!entityPtr) {
 					SDL_Log("Could not find %s\n", ArchetypeGuid->buffer.data());
-					SDL_assert_release(false && "Could not lookup entity by archtype, check that dlc_solo is loaded first before other packfiles");
+					//SDL_assert_release(false && "Could not lookup entity by archtype, check that dlc_solo is loaded first before other packfiles");
 					entityPtr = &entityRef;
 				}
 			}

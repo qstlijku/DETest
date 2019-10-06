@@ -22,8 +22,9 @@ public:
 	Attribute() {}
 	Attribute(SDL_RWops* fp, bool bigEndian);
 	void deserializeA(SDL_RWops *fp, bool bigEndian);
-	void deserialize(SDL_RWops *fp, bool bigEndian);
-	void serialize(SDL_RWops *fp);
+	void deserializeB(SDL_RWops *fp, bool bigEndian);
+	void serializeB(SDL_RWops* fp);
+	void serializeA(SDL_RWops *fp);
 	void deserializeXML(const tinyxml2::XMLAttribute *attr);
 	void serializeXML(tinyxml2::XMLPrinter &printer);
 
@@ -36,9 +37,10 @@ public:
 class Node {
 public:
 	Node() {};
-	void deserialize(SDL_RWops *fp, bool bigEndian);
+	void deserializeB(SDL_RWops *fp, bool bigEndian);
 	void deserializeA(SDL_RWops *fp, Vector<Node*> &list, bool bigEndian);
-	void serialize(SDL_RWops *fp);
+	void serializeB(SDL_RWops* fp);
+	void serializeA(SDL_RWops *fp);
 	void deserializeXML(const tinyxml2::XMLElement *node);
 	void serializeXML(tinyxml2::XMLPrinter &printer);
 
@@ -64,6 +66,7 @@ public:
 Node readFCB(SDL_RWops *fp);
 void readFCB(IBinaryArchive &fp, Node &root);
 
+void writeFCBA(SDL_RWops* fp, Node& node);
 void writeFCBB(SDL_RWops *fp, Node &node);
 
 template<typename T>

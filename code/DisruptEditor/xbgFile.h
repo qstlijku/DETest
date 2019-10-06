@@ -477,6 +477,11 @@ public:
 	struct SGfxBuffers {
 		std::shared_ptr<VertexBuffer> vertex;
 		std::shared_ptr<IndexBuffer> index;
+
+		void createBuffers();
+
+		std::vector<uint8_t> vertexData, indexData;
+
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);
 	};
