@@ -108,8 +108,12 @@ void DB::reinit() {
 	fclose(fopen(dbPath.c_str(), "wb"));
 	db = new sqlite::database(dbPath);
 
+	*db << "PRAGMA TEMP_STORE = MEMORY;";
+	*db << "PRAGMA JOURNAL_MODE = MEMORY;";
+	*db << "PRAGMA LOCKING_MODE = EXCLUSIVE;";
+	*db << "PRAGMA SYNCHRONOUS = OFF;";
+
 	*db << "begin;";
-	*db << ("PRAGMA user_version = " + std::to_string(getVersion()) + ";");
 
 	*db <<
 		"create table if not exists files ("
@@ -119,53 +123,14 @@ void DB::reinit() {
 		");";
 
 	char buffer[500];
-	uint32_t hash;
 
 	//Fill with Known files
-	FILE* fp = fopen((base + "res/Watch Dogs.filelist").c_str(), "r");
-	auto ps = *db << "insert into files (hash,path,type) values (?,?,?);";
-	while (fgets(buffer, sizeof(buffer), fp)) {
-		buffer[strlen(buffer) - 1] = '\0';
-		hash = Hash::getFilenameHash(buffer);
-		try {
-			ps << hash << buffer << "";
-			ps++;
-		}
-		catch (...) {
-			SDL_Log("Duplicate key %u %s", hash, buffer);
-		}
-	}
-	fclose(fp);
+	handleFNVFile((base + "res/Watch Dogs.filelist").c_str(), "");
 
 	//Fill with known FNV
-	fp = fopen((base + "res/arches.txt").c_str(), "r");
-	while (fgets(buffer, sizeof(buffer), fp)) {
-		buffer[strlen(buffer) - 1] = '\0';
-		hash = Hash::getFilenameHash(buffer);
-		try {
-			ps << hash << buffer << "CArchetypeResource";
-			ps++;
-		}
-		catch (...) {
-			SDL_Log("Duplicate key %u %s", hash, buffer);
-		}
-	}
-	fclose(fp);
+	handleFNVFile((base + "res/arches.txt").c_str(), "CArchetypeResource");
 
-	fp = fopen((base + "res/archeBrute.txt").c_str(), "r");
-	while (fgets(buffer, sizeof(buffer), fp)) {
-		buffer[strlen(buffer) - 1] = '\0';
-		hash = Hash::getFilenameHash(buffer);
-		try {
-			ps << hash << buffer << "CArchetypeResource";
-			ps++;
-		}
-		catch (...) {
-			SDL_Log("Duplicate key %u %s", hash, buffer);
-		}
-	}
-	fclose(fp);
-	ps.used(true);
+	handleFNVFile((base + "res/archeBrute.txt").c_str(), "CArchetypeResource");
 
 	//CRC Hash Table
 	*db <<
@@ -187,7 +152,7 @@ void DB::reinit() {
 		"   spk integer not null,"
 		"   sbao integer not null"
 		");";
-	fp = fopen((base + "res/dare.txt").c_str(), "r");
+	FILE *fp = fopen((base + "res/dare.txt").c_str(), "r");
 	auto psa = *db << "insert into dare (spk,sbao) values (?,?);";
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		buffer[strlen(buffer) - 1] = '\0';
@@ -200,6 +165,8 @@ void DB::reinit() {
 	psa.used(true);
 
 	*db << "commit;";
+
+	*db << ("PRAGMA user_version = " + std::to_string(getVersion()) + ";");
 }
 
 DB & DB::instance() {
@@ -222,7 +189,28 @@ void DB::handleCRCFile(const char *file, const char* type) {
 			ps++;
 		}
 		catch (...) {
-			SDL_Log("Duplicate key %u %s", hash, line);
+			SDL_Log("Duplicate key %08x %s", hash, line);
+		}
+	}
+	ps.used(true);
+
+	fclose(fp);
+}
+
+void DB::handleFNVFile(const char* file, const char* type) {
+	FILE* fp = fopen(file, "r");
+
+	char line[512];
+	auto ps = *db << "insert into files (hash,path,type) values (?,?,?);";
+	while (fgets(line, sizeof(line), fp)) {
+		line[strlen(line) - 1] = '\0';
+		uint32_t hash = Hash::getFilenameHash(line);
+		try {
+			ps << hash << line << type;
+			ps++;
+		}
+		catch (...) {
+			SDL_Log("Duplicate key %08x %s", hash, line);
 		}
 	}
 	ps.used(true);

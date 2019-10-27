@@ -145,5 +145,6 @@ void FH::Init() {
 }
 
 void FH::AddDatFat(const std::string& filename) {
-	dats.emplace_back(filename);
+	if(std::filesystem::exists(filename))
+		dats.emplace_back(filename);
 }
