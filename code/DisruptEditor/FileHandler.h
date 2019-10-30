@@ -19,5 +19,10 @@ namespace FH {
 	SDL_RWops* openFile(const char *path);
 	SDL_RWops* openFileHash(CPathID hash);
 
+	bool fileExists(const char* path);
+	std::string getFileLocations(const char* path);
+
+	const char* getTypeFromExtension(const char* name);
+
 	SDL_RWops* openFileWrite(const std::string& path);
 }

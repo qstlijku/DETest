@@ -50,6 +50,8 @@ void InitXCompress() {
 }
 
 DatFat::DatFat(const std::string &filename) {
+	name = filename.substr(filename.find("data_win64") + 11);
+
 	std::string fatFile = filename;
 	fatFile[fatFile.size() - 3] = 'f';
 

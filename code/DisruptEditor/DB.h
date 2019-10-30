@@ -34,6 +34,6 @@ public:
 private:
 	std::string dbPath;
 	void handleCRCFile(const char* file, const char* type);
-	void handleFNVFile(const char* file, const char* type);
+	void handleFNVFile(const char* file);
 };
 

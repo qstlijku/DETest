@@ -33,5 +33,6 @@ public:
 	void* file = NULL;
 	void* fileMapping = NULL;
 	const uint8_t* datPtr = NULL;
+	std::string name;
 };
 

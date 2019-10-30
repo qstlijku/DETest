@@ -3,12 +3,14 @@
 #include <sqlite_modern_cpp.h>
 #include "Hash.h"
 #include "SDL.h"
+#include "FileHandler.h"
 #include <filesystem>
 
 std::string base = SDL_GetBasePath();
 
 DB::DB() {
 	dbPath = base + "Disrupt1.db";
+	//dbPath = ":memory:";
 
 	db = new sqlite::database(dbPath);
 
@@ -97,61 +99,61 @@ uint32_t DB::getSpkFromSBAO(uint32_t resID) {
 }
 
 uint64_t DB::getVersion() {
-	return 200;// std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time("res/").time_since_epoch()).count() - 1470170898;
+	return 201;
 }
 
 void DB::reinit() {
-	if (db)
-		delete db;
-
-	//Delete File
-	fclose(fopen(dbPath.c_str(), "wb"));
-	db = new sqlite::database(dbPath);
+	//Delete tables
+	*db << "DROP TABLE IF EXISTS files;";
+	*db << "DROP TABLE IF EXISTS hashes;";
+	*db << "DROP TABLE IF EXISTS dare;";
 
 	*db << "PRAGMA TEMP_STORE = MEMORY;";
 	*db << "PRAGMA JOURNAL_MODE = MEMORY;";
 	*db << "PRAGMA LOCKING_MODE = EXCLUSIVE;";
 	*db << "PRAGMA SYNCHRONOUS = OFF;";
 
-	*db << "begin;";
-
+	//FNV hash table
 	*db <<
 		"create table if not exists files ("
-		"   hash integer unique not null,"
+		"   hash integer not null,"
+		"   hash64 integer not null,"
 		"   path text primary key not null,"
 		"   type text not null"
 		");";
 
-	char buffer[500];
-
-	//Fill with Known files
-	handleFNVFile((base + "res/Watch Dogs.filelist").c_str(), "");
-
-	//Fill with known FNV
-	handleFNVFile((base + "res/arches.txt").c_str(), "CArchetypeResource");
-
-	handleFNVFile((base + "res/archeBrute.txt").c_str(), "CArchetypeResource");
-
-	//CRC Hash Table
+	//CRC and dobbs Hash Table
 	*db <<
 		"create table if not exists hashes ("
-		"   hash integer unique not null,"
+		"   hash integer not null,"
 		"   dobbs integer not null,"
 		"   str text primary key not null,"
 		"   type text not null"
 		");";
+
+	//Dare Table
+	*db <<
+		"create table if not exists dare ("
+		"   spk integer not null,"
+		"   sbao integer not null"
+		");";
+
+	*db << "begin;";
+	char buffer[500];
+
+	//Fill with Known files
+	handleFNVFile((base + "res/Watch Dogs.filelist").c_str());
+
+	//Fill with known FNV
+	handleFNVFile((base + "res/arches.txt").c_str());
+
+	handleFNVFile((base + "res/archeBrute.txt").c_str());
 
 	handleCRCFile((base + "res/classNames.txt").c_str(), "ClassNames");
 	handleCRCFile((base + "res/exeStrings.txt").c_str(), "etc");
 	handleCRCFile((base + "res/strings.txt").c_str(), "etc");
 	handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
 
-	//Dare
-	*db <<
-		"create table if not exists dare ("
-		"   spk integer not null,"
-		"   sbao integer not null"
-		");";
 	FILE *fp = fopen((base + "res/dare.txt").c_str(), "r");
 	auto psa = *db << "insert into dare (spk,sbao) values (?,?);";
 	while (fgets(buffer, sizeof(buffer), fp)) {
@@ -189,7 +191,7 @@ void DB::handleCRCFile(const char *file, const char* type) {
 			ps++;
 		}
 		catch (...) {
-			SDL_Log("Duplicate key %08x %s", hash, line);
+			//SDL_Log("Duplicate key %08x %s", hash, line);
 		}
 	}
 	ps.used(true);
@@ -197,20 +199,21 @@ void DB::handleCRCFile(const char *file, const char* type) {
 	fclose(fp);
 }
 
-void DB::handleFNVFile(const char* file, const char* type) {
+void DB::handleFNVFile(const char* file) {
 	FILE* fp = fopen(file, "r");
 
 	char line[512];
-	auto ps = *db << "insert into files (hash,path,type) values (?,?,?);";
+	auto ps = *db << "insert into files (hash,hash64,path,type) values (?,?,?,?);";
 	while (fgets(line, sizeof(line), fp)) {
 		line[strlen(line) - 1] = '\0';
 		uint32_t hash = Hash::getFilenameHash(line);
+		uint64_t hash64 = Hash::getFilenameHash64(line);
 		try {
-			ps << hash << line << type;
+			ps << hash << hash64 << line << FH::getTypeFromExtension(line);
 			ps++;
 		}
 		catch (...) {
-			SDL_Log("Duplicate key %08x %s", hash, line);
+			//SDL_Log("Duplicate key %08x %s", hash, line);
 		}
 	}
 	ps.used(true);

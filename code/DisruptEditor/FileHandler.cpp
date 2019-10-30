@@ -8,7 +8,9 @@
 #include <DatFat.h>
 #include <CPathID.h>
 
-static std::vector<DatFat> dats;
+namespace FH {
+	std::vector<DatFat> dats;
+}
 
 static std::string getExt(const std::filesystem::path& path) {
 	const std::string name = path.filename().generic_string();
@@ -93,16 +95,61 @@ SDL_RWops * FH::openFile(const char *path) {
 		return SDL_RWFromFile(fullPath, "rb");
 
 	//Return by hash
-	return openFileHash(path);
-}
-
-SDL_RWops * FH::openFileHash(CPathID path) {
 	for (auto& it : dats) {
 		SDL_RWops* fp = it.openRead(path);
 		if (fp)
 			return fp;
 	}
 	return NULL;
+}
+
+SDL_RWops * FH::openFileHash(CPathID path) {
+	//TODO, check if patch exists
+
+	for (auto& it : dats) {
+		SDL_RWops* fp = it.openRead(path);
+		if (fp)
+			return fp;
+	}
+	return NULL;
+}
+
+bool FH::fileExists(const char* path) {
+	//Check if file in patch dir exists
+	char fullPath[512];
+	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
+	if (std::filesystem::exists(fullPath))
+		return true;
+
+	CPathID hash(path);
+
+	//Check dats
+	for (auto& it : dats) {
+		if (it.files.count(hash))
+			return true;
+	}
+
+	return false;
+}
+
+std::string FH::getFileLocations(const char* path) {
+	std::string str;
+
+	//Check if file in patch dir exists
+	char fullPath[512];
+	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
+	if (std::filesystem::exists(fullPath))
+		str += "patch\n";
+
+	CPathID hash(path);
+
+	//Check dats
+	for (auto& it : dats) {
+		if (it.files.count(hash))
+			str += it.name + "\n";
+	}
+
+	return str;
 }
 
 SDL_RWops* FH::openFileWrite(const std::string& path) {
@@ -147,4 +194,114 @@ void FH::Init() {
 void FH::AddDatFat(const std::string& filename) {
 	if(std::filesystem::exists(filename))
 		dats.emplace_back(filename);
+}
+
+static bool startsWith(const char* str, const char* prefix) {
+	size_t lenpre = strlen(prefix), lenstr = strlen(str);
+	return lenstr < lenpre ? false : memcmp(prefix, str, lenpre) == 0;
+}
+
+static int endsWith(const char* str, const char* suffix) {
+	int str_len = strlen(str);
+	int suffix_len = strlen(suffix);
+
+	return (str_len >= suffix_len) && (0 == strcmp(str + (str_len - suffix_len), suffix));
+}
+
+const char* FH::getTypeFromExtension(const char* name) {
+	if (name[0] == '{')
+		return "CArchetypeResource";
+
+	if (startsWith(name, "wdfx_"))
+		return "CParticlesSystemParamResource";
+
+	//File Types
+	if (endsWith(name, ".xml.data.fcb"))
+		return "CWorldUnitDataResource";
+
+	if (endsWith(name, ".ano"))
+		return "CAnnotationResource";
+	if (endsWith(name, ".bik"))
+		return "CBinkResource";
+	if (endsWith(name, ".bfd"))
+		return "bfd";
+	if (endsWith(name, ".bundle"))
+		return "CBundleResource";
+	if (endsWith(name, ".cbatch"))
+		return "CBatchResource";
+	if (endsWith(name, ".ci"))
+		return "CCoverDefinitionResource";
+	if (endsWith(name, ".cseq"))
+		return "CSequenceResource";
+	if (endsWith(name, ".dpax"))
+		return "CPoseAnimationResource";
+	if (endsWith(name, ".dpdx"))
+		return "CPoseDefinitionResource";
+	if (endsWith(name, ".embed"))
+		return "CEmbeddedResourceContainer";
+	if (endsWith(name, ".fcb"))
+		return "CBinaryResource";
+	if (endsWith(name, ".feu"))
+		return "CFireUiBlobResource";
+	if (endsWith(name, ".fso.bin"))
+		return "CFluidSimulationResource";
+	if (endsWith(name, ".hkx"))
+		return "CPhysResource";
+	if (endsWith(name, ".hgfx"))
+		return "CSplineLoftHiResGfxResource";
+	if (endsWith(name, ".lgfx"))
+		return "CSplineLoftLowResGfxResource";
+	if (endsWith(name, ".lib"))
+		return "lib";
+	if (endsWith(name, ".lipr.bin"))
+		return "CLightProbesResource";
+	if (endsWith(name, ".loc"))
+		return "CLocStringsCompiledData";
+	if (endsWith(name, ".lua"))
+		return "CDominoBoxResource";
+	if (endsWith(name, ".mab"))
+		return "CAnimationResource";
+	if (endsWith(name, ".material.bin"))
+		return "CMaterialResource";
+	if (endsWith(name, ".move.bin"))
+		return "CMoveResource-fake";
+	if (endsWith(name, ".obj"))
+		return "obj";
+	if (endsWith(name, ".phys"))
+		return "CSplineLoftPhysicsResource";
+	if (endsWith(name, ".pnm"))
+		return "CPilotNavMeshResource";
+	if (endsWith(name, ".rml"))
+		return "rml";
+	if (endsWith(name, ".sbao"))
+		return "BinaryAudioObject";
+	if (endsWith(name, ".sdat"))
+		return "CSectorResource";
+	if (endsWith(name, ".sdlr"))
+		return "CSectorResourceLowRes";
+	if (endsWith(name, ".sdhr"))
+		return "CSectorResourceHiRes";
+	if (endsWith(name, ".skeleton"))
+		return "CSkeletonResource";
+	if (endsWith(name, ".stimuli.dsc.pack"))
+		return "CDialogStimuliResource";
+	if (endsWith(name, ".spk"))
+		return "CSoundResource";
+	if (endsWith(name, ".srl"))
+		return "CSRLResource";
+	if (endsWith(name, ".xbg"))
+		return "CGeometryResource";
+	if (endsWith(name, ".xbgmip"))
+		return "CGeometryMipResource";
+	if (endsWith(name, ".xbt"))
+		return "CTextureResource";
+	if (endsWith(name, ".xlf"))
+		return "xlf";
+	if (endsWith(name, ".xml"))
+		return "CXmlResource";
+
+	if (startsWith(name, "engine\\shaders\\"))
+		return "shaders";
+
+	return "";
 }
