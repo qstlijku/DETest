@@ -13,14 +13,7 @@ CPathID::CPathID(const char *filename) {
 }
 
 std::string CPathID::getReverseFilename() {
-	auto it = DB::instance().getFileByHash(id);
-	if (!it) {
-		char buffer[12];
-		snprintf(buffer, sizeof(buffer), "_%08x", id);
-		return std::string(buffer);
-	}
-
-	return it->path;
+	return DB::instance().getFileByHash(*this);
 }
 
 void CPathID::read(IBinaryArchive& fp) {

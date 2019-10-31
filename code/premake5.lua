@@ -83,7 +83,6 @@ workspace "DisruptEditor"
 	group "Vendor"
 	include "vendor/tinyxml2"
 	include "vendor/imgui"
-	include "vendor/sqlite3"
 	include "vendor/ImGuizmo"
 
 -- Cleanup

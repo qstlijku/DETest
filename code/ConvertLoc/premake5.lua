@@ -26,14 +26,11 @@ project "ConvertLoc"
 		"../vendor/stb",
 		"../vendor/dr_wav",
 		"../vendor/debug_draw",
-		"../vendor/sqlite_modern_cpp",
-		"../vendor/sqlite3",
 	}
 
 	links
 	{
 		"tinyxml2",
-		"sqlite3",
 
 		-- imgui
 		"imgui",

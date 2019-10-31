@@ -3,13 +3,20 @@
 #include "Serialization.h"
 #include "Hash.h"
 #include "DB.h"
+#include "IBinaryArchive.h"
 
-CDobbsID::CDobbsID(const std::string &filename) {
-	id = Hash::gearDobbsHash((const uint8_t*)filename.c_str(), filename.size());
+CDobbsID::CDobbsID(const std::string& filename) : CDobbsID(filename.c_str()) { }
+
+CDobbsID::CDobbsID(const char* filename) {
+	id = Hash::gearDobbsHash((const uint8_t*)filename, strlen(filename));
 }
 
 std::string CDobbsID::getReverseName() {
 	return DB::instance().getStrFromDobbs(id);
+}
+
+void CDobbsID::read(IBinaryArchive& fp) {
+	fp.serialize(id);
 }
 
 void CDobbsID::registerMembers(MemberStructure & ms) {

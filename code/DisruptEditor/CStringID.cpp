@@ -5,11 +5,13 @@
 #include "IBinaryArchive.h"
 #include "Serialization.h"
 
-CStringID::CStringID(const std::string &filename) {
-	if (filename.empty())
+CStringID::CStringID(const std::string& filename) : CStringID(filename.c_str()) { }
+
+CStringID::CStringID(const char* filename) {
+	if (filename == NULL || filename[0] == '\0')
 		id = -1;
 	else
-		id = Hash::getHash(filename.c_str());
+		id = Hash::getHash(filename);
 }
 
 std::string CStringID::getReverseName() {

@@ -26,8 +26,6 @@ project "DisruptEditor"
 		"../vendor/dr_wav",
 		"../vendor/debug_draw",
 		"../vendor/DirectXTex",
-		"../vendor/sqlite_modern_cpp",
-		"../vendor/sqlite3"
 	}
 
 	links
@@ -36,7 +34,6 @@ project "DisruptEditor"
 		"Shlwapi",
 
 		"tinyxml2",
-		"sqlite3",
 
 		-- imgui
 		"imgui",

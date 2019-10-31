@@ -29,7 +29,6 @@
 #include "Version.h"
 #include "IBinaryArchive.h"
 #include "HexBase64.h"
-#include "DB.h"
 #include "DARE.h"
 #include "SplineLoft.h"
 #include "CResourceDataBase.h"

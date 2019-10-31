@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "Hash.h"
 #include "DB.h"
-#include "sqlite_modern_cpp.h"
 #include "SDL_log.h"
 #include <filesystem>
 #include <DatFat.h>
@@ -44,7 +43,7 @@ Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extF
 	}
 
 	//Search DB
-	try {
+	/*try {
 		std::string param(dir);
 		std::replace(param.begin(), param.end(), '/', '\\');
 		param += '%';
@@ -60,7 +59,7 @@ Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extF
 		};
 	} catch (std::exception& e) {
 		SDL_Log("%s", e.what());
-	}
+	}*/
 
 	Vector<FileInfo> outFiles;
 	for (auto &file : files)
