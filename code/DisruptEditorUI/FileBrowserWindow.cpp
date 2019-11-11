@@ -8,6 +8,9 @@
 #include "noc_file_dialog.h"
 #include "ResourceLoader.h"
 #include "xbgFile.h"
+#include "xbtFile.h"
+#include <Serialization.h>
+#include <SDL_clipboard.h>
 
 static std::string currentFile;
 static std::vector<uint8_t> currentFileData;
@@ -85,11 +88,30 @@ void UI::displayFileBrowser() {
 			context->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
 			context->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
 			RenderInterface::instance().objectCB.Model = glm::mat4(1.f);
-			xbg->draw(context);
+			xbg->draw(context, selLod);
 
-			ImGui::Image(0, size);
+			if (ImGui::Button("XML")) {
+				std::string xml = serializeToXML(*xbg);
+				SDL_SetClipboardText(xml.c_str());
+			}
 		} else if (type == "CGeometryMipResource") {
 			ImGui::Text("You can't edit a mip resource, find its xbg!");
+		} else if (type == "CTextureResource") {
+			std::shared_ptr<xbtFile> xbt = loadTexture(currentFile.c_str());
+			ImGui::Image(xbt->pResource, ImGui::GetContentRegionAvail());
+		} else if (type == "CSkeletonResource") {
+			if (ImGui::Button("XML")) {
+				SDL_RWops* fp = FH::openFile(currentFile.c_str());
+				if (fp) {
+					Node root = readFCB(fp);
+					SDL_RWclose(fp);
+
+					tinyxml2::XMLPrinter printer;
+					root.serializeXML(printer);
+
+					SDL_SetClipboardText(printer.CStr());
+				}
+			}
 		} else {
 			if (ImGui::Button("Save")) {
 				SDL_RWops* fp = FH::openFileWrite(currentFile.c_str());

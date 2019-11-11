@@ -936,7 +936,7 @@ void xbgFile::draw(ID3D11DeviceContext* context, int lodNum) {
 
 	auto& lod = lods[lodNum];
 	for (auto& mesh : lod.meshes) {
-		RenderInterface::instance().objectCB.Offset = glm::vec4(1/*mesh.unk2*/, 1, 0, 0);
+		RenderInterface::instance().objectCB.Offset = glm::vec4(/*mesh.unk2*/geomParams.unk3, 0.5, 0.5, 0);
 		context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 
 		D3D_PRIMITIVE_TOPOLOGY pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

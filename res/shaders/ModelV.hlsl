@@ -13,8 +13,8 @@ struct PixelShaderInput {
 PixelShaderInput main(VertexShaderInput input) {
 	PixelShaderInput output;
 
-	float4 modelPos = float4(input.pos.xyz * (1.0 / 32767.0) * Offset.x, 1.0);
-	output.pos = mul(mul(ViewProjection, Model), modelPos);
+	float4 modelPos = float4(input.pos.xyz * (1.0 / 32767.0), 1.0);
+	output.pos = mul(mul(ViewProjection, Model), modelPos * Offset.x);
 	output.uv = input.uv * (1.0 / 32767.0) * Offset.y + Offset.z;
 
 	return output;
