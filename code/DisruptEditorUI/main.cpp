@@ -135,39 +135,9 @@ int main(int argc, char **argv) {
 
 			ImGui::ProgressBar(world.loadingProgress, ImVec2(-1.0f, 0.0f), world.loadingStatus.c_str());
 			ImGui::End();
-
-			dd::xzSquareGrid(-50, 50, 0, 1, blue);
 		}
 
-		//Draw XBG
-		/*glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		RenderInterface::instance().model.use();
-		glm::mat4 MVP = RenderInterface::instance().VP;
-		glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-		CHECK_GL_ERROR();
-		static std::shared_ptr<xbgFile> xbg;
-		static int selLod = 0;
-		static char buffer[255];
-		ImGui::InputText("Filename", buffer, sizeof(buffer));
-		if (ImGui::Button("Load")) {
-			xbg = loadXBG(buffer);
-			selLod = 0;
-		}
-		static uint32_t hashID = 0;
-		ImGui::InputScalar("HashID", ImGuiDataType_U32, &hashID);
-		if (ImGui::Button("Load ID")) {
-			xbg = loadXBG(hashID);
-			selLod = 0;
-		}
-		if (ImGui::Button("XML")) {
-			std::string str = serializeToXML(*xbg);
-			SDL_SetClipboardText(str.c_str());
-		}
-		if (xbg) {
-			ImGui::SliderInt("Lod", &selLod, 0, xbg->lods.size() - 1);
-			xbg->draw(selLod);
-		}*/
+		dd::xzSquareGrid(-50, 50, 0, 1, blue);
 
 		//Draw Building Batches
 		/*for (auto& it : world.batches) {

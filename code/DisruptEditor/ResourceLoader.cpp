@@ -38,6 +38,18 @@ std::shared_ptr<xbgFile> loadXBG(CPathID hash) {
 		CBinaryArchiveReader reader(fp);
 		model->open(reader);
 		SDL_RWclose(fp);
+
+		if (model->mips.size() == 1) {
+			xbgMipFile xbgmip = loadXBGMIP(model->mips[0].path);
+			model->buffers.insert(model->buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
+			model->mips.clear();
+			model->unk3 = 0;
+		}
+		
+		//Create Buffers
+		for (auto& it : model->buffers)
+			it.createBuffers();
+
 		model->loaded = true;
 	}
 	return model;

@@ -1,6 +1,6 @@
 struct PixelShaderInput {
 	float4 pos : SV_POSITION;
-	float2 uv : TEXCOORD;
+	float2 uv : TEXCOORD0;
 };
 
 Texture2D    colorTexture : register(t0);

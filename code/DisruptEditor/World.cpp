@@ -151,55 +151,7 @@ void World::loaderThread() {
 			modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
 			RenderInterface::instance().objectCB.Model = modelMatrix;
 
-			auto& lod = model->lods[0];
-			pDeferredContext->IASetIndexBuffer(model->buffers[0].index->pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-			for (auto& mesh : lod.meshes) {
-				RenderInterface::instance().objectCB.UVScale = glm::vec2(mesh.unk2);
-				pDeferredContext->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
-
-				D3D_PRIMITIVE_TOPOLOGY pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-				switch (mesh.primitiveType) {
-				case 0:
-					pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-					break;
-				case 7:
-					pType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-					break;
-				default:
-					SDL_assert_release(false && "Unhandled Primitive Type");
-				}
-				pDeferredContext->IASetPrimitiveTopology(pType);
-
-				//loadMaterial(materialResources.materials[mesh.matID].file.c_str())->bind();
-
-				int bufferIndex = 0;
-
-				UINT offset = mesh.drawCall.unk1;
-				UINT stride = mesh.vertexStride;
-				pDeferredContext->IASetVertexBuffers(0, 1, &model->buffers[bufferIndex].vertex->pVertexBuffer, &stride, &offset);
-				pDeferredContext->IASetIndexBuffer(model->buffers[bufferIndex].index->pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-				SDL_assert_release(model->buffers[bufferIndex].index->size % sizeof(short) == 0);
-
-				static std::unordered_map<uint32_t, ID3D11InputLayout*> layouts;
-				if (layouts.count(mesh.vertexFormat) == 0) {
-					const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-					{
-						//DXGI_FORMAT_R32G32B32_SINT
-					  { "POSITION", 0, DXGI_FORMAT_R16G16B16A16_SNORM, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					  { "TEXCOORD", 1, DXGI_FORMAT_R16G16B16A16_SNORM, 0, 8,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-					};
-					RenderInterface::instance().g_pd3dDevice->CreateInputLayout(
-						vertexDesc,
-						ARRAYSIZE(vertexDesc),
-						RenderInterface::instance().model.vShaderBlob->GetBufferPointer(),
-						RenderInterface::instance().model.vShaderBlob->GetBufferSize(),
-						&layouts[mesh.vertexFormat]);
-				}
-				pDeferredContext->IASetInputLayout(layouts[mesh.vertexFormat]);
-
-				// Draw the triangles
-				pDeferredContext->DrawIndexed(mesh.drawCall.primitiveCount, mesh.drawCall.unk4, 0);
-			}
+			model->draw(pDeferredContext);
 		}
 
 		hr = pDeferredContext->FinishCommandList(FALSE, &pList);
@@ -256,7 +208,7 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 				auto vertexBuffer = map.getVertexBuffer();
 
 				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - 2048, (yOffset + y * 64) - 2560, 0));
-				RenderInterface::instance().objectCB.UVOffset = glm::vec2(x / 4.f, y / 4.f);
+				RenderInterface::instance().objectCB.Offset = glm::vec4(x / 4.f, y / 4.f, 0, 0);
 				context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 
 				UINT offset = 0;

@@ -43,23 +43,15 @@ Vector<FileInfo> FH::getFileList(const std::string &dir, const std::string &extF
 	}
 
 	//Search DB
-	/*try {
-		std::string param(dir);
-		std::replace(param.begin(), param.end(), '/', '\\');
-		param += '%';
-		*DB::instance().db << "SELECT path FROM files WHERE path LIKE ?;" << param >>
-			[&](std::string path) {
-			std::string ext = getExt(path);
-			if (extFilter.empty() || ext == extFilter) {
-				FileInfo& fi = files[path];
-				fi.fullPath = path;
-				fi.ext = ext;
-				fi.name = getName(path);
-			}
-		};
-	} catch (std::exception& e) {
-		SDL_Log("%s", e.what());
-	}*/
+	for (auto& it : DB::instance().fnvList) {
+		std::string ext = getExt(it.second);
+		if (extFilter.empty() || ext == extFilter) {
+			FileInfo& fi = files[it.second];
+			fi.fullPath = it.second;
+			fi.ext = ext;
+			fi.name = getName(it.second);
+		}
+	}
 
 	Vector<FileInfo> outFiles;
 	for (auto &file : files)

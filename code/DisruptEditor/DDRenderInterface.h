@@ -112,8 +112,7 @@ public:
 
 	struct ObjectConstantBuffer {
 		glm::mat4 Model;
-		glm::vec2 UVOffset;
-		glm::vec2 UVScale;
+		glm::vec4 Offset;
 	} objectCB;
 	ID3D11Buffer* objectCBB;
 	void updateObjectCBB();

@@ -22,6 +22,8 @@ You may not use this file without permission
 #include "Serialization.h"
 #include "HexBase64.h"
 #include <DDRenderInterface.h>
+#include <unordered_map>
+#include <glm\gtc\matrix_transform.hpp>
 
 static void serializeMat4(IBinaryArchive& fp, glm::mat4 &vec) {
 	fp.pad(16);
@@ -821,7 +823,7 @@ void xbgFile::SGfxBuffers::createBuffers() {
 		&indexBufferDesc,
 		&indexBufferData,
 		&index->pIndexBuffer);
-	index->size = indexData.size() / sizeof(short);
+	index->size = indexData.size();
 }
 
 void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
@@ -923,4 +925,61 @@ void xbgFile::GeomMips::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(path);
+}
+
+void xbgFile::draw(ID3D11DeviceContext* context, int lodNum) {
+	if (!loaded) return;
+	if (lods.empty()) return;
+
+	if (lodNum >= lods.size())
+		return;
+
+	auto& lod = lods[lodNum];
+	for (auto& mesh : lod.meshes) {
+		RenderInterface::instance().objectCB.Offset = glm::vec4(1/*mesh.unk2*/, 1, 0, 0);
+		context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
+
+		D3D_PRIMITIVE_TOPOLOGY pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		switch (mesh.primitiveType) {
+		case 0:
+			pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			break;
+		case 7:
+			pType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+			break;
+		default:
+			SDL_assert_release(false && "Unhandled Primitive Type");
+		}
+		context->IASetPrimitiveTopology(pType);
+
+		loadMaterial(materialResources.materials[mesh.matID].file.c_str())->bind(context);
+
+		UINT offset = mesh.drawCall.unk1;
+		UINT stride = mesh.vertexStride;
+		context->IASetVertexBuffers(0, 1, &buffers[lodNum].vertex->pVertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(buffers[lodNum].index->pIndexBuffer, DXGI_FORMAT_R16_UINT, mesh.drawCall.unk4 * 2);
+		SDL_assert_release(buffers[lodNum].index->size % sizeof(short) == 0);
+
+		static std::unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3D11InputLayout> > layouts;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout> &layout = layouts[mesh.vertexFormat];
+		if (!layout.Get()) {
+			const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+			{
+				//DXGI_FORMAT_R32G32B32_SINT
+			  { "POSITION", 0, DXGI_FORMAT_R16G16B16A16_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			  { "TEXCOORD", 0, DXGI_FORMAT_R16G16B16A16_SINT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			};
+			HRESULT ret = RenderInterface::instance().g_pd3dDevice->CreateInputLayout(
+				vertexDesc,
+				ARRAYSIZE(vertexDesc),
+				RenderInterface::instance().model.vShaderBlob->GetBufferPointer(),
+				RenderInterface::instance().model.vShaderBlob->GetBufferSize(),
+				&layout);
+			SDL_assert_release(ret == S_OK);
+		}
+		context->IASetInputLayout(layout.Get());
+
+		// Draw the triangles
+		context->DrawIndexed(mesh.drawCall.primitiveCount, 0, 0);
+	}
 }

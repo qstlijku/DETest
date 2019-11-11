@@ -76,7 +76,7 @@ RenderInterface::RenderInterface() {
 	//Raster State
 	D3D11_RASTERIZER_DESC rsDesc = {};
 	rsDesc.FillMode = D3D11_FILL_SOLID;
-	rsDesc.CullMode = D3D11_CULL_BACK;
+	rsDesc.CullMode = D3D11_CULL_NONE;
 	rsDesc.FrontCounterClockwise = true;
 	rsDesc.DepthBias = 0;
 	rsDesc.DepthBiasClamp = 0.0f;
@@ -372,10 +372,9 @@ RenderInterface::Shader RenderInterface::loadShader(const std::string &name) {
 		std::string filename = "res/shaders/" + name + "V.hlsl";
 		std::string contents = readFile(filename);
 		D3DCompile(contents.c_str(), contents.size(), filename.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0", 0, 0, &shader.vShaderBlob, NULL);
-		if (shader.vShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-			return shader;
-		if (g_pd3dDevice->CreateVertexShader((DWORD*)shader.vShaderBlob->GetBufferPointer(), shader.vShaderBlob->GetBufferSize(), NULL, &shader.pVertexShader) != S_OK)
-			return shader;
+		SDL_assert_release(shader.vShaderBlob != NULL);
+		HRESULT ret = g_pd3dDevice->CreateVertexShader((DWORD*)shader.vShaderBlob->GetBufferPointer(), shader.vShaderBlob->GetBufferSize(), NULL, &shader.pVertexShader);
+		SDL_assert_release(ret == S_OK);
 	}
 
 	//Create Pixel Shader
@@ -383,10 +382,9 @@ RenderInterface::Shader RenderInterface::loadShader(const std::string &name) {
 		std::string filename = "res/shaders/" + name + "P.hlsl";
 		std::string contents = readFile(filename);
 		D3DCompile(contents.c_str(), contents.size(), filename.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0", 0, 0, &shader.pShaderBlob, NULL);
-		if (shader.pShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-			return shader;
-		if (g_pd3dDevice->CreatePixelShader((DWORD*)shader.pShaderBlob->GetBufferPointer(), shader.pShaderBlob->GetBufferSize(), NULL, &shader.pPixelShader) != S_OK)
-			return shader;
+		SDL_assert_release(shader.pShaderBlob != NULL);
+		HRESULT ret = g_pd3dDevice->CreatePixelShader((DWORD*)shader.pShaderBlob->GetBufferPointer(), shader.pShaderBlob->GetBufferSize(), NULL, &shader.pPixelShader);
+		SDL_assert_release(ret == S_OK);
 	}
 
 	return shader;

@@ -502,5 +502,6 @@ public:
 	bool loaded = false;
 
 	void registerMembers(MemberStructure &ms);
+	void draw(ID3D11DeviceContext* context, int lodNum = 0);
 };
 

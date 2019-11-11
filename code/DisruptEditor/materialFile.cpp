@@ -20,11 +20,15 @@ std::string materialFile::getCommandPath(const char* name) {
 	return std::string();
 }
 
-void materialFile::bind() {
+void materialFile::bind(ID3D11DeviceContext* context) {
 	if (!loaded) return;
 
-	//auto& diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
-	//diffuse->bind(0);
+	auto& diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
+
+	ID3D11ShaderResourceView* views[] = {
+			diffuse->pResource,
+	};
+	context->PSSetShaderResources(0, 1, views);
 }
 
 bool materialFile::open(IBinaryArchive &fp) {

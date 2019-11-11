@@ -6,6 +6,8 @@
 #include "DB.h"
 #include "FileHandler.h"
 #include "noc_file_dialog.h"
+#include "ResourceLoader.h"
+#include "xbgFile.h"
 
 static std::string currentFile;
 static std::vector<uint8_t> currentFileData;
@@ -74,7 +76,16 @@ void UI::displayFileBrowser() {
 		if (type == "CGeometryResource") {
 			ImVec2 size = ImGui::GetContentRegionAvail();
 
+			std::shared_ptr<xbgFile> xbg = loadXBG(currentFile);
 
+			static int selLod = 0;
+			ImGui::SliderInt("Lod", &selLod, 0, xbg->lods.size() - 1);
+
+			ID3D11DeviceContext *context = RenderInterface::instance().g_pd3dDeviceContext;
+			context->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
+			context->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
+			RenderInterface::instance().objectCB.Model = glm::mat4(1.f);
+			xbg->draw(context);
 
 			ImGui::Image(0, size);
 		} else if (type == "CGeometryMipResource") {

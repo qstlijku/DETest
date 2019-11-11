@@ -8,6 +8,7 @@
 
 class IBinaryArchive;
 class MemberStructure;
+struct ID3D11DeviceContext;
 
 class materialFile {
 public:
@@ -91,7 +92,7 @@ public:
 	Vector<SCommand> commands;
 
 	std::string getCommandPath(const char* name);
-	void bind();
+	void bind(ID3D11DeviceContext* context);
 
 	struct CGradient {
 		Vector<glm::vec4> vecs;

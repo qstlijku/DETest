@@ -36,7 +36,6 @@ public:
 	static DB& instance();
 
 	NodeEntryCollection root;
-private:
 	std::unordered_map<CStringID, std::string> crcList;
 	std::unordered_map<CDobbsID, std::string> dobbsList;
 	std::unordered_map<CPathID, std::string> fnvList;

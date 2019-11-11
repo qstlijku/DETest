@@ -23,7 +23,7 @@ void UI::displayWLU() {
 		//Wlu List
 		ImGui::PushItemWidth(-1.f);
 		static char searchWluBuffer[255] = { 0 };
-		ImGui::InputText("##Search", searchWluBuffer, sizeof(searchWluBuffer));
+		ImGui::InputText("##SearchWLU", searchWluBuffer, sizeof(searchWluBuffer));
 
 		ImVec2 size = ImGui::GetWindowContentRegionMax();
 		size.y -= 75;
