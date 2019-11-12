@@ -30,6 +30,10 @@ project "ConvertMaterials"
 
 	links
 	{
+		--system
+		"D3d11",
+		"dxguid",
+		
 		"tinyxml2",
 
 		-- imgui
