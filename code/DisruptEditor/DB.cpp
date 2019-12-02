@@ -111,6 +111,7 @@ void DB::handleCRCFile(const char *file, const char* type) {
 	char line[512];
 	while (fgets(line, sizeof(line), fp)) {
 		line[strlen(line) - 1] = '\0';
+		if (line[0] == 0) continue;
 
 		CStringID strID(line);
 		crcList[strID] = line;

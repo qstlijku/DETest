@@ -304,8 +304,8 @@ void xbgFile::ReflexSystem::read(IBinaryArchive &fp) {
 			fp.serialize(size);
 			size_t offset = fp.tell();
 			readFCB(fp, root);
-			fp.pad(4);
 			SDL_assert_release(offset + size == fp.tell());
+			fp.pad(4);
 		}
 		else {
 			Vector<uint8_t> data(4 * 1000 * 1000);

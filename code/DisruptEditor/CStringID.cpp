@@ -15,7 +15,7 @@ CStringID::CStringID(const char* filename) {
 }
 
 std::string CStringID::getReverseName() {
-	return DB::instance().getStrFromCRC(id);
+	return DB::instance().getStrFromCRC(*this);
 }
 
 void CStringID::read(IBinaryArchive& fp) {

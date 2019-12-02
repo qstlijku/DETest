@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
 
 	if (argc < 2) {
 		printf("Usage: ConvertXBG.exe char01.xbg - Converts to XML\n");
-		printf("Usage: ConvertXBG.exe test.material.bin.xbg - Converts to XBG\n");
+		printf("Usage: ConvertXBG.exe char01.xbg.xml - Converts to XBG\n");
 		return 0;
 	}
 

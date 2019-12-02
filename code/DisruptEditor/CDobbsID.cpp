@@ -12,7 +12,7 @@ CDobbsID::CDobbsID(const char* filename) {
 }
 
 std::string CDobbsID::getReverseName() {
-	return DB::instance().getStrFromDobbs(id);
+	return DB::instance().getStrFromDobbs(*this);
 }
 
 void CDobbsID::read(IBinaryArchive& fp) {
