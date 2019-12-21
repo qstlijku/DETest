@@ -26,3 +26,5 @@ namespace FH {
 
 	SDL_RWops* openFileWrite(const std::string& path);
 }
+
+char* RWgets(SDL_RWops* rw, char* s, int size);

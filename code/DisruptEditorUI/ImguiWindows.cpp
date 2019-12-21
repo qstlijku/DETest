@@ -26,8 +26,6 @@ void UI::displayTopMenu() {
 		windows["Domino"] ^= true;*/
 	if (ImGui::MenuItem("DARE"))
 		windows["DARE"] ^= true;
-	if (ImGui::MenuItem("Materials"))
-		windows["Material"] ^= true;
 	/*if (ImGui::MenuItem("Sequence"))
 		windows["CSequence"] ^= true;
 	if (ImGui::MenuItem("Move"))

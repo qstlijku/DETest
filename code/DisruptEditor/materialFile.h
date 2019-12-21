@@ -55,34 +55,35 @@ public:
 		uint8_t type;
 
 		//Only for types greater than 10?
-		uint8_t unk1;
+		uint8_t unk1 = 0;
 		CStringID name;
 
-		//For 1
+		//1: float
 		float unks1;
 
-		//For 2
+		//2: float2,
 		glm::vec2 unks2;
 
-		//For 3
+		//3: float3, color3
 		glm::vec3 unks3;
 
-		//For 4
+		//4: float4, color4
 		glm::vec4 unks4;
 
-		//For 5
+		//5: int
 		int32_t unks5;
 
-		//For 6
-		int8_t unks6;
+		//6: bool
+		bool unks6;
 
-		//For 7
+		//7: samplerState
 		CStringID unks7;
 
 		//For 8-10
+		//8: sampler2D
 		std::string path;
 
-		//For 11
+		//11: sampler2D, eg. RaindropSplashesTexture
 		CStringID unks11;
 		int32_t unks11_2;
 
@@ -92,6 +93,8 @@ public:
 	Vector<SCommand> commands;
 
 	std::string getCommandPath(const char* name);
+	SCommand* findCommand(CStringID name);
+	void deleteCommand(CStringID name);
 	void bind(ID3D11DeviceContext* context);
 
 	struct CGradient {

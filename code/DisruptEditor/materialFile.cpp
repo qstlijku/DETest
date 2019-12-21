@@ -20,6 +20,23 @@ std::string materialFile::getCommandPath(const char* name) {
 	return std::string();
 }
 
+materialFile::SCommand* materialFile::findCommand(CStringID name) {
+	for (auto& it : commands) {
+		if (it.name == name)
+			return &it;
+	}
+	return NULL;
+}
+
+void materialFile::deleteCommand(CStringID name) {
+	for (auto it = commands.begin(); it != commands.end(); ++it) {
+		if (it->name == name) {
+			commands.erase(it);
+			return;
+		}
+	}
+}
+
 void materialFile::bind(ID3D11DeviceContext* context) {
 	if (!loaded) return;
 

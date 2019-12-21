@@ -165,7 +165,7 @@ void FH::Init() {
 	AddDatFat(settings.gameDir + "data_win64/patch.fat");
 
 	AddDatFat(settings.gameDir + "data_win64/common.fat");
-	AddDatFat(settings.gameDir + "data_win64/shaders.fat");
+	//AddDatFat(settings.gameDir + "data_win64/shaders.fat");
 	AddDatFat(settings.gameDir + "data_win64/shadersobj.fat");
 	AddDatFat(settings.gameDir + "data_win64/sound.fat");
 	AddDatFat(settings.gameDir + "data_win64/sound_" + settings.soundLang + ".fat");
@@ -298,4 +298,29 @@ const char* FH::getTypeFromExtension(const char* name) {
 		return "shaders";
 
 	return "";
+}
+
+char* RWgets(SDL_RWops* rw, char* s, int size) {
+	int num_read = 0;
+	int newline = 0;
+
+	while (num_read < size && !newline) {
+		if (SDL_RWread(rw, &s[num_read], 1, 1) != 1)
+			break;
+
+		/* Unlike fgets(), don't store newline. Under Windows/DOS we'll
+			* probably get an extra blank line for every line that's being
+			* read, but that should be ok.
+			*/
+		if (s[num_read] == '\n' || s[num_read] == '\r') {
+			s[num_read] = '\0';
+			newline = 1;
+		}
+
+		num_read++;
+	}
+
+	s[num_read] = '\0';
+
+	return (num_read != 0) ? s : NULL;
 }
