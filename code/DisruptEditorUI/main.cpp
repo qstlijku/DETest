@@ -176,8 +176,6 @@ int main(int argc, char **argv) {
 				std::string a = serializeToXML(*it.second);*//*
 		}*/
 
-		//ImGui::InputFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
-
 		world.mutex.unlock();
 
 		if (!ImGui::IsAnyWindowHovered())

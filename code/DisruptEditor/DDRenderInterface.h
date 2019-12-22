@@ -88,7 +88,7 @@ public:
 		ID3D10Blob* pShaderBlob = NULL;
 		ID3D11PixelShader* pPixelShader = NULL;
 	};
-	Shader lines, tex, model, terrain;
+	Shader lines, tex, model, terrain, spline;
 	Shader loadShader(const std::string& name);
 
 	Camera camera;

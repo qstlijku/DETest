@@ -7,6 +7,6 @@ for /f "usebackq tokens=*" %%i in (`%cd%/tools/win/vswhere.exe -latest -requires
   set MSBUILDDIR=%%i
 )
 
-"%MSBUILDDIR%" "%cd%/build/DisruptEditor.sln" /p:Configuration=Release -t:restore
+"%MSBUILDDIR%" "%cd%/build/DisruptEditor.sln" /p:Configuration=Release
 
 7z a DisruptEditor.zip .\bin\Release\*

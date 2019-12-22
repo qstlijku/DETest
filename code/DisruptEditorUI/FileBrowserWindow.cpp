@@ -15,13 +15,6 @@
 #include <Serialization.h>
 #include <SDL.h>
 
-#include <GLTFSDK/GLTF.h>
-#include <GLTFSDK/BufferBuilder.h>
-#include <GLTFSDK/GLTFResourceWriter.h>
-#include <GLTFSDK/GLBResourceWriter.h>
-#include <GLTFSDK/IStreamWriter.h>
-#include <GLTFSDK/Serialize.h>
-
 static std::string currentFile;
 static std::vector<uint8_t> currentFileData;
 static char searchBuffer[120] = { 0 };
@@ -112,6 +105,14 @@ void UI::displayFileBrowser() {
 			if (ImGui::Button("XML")) {
 				std::string xml = serializeToXML(*xbg);
 				SDL_SetClipboardText(xml.c_str());
+			}
+			if (ImGui::Button("Save")) {
+				SDL_RWops* fp = FH::openFileWrite(currentFile.c_str());
+				SDL_RWwrite(fp, currentFileData.data(), 1, currentFileData.size());
+				SDL_RWclose(fp);
+			}
+			if (ImGui::Button("Save to OBJ")) {
+
 			}
 		} else if (type == "CGeometryMipResource") {
 			ImGui::Text("You can't edit a mip resource, find its xbg!");

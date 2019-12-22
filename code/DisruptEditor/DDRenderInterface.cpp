@@ -43,6 +43,7 @@ RenderInterface::RenderInterface() {
 	tex = loadShader("DebugTex");
 	terrain = loadShader("Terrain");
 	model = loadShader("Model");
+	spline = loadShader("Spline");
 
 	//Setup Constant Buffers
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(sceneCB), D3D11_BIND_CONSTANT_BUFFER);

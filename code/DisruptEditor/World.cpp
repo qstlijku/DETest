@@ -11,6 +11,7 @@
 #include <Hash.h>
 #include <ResourceLoader.h>
 #include <xbgFile.h>
+#include <SplineLoft.h>
 
 World world;
 
@@ -106,7 +107,6 @@ void World::loaderThread() {
 	assert(hr == S_OK);
 
 	world.readyToRender = true;
-	return;
 
 	//Start Drawing WLUs
 	for (auto& it : world.wlus) {
@@ -133,7 +133,7 @@ void World::loaderThread() {
 			Node* Components = entityPtr->findFirstChild("Components");
 			if (!Components) continue;
 
-			Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
+			/*Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
 			if (!CGraphicComponent) continue;
 
 			Attribute* XBG = CGraphicComponent->getAttribute(0x3182766C);
@@ -151,7 +151,20 @@ void World::loaderThread() {
 			modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
 			RenderInterface::instance().objectCB.Model = modelMatrix;
 
-			model->draw(pDeferredContext);
+			model->draw(pDeferredContext);*/
+
+			//Draw HiResSplineLoft
+			{
+				Node* CSplineLoftHiResGFXComponent = Components->findFirstChild("CSplineLoftHiResGFXComponent");
+				if (CSplineLoftHiResGFXComponent) {
+					Attribute* ResourcePathID = CSplineLoftHiResGFXComponent->getAttribute("ResourcePathID");
+					CPathID path;
+					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
+
+					std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
+					loft->draw(pDeferredContext);
+				}
+			}
 		}
 
 		hr = pDeferredContext->FinishCommandList(FALSE, &pList);

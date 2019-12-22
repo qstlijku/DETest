@@ -65,5 +65,3 @@ project "DisruptEditorUI"
         "**.c",
 		"**.rc"
 	}
-	
-	nuget { "Microsoft.glTF.CPP:1.6.3.1", "rapidjson.temprelease:0.0.2.20" }

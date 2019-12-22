@@ -6,9 +6,12 @@
 class xbgFile;
 class materialFile;
 class xbtFile;
+class SplineLoftHiRes;
 
 std::shared_ptr<xbgFile> loadXBG(CPathID path);
 
-std::shared_ptr<materialFile> loadMaterial(const char *path);
+std::shared_ptr<materialFile> loadMaterial(CPathID path);
 
-std::shared_ptr<xbtFile> loadTexture(const char *path);
+std::shared_ptr<xbtFile> loadTexture(CPathID path);
+
+std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path);

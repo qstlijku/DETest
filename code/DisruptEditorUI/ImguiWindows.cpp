@@ -91,6 +91,7 @@ void UI::displayTopMenu() {
 	}
 
 	if (ImGui::BeginMenu("Settings")) {
+		ImGui::DragFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
 		ImGui::DragFloat("Near Plane", &settings.near_plane, 0.02f, 0.001f, 10.f);
 		ImGui::DragFloat("Far Plane", &settings.far_plane, 1.f, 10.f, 6500.f);
 		ImGui::DragFloat("Fov", &settings.fov, 0.02f, 0.001f, 3.14159f);

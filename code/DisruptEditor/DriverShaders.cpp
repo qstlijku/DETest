@@ -47,3 +47,25 @@ DriverShaders& DriverShaders::instance() {
 	static DriverShaders ds;
 	return ds;
 }
+
+DriverShaders::RenderState DriverShaders::loadRasterizerState(const char* path) {
+	RenderState rs;
+	memset(&rs, 0, sizeof(rs));
+
+	std::map<std::string, std::string> kv;
+
+	SDL_RWops* fp = FH::openFile(path);
+	if (fp) {
+		char buf[512];
+		while (RWgets(fp, buf, sizeof(buf))) {
+			std::string_view line(buf);
+			if (line == "NULL") {
+				break;
+			}
+			std::string_view key(line.substr(0, line.find('=')));
+			std::string_view value(line.substr(line.find('=')));
+			kv[std::string(key)] = value;
+		}
+	}
+	return rs;
+}
