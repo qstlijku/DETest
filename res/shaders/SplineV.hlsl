@@ -14,7 +14,7 @@ PixelShaderInput main(VertexShaderInput input) {
 	PixelShaderInput output;
 
 	output.pos = mul(mul(ViewProjection, Model), input.pos);
-	output.uv = input.uv * (1.0 / 32767.0) * Offset.y + Offset.z;
+	output.uv = input.uv * (1.0 / 32767.0);
 
 	return output;
 }

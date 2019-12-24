@@ -353,26 +353,18 @@ void Node::serializeXML(tinyxml2::XMLPrinter &printer) {
 	printer.CloseElement();
 }
 
-Node* Node::findFirstChild(const char *name) {
-	return findFirstChild(Hash::getHash(name));
-}
-
-Node* Node::findFirstChild(uint32_t hash) {
+Node* Node::findFirstChild(CStringID hash) {
 	for (auto &child : children) {
-		if (child.name.id == hash)
+		if (child.name == hash)
 			return &child;
 	}
 
 	return NULL;
 }
 
-Attribute* Node::getAttribute(const char *name) {
-	return getAttribute(Hash::getHash(name));
-}
-
-Attribute* Node::getAttribute(uint32_t hash) {
+Attribute* Node::getAttribute(CStringID hash) {
 	for (auto &attribute : attributes) {
-		if (attribute.name.id == hash)
+		if (attribute.name == hash)
 			return &attribute;
 	}
 
@@ -456,6 +448,14 @@ void writeFCBB(SDL_RWops *fp, Node &node) {
 
 	SDL_RWwrite(fp, &fcb, sizeof(fcb), 1);
 	node.serializeB(fp);
+}
+
+Node mergeNodes(Node& base, Node& patch) {
+	Node root(base);
+
+
+
+	return root;
 }
 
 void fcbHeader::swapEndian() {

@@ -13,7 +13,6 @@ public:
 	std::unique_ptr<tinyxml2::XMLDocument> particles;
 	std::unique_ptr<tinyxml2::XMLDocument> spawnPointList;
 	std::map<std::string, std::shared_ptr<wluFile> > wlus;
-	std::map<std::string, std::shared_ptr<batchFile> > batches;
 
 	bool readyToRender = false;
 	float loadingProgress = 1.f;
@@ -30,7 +29,6 @@ public:
 	void drawTerrain(ID3D11DeviceContext* context);
 
 	ID3D11CommandList* pd3dCommandList = NULL;
-	std::vector< ID3D11CommandList* > wluLists;
 };
 
 extern World world;

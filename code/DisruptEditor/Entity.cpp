@@ -13,9 +13,9 @@
 #include "DB.h"
 
 std::map<std::string, Node> entityLibrary;
-std::unordered_map<uint32_t, std::string> entityLibraryUID;
+std::unordered_map<CPathID, std::string> entityLibraryUID;
 
-void addEntity(uint32_t UID, Node &node) {
+void addEntity(CPathID UID, Node &node) {
 	Attribute *hidName = node.getAttribute("hidName");
 	SDL_assert_release(hidName);
 
@@ -24,7 +24,7 @@ void addEntity(uint32_t UID, Node &node) {
 	entityLibraryUID[UID] = name;
 }
 
-Node* findEntityByUID(uint32_t UID) {
+Node* findEntityByUID(CPathID UID) {
 	if (entityLibraryUID.count(UID) > 0)
 		return &entityLibrary[entityLibraryUID[UID]];
 	return NULL;

@@ -107,8 +107,6 @@ public:
 	};
 	Vector<CGradient> gradients;
 
-	bool loaded = false;
-
 	bool open(IBinaryArchive &fp);
 	void registerMembers(MemberStructure &ms);
 };

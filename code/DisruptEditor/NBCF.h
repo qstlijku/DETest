@@ -44,15 +44,11 @@ public:
 	void deserializeXML(const tinyxml2::XMLElement *node);
 	void serializeXML(tinyxml2::XMLPrinter &printer);
 
-	Node* findFirstChild(const char* name);
-	Node* findFirstChild(uint32_t hash);
-	Attribute* getAttribute(const char* name);
-	Attribute* getAttribute(uint32_t hash);
+	Node* findFirstChild(CStringID hash);
+	Attribute* getAttribute(CStringID hash);
 
 	template <typename T>
-	T& get(const char* name);
-	template <typename T>
-	T& get(uint32_t hash);
+	T& get(CStringID hash);
 
 	int countNodes();
 
@@ -69,21 +65,12 @@ void readFCB(IBinaryArchive &fp, Node &root);
 void writeFCBA(SDL_RWops* fp, Node& node);
 void writeFCBB(SDL_RWops *fp, Node &node);
 
-template<typename T>
-inline T & Node::get(const char * name) {
-	static T dummy;
-	Attribute *attr = getAttribute(name);
-	if (attr) {
-		SDL_assert_release(sizeof(T) == attr->buffer.size());
-		return *((T*)attr->buffer.data());
-	}
-	return dummy;
-}
+Node mergeNodes(Node& base, Node& patch);
 
 template<typename T>
-inline T & Node::get(uint32_t hash) {
+inline T & Node::get(CStringID name) {
 	static T dummy;
-	Attribute *attr = getAttribute(hash);
+	Attribute *attr = getAttribute(name);
 	if (attr) {
 		SDL_assert_release(sizeof(T) == attr->buffer.size());
 		return *((T*)attr->buffer.data());

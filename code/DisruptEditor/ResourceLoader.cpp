@@ -51,8 +51,6 @@ std::shared_ptr<xbgFile> loadXBG(CPathID hash) {
 		//Create Buffers
 		for (auto& it : model->buffers)
 			it.createBuffers();
-
-		model->loaded = true;
 	}
 	return model;
 }
@@ -68,7 +66,6 @@ std::shared_ptr<materialFile> loadMaterial(CPathID path) {
 		CBinaryArchiveReader reader(fp);
 		model->open(reader);
 		SDL_RWclose(fp);
-		model->loaded = true;
 	}
 	return model;
 }
@@ -84,7 +81,6 @@ std::shared_ptr<xbtFile> loadTexture(CPathID path) {
 		CBinaryArchiveReader reader(fp);
 		model->open(reader);
 		SDL_RWclose(fp);
-		model->loaded = true;
 	}
 	return model;
 }

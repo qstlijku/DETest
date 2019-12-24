@@ -106,11 +106,9 @@ void World::loaderThread() {
 	hr = pDeferredContext->FinishCommandList(FALSE, &world.pd3dCommandList);
 	assert(hr == S_OK);
 
-	world.readyToRender = true;
-
 	//Start Drawing WLUs
+	int i = 0;
 	for (auto& it : world.wlus) {
-		ID3D11CommandList* pList = NULL;
 		RenderInterface::instance().setupState(pDeferredContext);
 
 		pDeferredContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
@@ -119,39 +117,48 @@ void World::loaderThread() {
 		Node* Entities = it.second->root.findFirstChild("Entities");
 		for (Node& entityRef : Entities->children) {
 			Node* entityPtr = &entityRef;
+			Node* archeType = entityPtr;
 			Attribute* ArchetypeGuid = entityRef.getAttribute("ArchetypeGuid");
 			if (ArchetypeGuid) {
 				uint32_t uid = Hash::getFilenameHash((const char*)ArchetypeGuid->buffer.data());
-				entityPtr = findEntityByUID(uid);
-				if (!entityPtr) {
+				archeType = findEntityByUID(uid);
+				if (!archeType) {
 					SDL_Log("Could not find %s\n", ArchetypeGuid->buffer.data());
-					//SDL_assert_release(false && "Could not lookup entity by archtype, check that dlc_solo is loaded first before other packfiles");
-					entityPtr = &entityRef;
+					archeType = entityPtr;
 				}
 			}
 
 			Node* Components = entityPtr->findFirstChild("Components");
+			Node* archeComponents = archeType->findFirstChild("Components");
 			if (!Components) continue;
 
-			/*Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
-			if (!CGraphicComponent) continue;
+			//Draw XBG
+			{
+				Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
+				Node* archeCGraphicComponent = archeComponents->findFirstChild("CGraphicComponent");
+				if (CGraphicComponent) {
+					Attribute* fileModel = archeCGraphicComponent->getAttribute("fileModel");
+					if (fileModel) {
+						CPathID path;
+						memcpy(&path, fileModel->buffer.data(), sizeof(CPathID));
 
-			Attribute* XBG = CGraphicComponent->getAttribute(0x3182766C);
-			if (!XBG) continue;
-			if (XBG->buffer.size() <= 5) continue;
+						if (path.id != 0xffffffff) {
+							auto model = loadXBG(path);
 
-			auto model = loadXBG((char*)XBG->buffer.data());
+							glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
+							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
 
-			glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
-			glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
+							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
+							modelMatrix = glm::rotate(modelMatrix, angles.x, glm::vec3(1, 0, 0));
+							modelMatrix = glm::rotate(modelMatrix, angles.y, glm::vec3(0, 1, 0));
+							modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
+							RenderInterface::instance().objectCB.Model = modelMatrix;
 
-			glm::mat4 modelMatrix = glm::translate(glm::mat4(), pos);
-			modelMatrix = glm::rotate(modelMatrix, angles.x, glm::vec3(1, 0, 0));
-			modelMatrix = glm::rotate(modelMatrix, angles.y, glm::vec3(0, 1, 0));
-			modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
-			RenderInterface::instance().objectCB.Model = modelMatrix;
-
-			model->draw(pDeferredContext);*/
+							model->draw(pDeferredContext);
+						}
+					}
+				}
+			}
 
 			//Draw HiResSplineLoft
 			{
@@ -167,12 +174,13 @@ void World::loaderThread() {
 			}
 		}
 
-		hr = pDeferredContext->FinishCommandList(FALSE, &pList);
+		hr = pDeferredContext->FinishCommandList(FALSE, &it.second->plist);
 		assert(hr == S_OK);
-		world.mutex.lock();
-		world.wluLists.push_back(pList);
-		world.mutex.unlock();
+
+		world.loadingProgress = (i++ + world.sectors.size() + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
+
+	world.readyToRender = true;
 }
 
 void World::drawTerrain(ID3D11DeviceContext* context) {
@@ -232,6 +240,6 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 			}
 		}
 
-		world.loadingProgress = (i + 1) / (float)maxSectors;
+		world.loadingProgress = (i + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
 }

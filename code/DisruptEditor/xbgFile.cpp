@@ -928,15 +928,19 @@ void xbgFile::GeomMips::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::draw(ID3D11DeviceContext* context, int lodNum) {
-	if (!loaded) return;
-	if (lods.empty()) return;
-
 	if (lodNum >= lods.size())
 		return;
 
 	auto& lod = lods[lodNum];
 	for (auto& mesh : lod.meshes) {
-		RenderInterface::instance().objectCB.Offset = glm::vec4(/*mesh.unk2*/geomParams.unk3, 0.5, 0.5, 0);
+		RenderInterface::instance().objectCB.Offset = glm::vec4(geomParams.unk1, geomParams.unk2, geomParams.unk4, geomParams.unk5);
+		/*
+		<unk1>0</unk1><!--mesh.x compression?-->
+		<unk2>0.16827907</unk2><!--mesh.y compression?-->
+		<unk3>273.27335</unk3><!--mesh.z compression?-->
+		<unk4>-1.5</unk4><!--UV.xy compression?-->
+		<unk5>0.0001678518</unk5><!--UV.zw compression?-->
+		*/
 		context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 
 		D3D_PRIMITIVE_TOPOLOGY pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

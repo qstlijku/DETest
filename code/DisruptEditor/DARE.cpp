@@ -9,10 +9,12 @@ void DARE::addSoundResource(uint32_t res) {
 	snprintf(buffer, sizeof(buffer), "soundbinary/%08x.spk", res);
 
 	SDL_RWops *fp = FH::openFile(buffer);
-	spkFile &spk = spks[res];
-	CBinaryArchiveReader reader(fp);
-	spk.open(reader);
-	SDL_RWclose(fp);
+	if (fp) {
+		spkFile& spk = spks[res];
+		CBinaryArchiveReader reader(fp);
+		spk.open(reader);
+		SDL_RWclose(fp);
+	}
 }
 
 void DARE::addAtomicObject(uint32_t res) {

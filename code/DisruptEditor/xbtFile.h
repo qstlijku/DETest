@@ -6,6 +6,5 @@
 class xbtFile : public Texture {
 public:
 	bool open(IBinaryArchive &reader);
-	bool loaded = false;
 };
 

@@ -47,6 +47,7 @@
 #include <RoadNetwork.h>
 #include <SDL_syswm.h>
 #include <imgui_impl_sdl.h>
+#include <dr_wav.h>
 static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
 	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile) {
@@ -85,6 +86,120 @@ int main(int argc, char **argv) {
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
 
+	//DEBUG Save SBAO
+	/*{
+		SDL_RWops* fp = SDL_RWFromFile("000b1d29.sbao", "wb");
+		size_t size = 0;
+
+		Vector< Vector<uint8_t> > layers(3);
+		Vector< std::string > layerFiles = {
+			"bgm_ex1_alex08 l1.scd.ogg",
+			"bgm_ex1_alex08 l2.scd.ogg",
+			"bgm_ex1_alex08 l3.scd.ogg",
+		};
+		for (int i = 0; i < 3; ++i) {
+#if 0
+			unsigned int channels, sampleRate;
+			drwav_uint64 totalSampleCount;
+			short* pSampleData = drwav_open_and_read_file_s16(layerFiles[i].c_str(), &channels, &sampleRate, &totalSampleCount);
+			layers[i].resize(totalSampleCount * sizeof(short));
+			memcpy(layers[i].data(), pSampleData, layers[i].size());
+			drwav_free(pSampleData);
+#endif
+			SDL_RWops* a = SDL_RWFromFile(layerFiles[i].c_str(), "rb");
+			layers[i].resize(SDL_RWsize(a));
+			SDL_RWread(a, layers[i].data(), 1, SDL_RWsize(a));
+			SDL_RWclose(a);
+		}
+		layers[0].resize(21546520);
+		layers[1].resize(10773318);
+		layers[2].resize(10773318);
+
+		Vector< Vector<uint8_t> > headers(layers.size());
+		Vector< uint8_t* > ptrs(layers.size());
+
+		//Get first 4 packets of ogg as the header
+		for (int i = 0; i < layers.size(); ++i) {
+			ptrs[i] = layers[i].data() + 4096;
+			headers[i].insert(headers[i].end(), layers[i].data(), layers[i].data() + 4096);
+		}
+
+		uint32_t maxOgglength = 0;
+		for (auto &layer : layers)
+			maxOgglength = std::max(maxOgglength, (uint32_t)layer.size());
+
+		uint32_t totalBlocks = (maxOgglength / 162) + 1;
+
+		Vector<uint32_t> infoTable;
+		infoTable.push_back(0);//Temporary
+		infoTable.push_back(644);//Todo
+		for (int i = 0; i < layers.size(); ++i)
+			infoTable.push_back(layers[i].end()._Ptr - ptrs[i]);
+
+		struct sbaoHeader {
+			uint32_t magic = 207362;
+			uint32_t unk1 = 0;
+			uint32_t unk2 = 0;
+			uint32_t unk3 = 0;
+			uint32_t unk4 = 0;
+			uint32_t unk5 = 1342177280;
+			uint32_t unk6 = 2;
+		};
+		sbaoHeader head;
+		SDL_RWwrite(fp, &head, sizeof(head), 1);
+		SDL_WriteLE32(fp, 1048585);//type = interweaved 9 stream
+		SDL_WriteLE32(fp, 0);
+		SDL_WriteLE32(fp, layers.size());
+		SDL_WriteLE32(fp, totalBlocks);//totalBlocks
+		SDL_WriteLE32(fp, infoTable.size() * sizeof(uint32_t));//totalInfoSize
+		size_t infoOffset = SDL_RWtell(fp);
+		SDL_RWwrite(fp, infoTable.data(), sizeof(uint32_t), infoTable.size());
+		for (size_t i = 0; i < 64 - layers.size() * 4; ++i)
+			SDL_WriteU8(fp, 0);
+
+		//Write Header sizes
+		for (int i = 0; i < layers.size(); ++i)
+			SDL_WriteLE32(fp, headers[i].size());
+
+		//Write Headers
+		for (int i = 0; i < layers.size(); ++i)
+			SDL_RWwrite(fp, headers[i].data(), 1, headers[i].size());
+
+		infoTable[0] = SDL_RWtell(fp) - 120;
+
+		//Write Blocks
+		for (uint32_t blockI = 0; blockI < totalBlocks; ++blockI) {
+			SDL_WriteLE32(fp, 3);//BlockId
+			SDL_WriteLE32(fp, blockI == totalBlocks - 1 ? 0 : 644);//unk
+
+																	// Read in the block sizes
+			for (unsigned long i = 0; i < layers.size(); i++) {
+				uint32_t left = layers[i].end()._Ptr - ptrs[i];
+				uint32_t out = std::min(left, (uint32_t)326);
+				SDL_LogVerbose(SDL_LOG_CATEGORY_AUDIO, "%u", out);
+
+				SDL_WriteLE32(fp, out);
+			}
+
+			for (unsigned long i = 0; i < layers.size(); i++) {
+				uint32_t left = layers[i].end()._Ptr - ptrs[i];
+				uint32_t out = std::min(left, (uint32_t)326);
+
+				SDL_RWwrite(fp, ptrs[i], 1, out);
+				ptrs[i] += out;
+			}
+		}
+
+		size = SDL_RWtell(fp);
+
+		//Rewrite info table
+		SDL_RWseek(fp, infoOffset, RW_SEEK_SET);
+		SDL_RWwrite(fp, infoTable.data(), sizeof(uint32_t), infoTable.size());
+
+		SDL_RWclose(fp);
+		return 0;
+	}*/
+
 	//Start World Loader
 	std::thread worldLoaderThread(world.loaderThread);
 
@@ -116,8 +231,11 @@ int main(int argc, char **argv) {
 			if (settings.drawTerrain && world.pd3dCommandList)
 				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
 
-			for(auto &it : world.wluLists)
-				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it, TRUE);
+			for (auto& it : world.wlus) {
+				/*if (it.first.find("_near") == std::string::npos && it.first.find("_world") == std::string::npos)
+					continue;*/
+				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it.second->plist, TRUE);
+			}
 		} else {
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 			ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);

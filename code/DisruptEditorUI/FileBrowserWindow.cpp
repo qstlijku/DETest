@@ -241,7 +241,7 @@ void UI::displayFileBrowser() {
 				}
 			}
 
-		} else if (type == "CSkeletonResource") {
+		} else if (type == "CSkeletonResource" || type == "lib" || type == "obj") {
 			if (ImGui::Button("XML")) {
 				SDL_RWops* fp = FH::openFile(currentFile.c_str());
 				if (fp) {
