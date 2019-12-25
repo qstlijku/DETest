@@ -169,7 +169,7 @@ public:
 	struct CRealTreeBatchProcessor {
 		bool unk1;
 		uint32_t unk2;
-		CPathID resource;
+		CResourceContainer resource;
 
 		//If unk3
 		uint32_t unk4;
