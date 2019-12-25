@@ -6,6 +6,7 @@
 #include "Vector.h"
 #include "NBCF.h"
 #include <d3d11.h>
+#include "DDRenderInterface.h"
 
 class IBinaryArchive;
 
@@ -50,6 +51,8 @@ public:
 	Vector<uint8_t> extraData;
 	void handleHeaders(IBinaryArchive &fp, size_t size);
 	Node* selectedEntity = NULL;
+
+	AABB aabb;
 
 	//Drawing
 	ID3D11CommandList* plist = NULL;

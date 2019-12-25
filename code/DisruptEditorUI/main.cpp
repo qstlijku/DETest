@@ -72,6 +72,31 @@ static void LogOutputFunction(void* userdata, int category, SDL_LogPriority prio
 	fflush(fp);
 }
 
+void renderProgressBar() {
+	if (world.loadingProgress >= 1.f)
+		return;
+
+	if (world.readyToRender)
+		ImGui::SetNextWindowPos(ImVec2(15, 25), ImGuiCond_Always);
+	else
+		ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);
+	ImGui::Begin("Loading Disrupt Editor", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+	const char* messages[]{
+		"Reticulating Splines...",
+		"I brought this on Clara. Brought her into my mess...",
+		"And then go forward and back, then put one foot forward",
+		"You wouldn't download a car",
+		"Kweh!"
+	};
+	static int num = time(NULL) % (sizeof(messages) / sizeof(messages[0]));
+	ImGui::Text(messages[num]);
+
+	ImGui::ProgressBar(world.loadingProgress, ImVec2(-1.0f, 0.0f), world.loadingStatus.c_str());
+	ImGui::End();
+}
+
 int main(int argc, char **argv) {
 	SetUnhandledExceptionFilter(HandleException);
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -221,6 +246,8 @@ int main(int argc, char **argv) {
 		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
 		RenderInterface::instance().newFrame();
 
+		Frustum frustum(RenderInterface::instance().sceneCB.ViewProjection);
+
 		world.mutex.lock();
 
 		if (world.readyToRender) {
@@ -232,67 +259,20 @@ int main(int argc, char **argv) {
 				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
 
 			for (auto& it : world.wlus) {
-				/*if (it.first.find("_near") == std::string::npos && it.first.find("_world") == std::string::npos)
-					continue;*/
+				//if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;
+
+				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 15.f * 15.f && !frustum.IsBoxVisible(it.second->aabb)) continue;
+				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 150.f * 150.f) continue;
+
+				//dd::aabb(&it.second->aabb.minp.x, &it.second->aabb.minp.y, red);
+
 				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it.second->plist, TRUE);
 			}
-		} else {
-			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-			ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);
-			ImGui::Begin("Loading Disrupt Editor", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-
-			const char* messages[]{
-				"Reticulating Splines...",
-				"I brought this on Clara. Brought her into my mess...",
-				"And then go forward and back, then put one foot forward",
-				"You wouldn't download a car",
-				"Kweh!"
-			};
-			static int num = time(NULL) % (sizeof(messages) / sizeof(messages[0]));
-			ImGui::Text(messages[num]);
-
-			ImGui::ProgressBar(world.loadingProgress, ImVec2(-1.0f, 0.0f), world.loadingStatus.c_str());
-			ImGui::End();
 		}
 
+		renderProgressBar();
+
 		dd::xzSquareGrid(-50, 50, 0, 1, blue);
-
-		//Draw Building Batches
-		/*for (auto& it : world.batches) {
-			auto& component = it.second->componentMBP;
-			for (auto& it : component.batchProcessors) {
-				for (auto& it : it.processors) {
-					auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
-					if (!batch) continue;
-
-					std::shared_ptr<xbgFile> xbg = loadXBG(batch->xbg.file.id);
-					for (auto& it : batch->ranges) {
-						if (glm::distance2(RenderInterface::instance().camera.location, it.unk1) > 100 * 100)
-							continue;
-						glm::mat4 MVP = glm::translate(RenderInterface::instance().VP, it.unk1);
-						glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-						xbg->draw(0);
-					}
-				}
-			}
-
-			batchFile::CBuildingMultiBatchProcessor& building = it.second->buildingMBP;
-			if (building.lowGeom.id != -1) {
-				std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
-				glm::mat4 MVP = glm::translate(RenderInterface::instance().VP, building.unk6);
-				glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-				xbg->draw(0);
-			}
-			if (building.roofGeom.id != -1) {
-				std::shared_ptr<xbgFile> xbg = loadXBG(building.roofGeom.id);
-				glm::mat4 MVP = glm::translate(RenderInterface::instance().VP, building.unk6);
-				glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-				xbg->draw(0);
-			}
-			
-			/*if (!building.buildingResources.empty())
-				std::string a = serializeToXML(*it.second);*//*
-		}*/
 
 		world.mutex.unlock();
 

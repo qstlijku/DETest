@@ -9,14 +9,17 @@
 #include "xbgMipFile.h"
 #include "xbtFile.h"
 #include "SplineLoft.h"
+#include "batchFile.h"
 #include <mutex>
 #include <queue>
 #include <unordered_map>
+#include <SDL_log.h>
 
 static std::unordered_map<CPathID, std::shared_ptr<xbgFile>> xbgs;
 static std::unordered_map<CPathID, std::shared_ptr<materialFile>> materials;
 static std::unordered_map<CPathID, std::shared_ptr<xbtFile>> textures;
 static std::unordered_map<CPathID, std::shared_ptr<SplineLoftHiRes>> hiResSplineLofts;
+static std::unordered_map<CPathID, std::shared_ptr<batchFile>> batches;
 
 static xbgMipFile loadXBGMIP(const std::string& path) {
 	SDL_RWops* fp = FH::openFile(path.c_str());
@@ -95,6 +98,25 @@ std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path) {
 
 		CBinaryArchiveReader reader(fp);
 		model->open(reader);
+		SDL_RWclose(fp);
+	}
+	return model;
+}
+
+std::shared_ptr<batchFile> loadbatchFile(CPathID path) {
+	std::shared_ptr<batchFile> model = batches[path];
+	if (!model) {
+		model = batches[path] = std::make_shared<batchFile>();
+		SDL_RWops* fp = FH::openFileHash(path.id);
+		if (!fp)
+			return model;
+
+		CBinaryArchiveReader reader(fp);
+		try {
+			model->open(reader);
+		} catch (...) {
+			SDL_Log("Crash on %08x", path.id);
+		}
 		SDL_RWclose(fp);
 	}
 	return model;

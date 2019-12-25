@@ -278,8 +278,11 @@ void batchFile::compoundHeader::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 	fp.serialize(unk3);
 	fp.serialize(unk4);
-	fp.serialize(unk5);
+	fp.serialize(bridgeSize);
 	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+	fp.serialize(unk9);
 }
 
 void batchFile::compoundHeader::registerMembers(MemberStructure & ms) {
@@ -287,6 +290,11 @@ void batchFile::compoundHeader::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(unk3);
 	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(bridgeSize);
+	REGISTER_MEMBER(unk6);
+	REGISTER_MEMBER(unk7);
+	REGISTER_MEMBER(unk8);
+	REGISTER_MEMBER(unk9);
 }
 
 void batchFile::CComponentMultiBatchProcessor::registerMembers(MemberStructure & ms) {

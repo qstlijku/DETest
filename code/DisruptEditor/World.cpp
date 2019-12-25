@@ -8,6 +8,7 @@
 #include <RML.h>
 #include "Entity.h"
 #include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtx\euler_angles.hpp>
 #include <Hash.h>
 #include <ResourceLoader.h>
 #include <xbgFile.h>
@@ -106,6 +107,8 @@ void World::loaderThread() {
 	hr = pDeferredContext->FinishCommandList(FALSE, &world.pd3dCommandList);
 	assert(hr == S_OK);
 
+	world.readyToRender = true;
+
 	//Start Drawing WLUs
 	int i = 0;
 	for (auto& it : world.wlus) {
@@ -128,6 +131,17 @@ void World::loaderThread() {
 				}
 			}
 
+			//Add to AABB
+			{
+				glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
+				it.second->aabb.minp.x = glm::min(it.second->aabb.minp.x, pos.x);
+				it.second->aabb.minp.y = glm::min(it.second->aabb.minp.y, pos.y);
+				it.second->aabb.minp.z = glm::min(it.second->aabb.minp.z, pos.z);
+				it.second->aabb.maxp.x = glm::max(it.second->aabb.maxp.x, pos.x);
+				it.second->aabb.maxp.y = glm::max(it.second->aabb.maxp.y, pos.y);
+				it.second->aabb.maxp.z = glm::max(it.second->aabb.maxp.z, pos.z);
+			}
+
 			Node* Components = entityPtr->findFirstChild("Components");
 			Node* archeComponents = archeType->findFirstChild("Components");
 			if (!Components) continue;
@@ -136,8 +150,12 @@ void World::loaderThread() {
 			{
 				Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
 				Node* archeCGraphicComponent = archeComponents->findFirstChild("CGraphicComponent");
-				if (CGraphicComponent) {
-					Attribute* fileModel = archeCGraphicComponent->getAttribute("fileModel");
+				if (CGraphicComponent || archeCGraphicComponent) {
+					Attribute* fileModel = NULL;
+					if(archeCGraphicComponent && archeCGraphicComponent->getAttribute("fileModel"))
+						fileModel = archeCGraphicComponent->getAttribute("fileModel");
+					if (CGraphicComponent && CGraphicComponent->getAttribute("fileModel"))
+						fileModel = CGraphicComponent->getAttribute("fileModel");
 					if (fileModel) {
 						CPathID path;
 						memcpy(&path, fileModel->buffer.data(), sizeof(CPathID));
@@ -149,9 +167,7 @@ void World::loaderThread() {
 							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
-							modelMatrix = glm::rotate(modelMatrix, angles.x, glm::vec3(1, 0, 0));
-							modelMatrix = glm::rotate(modelMatrix, angles.y, glm::vec3(0, 1, 0));
-							modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));
+							modelMatrix *= glm::yawPitchRoll(angles.x, angles.y, angles.z);
 							RenderInterface::instance().objectCB.Model = modelMatrix;
 
 							model->draw(pDeferredContext);
@@ -159,6 +175,79 @@ void World::loaderThread() {
 					}
 				}
 			}
+
+			{
+				Node* CGraphicComponent = Components->findFirstChild("CSkinnedGraphicComponent");
+				Node* archeCGraphicComponent = archeComponents->findFirstChild("CSkinnedGraphicComponent");
+				if (CGraphicComponent || archeCGraphicComponent) {
+					Attribute* fileModel = NULL;
+					if (archeCGraphicComponent && archeCGraphicComponent->getAttribute("fileModel"))
+						fileModel = archeCGraphicComponent->getAttribute("fileModel");
+					if (CGraphicComponent && CGraphicComponent->getAttribute("fileModel"))
+						fileModel = CGraphicComponent->getAttribute("fileModel");
+					if (fileModel) {
+						CPathID path;
+						memcpy(&path, fileModel->buffer.data(), sizeof(CPathID));
+
+						if (path.id != 0xffffffff) {
+							auto model = loadXBG(path);
+
+							glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
+							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
+
+							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
+							modelMatrix *= glm::yawPitchRoll(angles.x, angles.y, angles.z);
+							RenderInterface::instance().objectCB.Model = modelMatrix;
+
+							model->draw(pDeferredContext);
+						}
+					}
+				}
+			}
+
+			//Draw Batch
+#if 1
+			if (entityPtr->get<CStringID>("hidEntityClass") == CStringID("CBatchMeshEntity")) {
+				Attribute* ExportPath = entityPtr->getAttribute("ExportPath");
+				std::string compound = (char*)ExportPath->buffer.data();
+				compound = compound.substr(0, compound.size() - strlen(".batch"));
+				compound += "_Compound.cbatch";
+
+				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
+				auto& component = batch->componentMBP;
+				for (auto& it : component.batchProcessors) {
+					for (auto& it : it.processors) {
+						auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
+						if (!batch) continue;
+
+						std::shared_ptr<xbgFile> model = loadXBG(batch->xbg.file);
+						for (auto& it : batch->ranges) {
+							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), it.unk3);
+							RenderInterface::instance().objectCB.Model = modelMatrix;
+
+							model->draw(pDeferredContext);
+						}
+					}
+				}
+
+				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
+				if (building.lowGeom.id != -1) {
+					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
+
+					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk6);
+					RenderInterface::instance().objectCB.Model = modelMatrix;
+					xbg->draw(pDeferredContext);
+				}
+				if (building.roofGeom.id != -1) {
+					std::shared_ptr<xbgFile> xbg = loadXBG(building.roofGeom.id);
+
+					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk6);
+					RenderInterface::instance().objectCB.Model = modelMatrix;
+
+					xbg->draw(pDeferredContext);
+				}
+			}
+#endif
 
 			//Draw HiResSplineLoft
 			{
@@ -179,8 +268,6 @@ void World::loaderThread() {
 
 		world.loadingProgress = (i++ + world.sectors.size() + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
-
-	world.readyToRender = true;
 }
 
 void World::drawTerrain(ID3D11DeviceContext* context) {
