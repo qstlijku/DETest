@@ -173,6 +173,10 @@ public:
 
 		//If unk3
 		uint32_t unk4;
+		uint32_t unk5;
+		uint32_t unk6;
+		uint32_t unk7;
+		uint32_t unk8;
 		Vector<SInstanceRange> ranges;
 
 		void read(IBinaryArchive& fp);

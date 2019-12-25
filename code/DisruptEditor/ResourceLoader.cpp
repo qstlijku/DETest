@@ -112,11 +112,7 @@ std::shared_ptr<batchFile> loadbatchFile(CPathID path) {
 			return model;
 
 		CBinaryArchiveReader reader(fp);
-		try {
-			model->open(reader);
-		} catch (...) {
-			SDL_Log("Crash on %08x", path.id);
-		}
+		model->open(reader);
 		SDL_RWclose(fp);
 	}
 	return model;

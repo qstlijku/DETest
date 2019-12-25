@@ -66,12 +66,6 @@ static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) 
 	exit(0);
 }
 
-static void LogOutputFunction(void* userdata, int category, SDL_LogPriority priority, const char* message) {
-	FILE* fp = (FILE*)userdata;
-	fprintf(fp, "%s\n", message);
-	fflush(fp);
-}
-
 void renderProgressBar() {
 	if (world.loadingProgress >= 1.f)
 		return;
@@ -100,8 +94,6 @@ void renderProgressBar() {
 int main(int argc, char **argv) {
 	SetUnhandledExceptionFilter(HandleException);
 	SDL_Init(SDL_INIT_EVERYTHING);
-	if(!IsDebuggerPresent())
-		SDL_LogSetOutputFunction(LogOutputFunction, fopen("DisruptEditor.log", "wb"));
 
 	reloadSettings();
 

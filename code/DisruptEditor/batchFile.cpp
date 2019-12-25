@@ -543,6 +543,18 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(clusterType);
 		SDL_assert_release(clusterType == CStringID("CSceneRealTreeClusterHelper"));
 
+		fp.serialize(unk5);//same as rangeCount?
+		fp.serialize(unk6);//same as rangeCount?
+		SDL_assert_release(rangeCount == unk5);
+		SDL_assert_release(rangeCount == unk6);
+
+		uint32_t a = 0x1C89E6B5;
+		fp.serialize(a);
+		SDL_assert_release(a == 0x1C89E6B5);
+
+		fp.serialize(unk7);
+		fp.serialize(unk8);
+
 		for (uint32_t j = 0; j < rangeCount; ++j)
 			ranges[j].read(fp);
 	}
@@ -553,6 +565,8 @@ void batchFile::CRealTreeBatchProcessor::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(resource);
 	REGISTER_MEMBER(unk4);
+	REGISTER_MEMBER(unk5);
+	REGISTER_MEMBER(unk6);
 	REGISTER_MEMBER(ranges);
 }
 
