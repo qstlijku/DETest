@@ -543,9 +543,8 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(clusterType);
 		SDL_assert_release(clusterType == CStringID("CSceneRealTreeClusterHelper"));
 
-		fp.serialize(unk5);//same as rangeCount?
+		fp.serialize(unk5);
 		fp.serialize(unk6);//same as rangeCount?
-		SDL_assert_release(rangeCount == unk5);
 		SDL_assert_release(rangeCount == unk6);
 
 		uint32_t a = 0x1C89E6B5;

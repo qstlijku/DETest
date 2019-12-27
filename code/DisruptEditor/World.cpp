@@ -13,6 +13,7 @@
 #include <ResourceLoader.h>
 #include <xbgFile.h>
 #include <SplineLoft.h>
+#include <glm\gtx\quaternion.hpp>
 
 World world;
 
@@ -70,6 +71,17 @@ static void setLoadingStatus(const char* str, float progress = 0.f) {
 	world.loadingStatus = str;
 	world.loadingProgress = progress;
 	world.mutex.unlock();
+}
+
+glm::mat4 convertRotation(const glm::vec3 a) {
+	float sx = sin(a.x / 2), sy = sin(a.y / 2), sz = sin(a.z / 2);
+	float cx = cos(a.x / 2), cy = cos(a.y / 2), cz = cos(a.z / 2);
+
+	glm::quat b(cx * cy * cz + sx * sy * sz,
+		sx * cy * cz - cx * sy * sz,
+		cx * sy * cz + sx * cy * sz,
+		cx * cy * sz - sx * sy * cz); // for XYZ application order
+	return glm::toMat4(b);
 }
 
 void World::loaderThread() {
@@ -167,7 +179,7 @@ void World::loaderThread() {
 							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
-							modelMatrix *= glm::yawPitchRoll(angles.x, angles.y, angles.z);
+							modelMatrix *= convertRotation(angles);
 							RenderInterface::instance().objectCB.Model = modelMatrix;
 
 							model->draw(pDeferredContext);
@@ -196,7 +208,7 @@ void World::loaderThread() {
 							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
-							modelMatrix *= glm::yawPitchRoll(angles.x, angles.y, angles.z);
+							modelMatrix *= convertRotation(angles);
 							RenderInterface::instance().objectCB.Model = modelMatrix;
 
 							model->draw(pDeferredContext);
@@ -223,6 +235,10 @@ void World::loaderThread() {
 						std::shared_ptr<xbgFile> model = loadXBG(batch->xbg.file);
 						for (auto& it : batch->ranges) {
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), it.unk3);
+
+							glm::vec3& angles = it.unk9;
+							modelMatrix *= convertRotation(angles);
+
 							RenderInterface::instance().objectCB.Model = modelMatrix;
 
 							model->draw(pDeferredContext);
@@ -230,22 +246,22 @@ void World::loaderThread() {
 					}
 				}
 
-				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
+				/*batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
 				if (building.lowGeom.id != -1) {
 					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
 
-					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk6);
+					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk7);
 					RenderInterface::instance().objectCB.Model = modelMatrix;
 					xbg->draw(pDeferredContext);
 				}
 				if (building.roofGeom.id != -1) {
 					std::shared_ptr<xbgFile> xbg = loadXBG(building.roofGeom.id);
 
-					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk6);
+					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk7);
 					RenderInterface::instance().objectCB.Model = modelMatrix;
 
 					xbg->draw(pDeferredContext);
-				}
+				}*/
 			}
 #endif
 
@@ -315,7 +331,7 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 				auto& map = hiRes->getMap(x, y);
 				auto vertexBuffer = map.getVertexBuffer();
 
-				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - 2048, (yOffset + y * 64) - 2560, 0));
+				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - 2048 - 32, (yOffset + y * 64) - 2560 - 32, 0));
 				RenderInterface::instance().objectCB.Offset = glm::vec4(x / 4.f, y / 4.f, 0, 0);
 				context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 

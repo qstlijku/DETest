@@ -89,6 +89,7 @@ void DB::reinit() {
 	handleCRCFile((base + "res/classNames.txt").c_str(), "ClassNames");
 	handleCRCFile((base + "res/exeStrings.txt").c_str(), "etc");
 	handleCRCFile((base + "res/strings.txt").c_str(), "etc");
+	handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
 
 	char line[64];
 	FILE *fp = fopen((base + "res/dare.txt").c_str(), "r");

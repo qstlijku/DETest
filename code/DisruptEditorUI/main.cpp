@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
 				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
 
 			for (auto& it : world.wlus) {
-				//if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;
+				if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;
 
 				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 15.f * 15.f && !frustum.IsBoxVisible(it.second->aabb)) continue;
 				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 150.f * 150.f) continue;
