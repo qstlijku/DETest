@@ -295,7 +295,7 @@ void BaseResourceDescriptor::read(IBinaryArchive & fp) {
 	std::string typeName = type.getReverseName();
 
 	//Base Attributes
-	fp.serializeNdVectorExternal(emitterSpecs);
+	fp.serializeNdVector(emitterSpecs);
 
 	if (typeName == "SampleResourceDescriptor") {
 		serializeAny<SampleResourceDescriptor>(fp, data);
@@ -511,7 +511,7 @@ void SND_tdstToolSourceFormat::registerMembers(MemberStructure & ms) {
 
 void tdstWaveMarkerList::read(IBinaryArchive & fp) {
 	fp.serialize(stringPool);
-	fp.serializeNdVectorExternal(m_waveMarkers);
+	fp.serializeNdVector(m_waveMarkers);
 }
 
 void tdstWaveMarkerList::registerMembers(MemberStructure & ms) {
@@ -663,7 +663,7 @@ void EmitterSpec::read(IBinaryArchive & fp) {
 	fp.serialize(m_pWetVolume);
 	fp.serialize(m_pLPFCutoffFrequency);
 	fp.serialize(m_emitterAudibilityCone);
-	fp.serializeNdVectorExternal_pod(m_effectIds);
+	fp.serializeNdVector_pod(m_effectIds);
 	fp.serialize(m_activeSpeakers);
 	StreamValidationPoint(fp);
 }
@@ -692,7 +692,7 @@ void SilenceResourceDescriptor::read(IBinaryArchive & fp) {
 }
 
 void MultiLayerResourceDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(m_layers);
+	fp.serializeNdVector(m_layers);
 }
 
 void MultiLayerResourceDescriptor::registerMembers(MemberStructure & ms) {
@@ -703,7 +703,7 @@ void tdstMultiLayerElement::read(IBinaryArchive & fp) {
 	fp.serialize(uRes);
 	fp.serialize(activationFlagId);
 	fp.serialize(invFlag);
-	fp.serializeNdVectorExternal(m_effectGraphs);
+	fp.serializeNdVector(m_effectGraphs);
 }
 
 void tdstMultiLayerElement::registerMembers(MemberStructure & ms) {
@@ -716,7 +716,7 @@ void tdstMultiLayerElement::registerMembers(MemberStructure & ms) {
 void tdstEffectGraph::read(IBinaryArchive & fp) {
 	fp.serialize(eEffectID);
 	fp.serialize(multiLayerParameterId);
-	fp.serializeNdVectorExternal(m_coordinates);
+	fp.serializeNdVector(m_coordinates);
 }
 
 void tdstEffectGraph::registerMembers(MemberStructure & ms) {
@@ -727,7 +727,7 @@ void tdstEffectGraph::registerMembers(MemberStructure & ms) {
 
 void MultiEventDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(pBase);
-	fp.serializeNdVectorExternal(m_events);
+	fp.serializeNdVector(m_events);
 }
 
 void MultiEventDescriptor::registerMembers(MemberStructure & ms) {
@@ -738,9 +738,9 @@ void MultiEventDescriptor::registerMembers(MemberStructure & ms) {
 void PresetDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(id);
 	fp.serialize(type);
-	fp.serializeNdVectorExternal(micPresetList);
-	fp.serializeNdVectorExternal(effectPresetInfos);
-	fp.serializeNdVectorExternal(busPresetInfos);
+	fp.serializeNdVector(micPresetList);
+	fp.serializeNdVector(effectPresetInfos);
+	fp.serializeNdVector(busPresetInfos);
 	//SndGear::Serializer &DareSerializeMemberFilter<T1>(SndGear::Serializer &, const char *, T1 &) [with T1=long]
 	fp.serialize(priority);
 }
@@ -762,12 +762,12 @@ void MicSpecDescriptor::read(IBinaryArchive & fp) {
 
 void EffectPresetInfo::read(IBinaryArchive & fp) {
 	fp.serialize(effectId);
-	fp.serializeNdVectorExternal(paramsToChange);
+	fp.serializeNdVector(paramsToChange);
 }
 
 void BusPresetInfo::read(IBinaryArchive & fp) {
 	fp.serialize(busId);
-	fp.serializeNdVectorExternal(paramsToChange);
+	fp.serializeNdVector(paramsToChange);
 }
 
 void ParamInfo::read(IBinaryArchive & fp) {
@@ -792,10 +792,10 @@ void ParameterValue::read(IBinaryArchive & fp) {
 		fp.serialize(valueSndFloat);
 		break;
 	case 3:
-		fp.serializeNdVectorExternal_pod(valueListSndS32);
+		fp.serializeNdVector_pod(valueListSndS32);
 		break;
 	case 4:
-		fp.serializeNdVectorExternal_pod(valueListSndFloat);
+		fp.serializeNdVector_pod(valueListSndFloat);
 		break;
 	case 0:
 		//None
@@ -833,7 +833,7 @@ void SequenceResourceDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(ulNbLoops);
 	fp.serialize(fLength);
 	fp.serialize(fPosMainReLoop);
-	fp.serializeNdVectorExternal(sequences);
+	fp.serializeNdVector(sequences);
 }
 
 std::vector<short> MultiTrackResourceDescriptor::decode(int layer) {
@@ -875,7 +875,7 @@ std::vector<short> MultiTrackResourceDescriptor::decode(int layer) {
 	fp.serialize(totalBlocks);
 
 	Vector<uint8_t> infoTable;
-	fp.serializeNdVectorExternal_pod(infoTable);
+	fp.serializeNdVector_pod(infoTable);
 	//TODO: Figure this out
 	SDL_RWseek(fp.fp, 64 - numLayers * 4, RW_SEEK_CUR);
 
@@ -941,7 +941,7 @@ void MultiTrackResourceDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(stWaveMarkerList);
 	fp.serialize(autoDuckingSetPresetEventId);
 	fp.serialize(busId);
-	fp.serializeNdVectorExternal(m_tracks);
+	fp.serializeNdVector(m_tracks);
 	fp.serialize(m_tracksRawData);
 	fp.serialize(platformSpecificProperties);
 	fp.serialize(currentResourceID);
@@ -992,7 +992,7 @@ void ThemeResourceDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(ulTracksFading);
 	fp.serialize(indexFadeInDur);
 	fp.serialize(indexFadeOutDur);
-	fp.serializeNdVectorExternal(m_themParts);
+	fp.serializeNdVector(m_themParts);
 }
 
 void ThemePartOutroDescriptor::read(IBinaryArchive & fp) {
@@ -1019,10 +1019,10 @@ void ProjectDesc::read(IBinaryArchive & fp) {
 	fp.serialize(bLocalised);
 	fp.serialize(minStreamingPrefetchBufferLength);
 	fp.serialize(stObstructionPreset);
-	fp.serializeNdVectorExternal(stOcclusionPresetList);
-	fp.serializeNdVectorExternal_pod(stMTTChannelList);
-	fp.serializeNdVectorExternal(stSoundTextureList);
-	fp.serializeNdVectorExternal(MultiLayerParameters);
+	fp.serializeNdVector(stOcclusionPresetList);
+	fp.serializeNdVector_pod(stMTTChannelList);
+	fp.serializeNdVector(stSoundTextureList);
+	fp.serializeNdVector(MultiLayerParameters);
 	fp.memBlock(cTitleGuid.data(), 1, sizeof(cTitleGuid));
 	fp.memBlock(cProjectDataVersion.data(), 1, sizeof(cProjectDataVersion));
 	fp.serialize(projectBusDataDescBin);
@@ -1071,7 +1071,7 @@ void tdstMultiLayerParameter::read(IBinaryArchive & fp) {
 }
 
 void RolloffResourceDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(m_pointList);
+	fp.serializeNdVector(m_pointList);
 	StreamValidationPoint(fp);
 }
 
@@ -1109,15 +1109,15 @@ void RTPCCone::read(IBinaryArchive & fp) {
 }
 
 void ProjectBusDataDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(busDescList);
-	fp.serializeNdVectorExternal(busTreeDescList);
+	fp.serializeNdVector(busDescList);
+	fp.serializeNdVector(busTreeDescList);
 }
 
 void BusDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(id);
 	fp.serialize(busType);
 	fp.serialize(parentBusId);
-	fp.serializeNdVectorExternal_pod(effectIds);
+	fp.serializeNdVector_pod(effectIds);
 	fp.serialize(preEffectVolume);
 	fp.serialize(connectedVoicesVolume);
 	fp.serialize(postEffectChannelVolumes);
@@ -1130,7 +1130,7 @@ void BusDescriptor::read(IBinaryArchive & fp) {
 
 void BusTreeDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(id);
-	fp.serializeNdVectorExternal_pod(busIdList);
+	fp.serializeNdVector_pod(busIdList);
 }
 
 void VolumeHelper::read(IBinaryArchive & fp) {
@@ -1144,7 +1144,7 @@ void BusChannelVolumes::read(IBinaryArchive & fp) {
 }
 
 void ProjectEffectDataDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(effectDescList);
+	fp.serializeNdVector(effectDescList);
 }
 
 void EffectDescriptor::read(IBinaryArchive & fp) {
@@ -1154,12 +1154,12 @@ void EffectDescriptor::read(IBinaryArchive & fp) {
 }
 
 void EffectParameters::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(parameterValueList);
+	fp.serializeNdVector(parameterValueList);
 }
 
 void RTPCsAndVariablesDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(m_variableList);
-	fp.serializeNdVectorExternal(m_rtpcList);
+	fp.serializeNdVector(m_variableList);
+	fp.serializeNdVector(m_rtpcList);
 }
 
 void RTVariableDescriptor::read(IBinaryArchive & fp) {
@@ -1169,9 +1169,9 @@ void RTVariableDescriptor::read(IBinaryArchive & fp) {
 }
 
 void RTPCDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal_pod(m_varIdList);
-	fp.serializeNdVectorExternal(m_graphList);
-	fp.serializeNdVectorExternal(m_parameterList);
+	fp.serializeNdVector_pod(m_varIdList);
+	fp.serializeNdVector(m_graphList);
+	fp.serializeNdVector(m_parameterList);
 	fp.serialize(m_rtpcId);
 }
 
@@ -1185,7 +1185,7 @@ void GraphCoordinate::read(IBinaryArchive & fp) {
 void RTGraphDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(m_variableType);
 	fp.serialize(m_parameterType);
-	fp.serializeNdVectorExternal(m_pointList);
+	fp.serializeNdVector(m_pointList);
 }
 
 void RTParameterDescriptor::read(IBinaryArchive & fp) {
@@ -1195,7 +1195,7 @@ void RTParameterDescriptor::read(IBinaryArchive & fp) {
 }
 
 void ProjectMicDataDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(micSpecList);
+	fp.serializeNdVector(micSpecList);
 }
 
 std::vector<short> GranularResourceDescriptor::decode() {
@@ -1264,7 +1264,7 @@ void GranularResourceDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(m_compression);
 	fp.serialize(m_toolSourceFormat);
 	fp.serialize(m_granuleAligmentRes);
-	fp.serializeNdVectorExternal(m_pitchInfo);
+	fp.serializeNdVector(m_pitchInfo);
 }
 
 void GranularPitchInfo::read(IBinaryArchive & fp) {
@@ -1285,7 +1285,7 @@ void ChangeVolumeEventDescriptor::read(IBinaryArchive & fp) {
 }
 
 void SwitchResourceDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(m_elements);
+	fp.serializeNdVector(m_elements);
 	fp.serialize(switchTypeId);
 	fp.serialize(defaultSwitchValueId);
 	fp.serialize(bDynamic);
@@ -1311,7 +1311,7 @@ void SwitchEventDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(pBase);
 	fp.serialize(switchTypeId);
 	fp.serialize(defaultEvent);
-	fp.serializeNdVectorExternal(m_elements);
+	fp.serializeNdVector(m_elements);
 	StreamValidationPoint(fp);
 }
 

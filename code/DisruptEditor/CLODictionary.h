@@ -148,12 +148,12 @@ struct CCityLifeBaseGroupData {
 	void read(IBinaryArchive& fp) {
 		fp.serialize(objData);
 		fp.serialize(LayerCount);
-		fp.serializeNdVectorExternal_pod(Weights);
+		fp.serializeNdVector_pod(Weights);
 		fp.serialize(bSynchronizeTriggeredBhv);
 		fp.serialize(bIsShowcase);
 		fp.serialize(bHasEmergentEventLayer);
 		fp.serialize(iEmergentEventLayerMask);
-		fp.serializeNdVectorExternal_pod(EmergentEventSettingsKeys);
+		fp.serializeNdVector_pod(EmergentEventSettingsKeys);
 	}
 };
 
@@ -180,11 +180,11 @@ struct CCityLifeGroupData {
 
 	void read(IBinaryArchive& fp) {
 		fp.serialize(groupData);
-		fp.serializeNdVectorExternal_pod(Contexts);
-		fp.serializeNdVectorExternal_pod(AnimTemplates);
+		fp.serializeNdVector_pod(Contexts);
+		fp.serializeNdVector_pod(AnimTemplates);
 		fp.serialize(bIsManagedByEntity);
 		fp.serialize(unk1);
-		fp.serializeNdVectorExternal_pod(PlatformConfigs);
+		fp.serializeNdVector_pod(PlatformConfigs);
 		fp.serialize(SpawningMandatory);
 	}
 };
@@ -208,8 +208,8 @@ struct CVigilanteData {
 		fp.serialize(groupData);
 		fp.serialize(VigilanteType);
 		fp.serialize(VigilanteGroupName);
-		fp.serializeNdVectorExternal(LayerTypes);
-		fp.serializeNdVectorExternal_pod(VigilanteBoxPath);
+		fp.serializeNdVector(LayerTypes);
+		fp.serializeNdVector_pod(VigilanteBoxPath);
 		fp.serialize(vectorPreventSpawningBoxSize);
 		fp.serialize(fDistToReactionClose);
 		fp.serialize(fDistToReactionFar);
@@ -492,9 +492,9 @@ struct CAttractorData {
 			fp.serialize(MaxAltitudeRestriction);
 
 		if (false) {//TODO
-			fp.serializeNdVectorExternal(ConeRestrictionsComponents);
+			fp.serializeNdVector(ConeRestrictionsComponents);
 		} else {
-			fp.serializeNdVectorExternal(ConeRestrictions);
+			fp.serializeNdVector(ConeRestrictions);
 		}
 
 		if (unk2) {
@@ -564,7 +564,7 @@ struct CCityLifeObjectDataDictionary {
 		elements.resize(elementCount);
 
 		fp.serialize(version);
-		fp.serializeNdVectorExternal_pod(unk1);
+		fp.serializeNdVector_pod(unk1);
 
 		uint8_t count = 0;
 		fp.serialize(count);

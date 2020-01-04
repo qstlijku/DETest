@@ -47,6 +47,7 @@ project "DisruptEditor"
     files
     {
         "premake5.lua",
+        "**.natvis",
         "**.cpp",
         "**.hpp",        
         "**.h",      

@@ -5,9 +5,12 @@
 #include <string>
 #include "Vector.h"
 
+class IBinaryArchive;
+
 class IBinaryArchive {
 public:
 	IBinaryArchive();
+	virtual ~IBinaryArchive() {}
 
 	void serialize(bool& value);
 	void serialize(uint8_t& value);
@@ -25,20 +28,28 @@ public:
 	void serialize(glm::vec4& value);
 	void serialize(glm::mat4& value);
 	void serialize(std::string& value);
+
+	void serializeInPlace(uint8_t& value);
+	void serializeInPlace(uint16_t& value);
+	void serializeInPlace(uint32_t& value);
+	void serializeInPlace(uint64_t& value);
+	void serializeInPlace(glm::vec4& value);
+
 	virtual bool isReading() const = 0;
 	virtual void pad(size_t padding) = 0;
 	size_t size();
 	size_t tell();
 	virtual void memBlock(void* ptr, size_t objSize, size_t objCount) = 0;
+	virtual void memBlockInPlace(void* ptr, size_t objSize, size_t objCount) = 0;
 
 	template<typename T>
-	void serializeNdVectorExternal(Vector<T>& vec);
+	void serializeNdVector(Vector<T>& vec);
 
 	template<typename T>
-	void serializeNdVectorExternal_pod(Vector<T>& vec);
+	void serializeNdVector_pod(Vector<T>& vec);
 
 	template<typename T>
-	void serializeNdVector(Vector<T>& vec, uint32_t typeId, uint32_t& unk);
+	void serializeNdVectorExternal(Vector<T>& vec, uint32_t typeId, uint32_t& unk);
 
 	template<typename T>
 	void serialize(T &value);
@@ -49,65 +60,76 @@ public:
 	};
 	PaddingType padding = PADDING_IBINARYARCHIVE;
 
+	size_t getPadSize(size_t padding);
+
+	virtual void markHeader() = 0;
 protected:
 	Sint64 offset = 0;//Usefull for debugging
+	struct Header {
+		uint32_t inPlaceOffset = 0;//Padded out to 16
+		uint32_t unk2 = 0;//Unused.
+		uint32_t unk3 = 0;//Used in SerailizeBasicTypeInPlace
+
+		uint32_t unk4 = 0;
+		uint32_t unk5 = 0;//Size of header + non-inplace serialized data
+		uint32_t unk6 = 0;//Number of Loops, done on construction
+
+		uint32_t unk7 = 0;//Size of header + non-inplace serialized data
+		uint32_t unk8 = 0;//Unused?
+		uint32_t unk9 = 0;
+		void read(IBinaryArchive& fp);
+	};
 };
 
 
 class CBinaryArchiveReader : public IBinaryArchive {
 public:
 	CBinaryArchiveReader(SDL_RWops* _fp);
+	~CBinaryArchiveReader() {}
 
-	virtual bool isReading() const;
-	virtual void pad(size_t padding);
-	virtual void memBlock(void* ptr, size_t objSize, size_t objCount);
+	IBinaryArchive::Header header;
+	Sint64 inPlaceOffset = -1;
+
+	bool isReading() const;
+	void pad(size_t padding);
+	void memBlock(void* ptr, size_t objSize, size_t objCount);
+	void memBlockInPlace(void* ptr, size_t objSize, size_t objCount);
+	void markHeader();
 };
 
 class CBinaryArchiveWriter : public IBinaryArchive {
 public:
 	CBinaryArchiveWriter(SDL_RWops* _fp);
+	~CBinaryArchiveWriter();
 
-	virtual bool isReading() const;
-	virtual void pad(size_t padding);
-	virtual void memBlock(void* ptr, size_t objSize, size_t objCount);
+	int64_t headerOffset = -1;
+	int64_t dataSize = 0;
+	std::vector<uint8_t> inPlaceData;
+
+	bool isReading() const;
+	void pad(size_t padding);
+	void memBlock(void* ptr, size_t objSize, size_t objCount);
+	void memBlockInPlace(void* ptr, size_t objSize, size_t objCount);
+	void markHeader();
+	void finish();
 };
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec) {
-	if (isReading()) {
-		uint32_t count;
-		serialize(count);
-		vec.resize(count);
-		for (uint32_t i = 0; i < count; ++i)
-			vec[i].read(*this);
-	}
-	else {
-		uint32_t count = (uint32_t)vec.size();
-		serialize(count);
-		for (uint32_t i = 0; i < count; ++i)
-			vec[i].read(*this);
-	}
+inline void IBinaryArchive::serializeNdVector(Vector<T>& vec) {
+	uint32_t count = (uint32_t)vec.size();
+	serialize(count);
+	vec.resize(count);
+	for (uint32_t i = 0; i < count; ++i)
+		serialize(vec[i]);
 }
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVectorExternal_pod(Vector<T>& vec) {
-	if (isReading()) {
-		uint32_t count;
-		serialize(count);
-		vec.resize(count);
-		for (uint32_t i = 0; i < count; ++i)
-			serialize(vec[i]);
-	}
-	else {
-		uint32_t count = (uint32_t)vec.size();
-		serialize(count);
-		for (uint32_t i = 0; i < count; ++i)
-			serialize(vec[i]);
-	}
+inline void IBinaryArchive::serializeNdVector_pod(Vector<T>& vec) {
+	serializeNdVector(vec);
 }
 
 template<>
-inline void IBinaryArchive::serializeNdVectorExternal_pod(Vector<uint8_t>& vec) {
+inline void IBinaryArchive::serializeNdVector_pod(Vector<uint8_t>& vec) {
 	uint32_t count = vec.size();
 	serialize(count);
 	vec.resize(count);
@@ -115,26 +137,24 @@ inline void IBinaryArchive::serializeNdVectorExternal_pod(Vector<uint8_t>& vec) 
 }
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVector(Vector<T>& vec, uint32_t typeId, uint32_t &unk) {
-	if (isReading()) {
-		uint32_t counter, counter2;
-		serialize(counter);
+inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, uint32_t typeId, uint32_t &unk) {
+	//PreAllocateSizeOfType behavior
+	uint32_t counter = vec.size(), counter2 = vec.size();
+	serialize(counter);
 
-		uint32_t unknownTypeID;
-		serialize(unknownTypeID);
-		SDL_assert_release(unknownTypeID == typeId);
+	uint32_t unknownTypeID = typeId;
+	serialize(unknownTypeID);
+	SDL_assert_release(unknownTypeID == typeId);
 
-		serialize(unk);
-		serialize(counter2);
-		SDL_assert_release(counter == counter2);
+	serialize(unk);
 
-		vec.resize(counter);
-		for (uint32_t i = 0; i < counter; ++i)
-			vec[i].read(*this);
-	}
-	else {
-		//TODO
-	}
+	//Vector Count
+	serialize(counter2);
+	SDL_assert_release(counter == counter2);
+
+	vec.resize(counter);
+	for (uint32_t i = 0; i < counter; ++i)
+		vec[i].read(*this);
 }
 
 template<typename T>

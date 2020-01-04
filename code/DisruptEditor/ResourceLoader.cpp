@@ -10,6 +10,7 @@
 #include "xbtFile.h"
 #include "SplineLoft.h"
 #include "batchFile.h"
+#include "buildingBatchFile.h"
 #include <mutex>
 #include <queue>
 #include <unordered_map>
@@ -20,6 +21,7 @@ static std::unordered_map<CPathID, std::shared_ptr<materialFile>> materials;
 static std::unordered_map<CPathID, std::shared_ptr<xbtFile>> textures;
 static std::unordered_map<CPathID, std::shared_ptr<SplineLoftHiRes>> hiResSplineLofts;
 static std::unordered_map<CPathID, std::shared_ptr<batchFile>> batches;
+static std::unordered_map<CPathID, std::shared_ptr<buildingBatchFile>> buildingBatches;
 
 static xbgMipFile loadXBGMIP(const std::string& path) {
 	SDL_RWops* fp = FH::openFile(path.c_str());
@@ -107,6 +109,21 @@ std::shared_ptr<batchFile> loadbatchFile(CPathID path) {
 	std::shared_ptr<batchFile> model = batches[path];
 	if (!model) {
 		model = batches[path] = std::make_shared<batchFile>();
+		SDL_RWops* fp = FH::openFileHash(path.id);
+		if (!fp)
+			return model;
+
+		CBinaryArchiveReader reader(fp);
+		model->open(reader);
+		SDL_RWclose(fp);
+	}
+	return model;
+}
+
+std::shared_ptr<buildingBatchFile> loadBuildingBatchFile(CPathID path) {
+	std::shared_ptr<buildingBatchFile> model = buildingBatches[path];
+	if (!model) {
+		model = buildingBatches[path] = std::make_shared<buildingBatchFile>();
 		SDL_RWops* fp = FH::openFileHash(path.id);
 		if (!fp)
 			return model;

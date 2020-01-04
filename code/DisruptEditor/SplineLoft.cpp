@@ -11,14 +11,16 @@ void SplineLoftHiRes::open(IBinaryArchive& fp) {
 
 	fp.serialize(unk1);
 	
-	fp.serializeNdVectorExternal(vertexData);
-	fp.serializeNdVectorExternal_pod(indexData);
+	fp.serializeNdVector(vertexData);
+	fp.serializeNdVector_pod(indexData);
+	createBuffers();
+
+	fp.markHeader();
 
 	/*fp.serializeNdVectorExternal(networkRegionResources);
 
 	fp.serialize(lowRes);*/
 
-	createBuffers();
 }
 
 void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
@@ -97,7 +99,7 @@ void CSceneSplineLoftRegion::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
-	fp.serializeNdVectorExternal(splines);
+	fp.serializeNdVector(splines);
 	fp.serialize(unk4);
 }
 
@@ -106,10 +108,10 @@ void CSplineNetworkRegionResourceEntry::read(IBinaryArchive& fp) {
 	if (!unk1) return;
 
 	fp.serialize(loftReigon);
-	fp.serializeNdVectorExternal(primitiveDesc);
-	fp.serializeNdVectorExternal(drawCalls);
-	fp.serializeNdVectorExternal(unk2);
-	fp.serializeNdVectorExternal_pod(unk3);
+	fp.serializeNdVector(primitiveDesc);
+	fp.serializeNdVector(drawCalls);
+	fp.serializeNdVector(unk2);
+	fp.serializeNdVector_pod(unk3);
 }
 
 void CSpline::read(IBinaryArchive& fp) {
@@ -117,7 +119,7 @@ void CSpline::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
-	fp.serializeNdVectorExternal(controlPoints);
+	fp.serializeNdVector(controlPoints);
 }
 
 void CSplineControlPoint::read(IBinaryArchive& fp) {

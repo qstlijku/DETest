@@ -15,7 +15,7 @@ void xbgMipFile::open(IBinaryArchive & fp) {
 
 	fp.serialize(unk1);
 
-	fp.serializeNdVectorExternal(buffers);
+	fp.serializeNdVector(buffers);
 
 	SDL_assert_release(fp.tell() == fp.size());
 }

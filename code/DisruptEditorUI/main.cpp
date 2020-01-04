@@ -48,6 +48,8 @@
 #include <SDL_syswm.h>
 #include <imgui_impl_sdl.h>
 #include <dr_wav.h>
+#include <buildingBatchFile.h>
+#include <DB.h>
 static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
 	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile) {
@@ -102,6 +104,45 @@ int main(int argc, char **argv) {
 		SDL_MaximizeWindow(window);
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
+#if 0
+	{
+		FH::Init();
+		for (auto& it : DB::instance().root["graphics"].Children["_materials"].Children) {
+			if (!it.second.Children.empty()) continue;
+
+			std::string filename = "graphics\\_materials\\" + it.second.Key;
+			SDL_RWops* fp = FH::openFile(filename.c_str());
+			if (fp) {
+				CBinaryArchiveReader reader(fp);
+				materialFile mat;
+				mat.open(reader);
+				SDL_assert_release(SDL_RWtell(fp) == SDL_RWsize(fp));
+				SDL_RWclose(fp);
+
+				SDL_Log("%08x %08x %08x %08x %08x %08x %08x %08x %08x %s", reader.header.unk1, reader.header.unk2, reader.header.unk3, reader.header.unk4, reader.header.unk5, reader.header.unk6, reader.header.unk7, reader.header.unk8, reader.header.unk9, filename.c_str());
+			}
+		}
+		return 0;
+		
+	}
+#endif
+#if 1
+	{
+		FH::Init();
+		SDL_RWops* fp = FH::openFileHash(0x49637b42);
+		/*SDL_RWops* temp = SDL_RWFromFile("test.cbatch", "wb");
+		std::vector<uint8_t> data(SDL_RWsize(fp));
+		SDL_RWread(fp, data.data(), 1, data.size());
+		SDL_RWwrite(temp, data.data(), 1, data.size());
+		SDL_RWclose(temp);*/
+
+		buildingBatchFile b;
+		CBinaryArchiveReader reader(fp);
+		b.open(reader);
+		SDL_RWclose(fp);
+		return 1;
+	}
+#endif
 
 	//DEBUG Save SBAO
 	/*{

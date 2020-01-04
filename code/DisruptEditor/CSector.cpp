@@ -224,7 +224,7 @@ void CSector::open(IBinaryArchive & fp) {
 	lowRes.read(fp);
 	hiRes.read(fp);
 
-	fp.serializeNdVectorExternal(dataChunk);
+	fp.serializeNdVector(dataChunk);
 	SDL_assert_release(dataChunk.size() == 16);
 
 	size_t size = fp.size();

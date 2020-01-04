@@ -129,15 +129,15 @@ void CCityLifeDataAndStateHandler::read(IBinaryArchive& fp) {
 	CCityLifeDataAndStateSerializationHandler_SerializeDataTemp(fp);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<SCityLifeObjectInstanceDataArrays, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
-	fp.serializeNdVectorExternal(instances);
+	fp.serializeNdVector(instances);
 	fp.serialize(unk3);
 	//Padded to 16?
 }
 
 void SCityLifeObjectInstanceDataArrays::read(IBinaryArchive& fp) {
-	fp.serializeNdVectorExternal(unk1);
-	fp.serializeNdVectorExternal(unk2);
-	fp.serializeNdVectorExternal_pod(unk3);
+	fp.serializeNdVector(unk1);
+	fp.serializeNdVector(unk2);
+	fp.serializeNdVector_pod(unk3);
 }
 
 void SCityLifeObjectId::read(IBinaryArchive& fp) {

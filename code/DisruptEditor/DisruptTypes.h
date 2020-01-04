@@ -386,4 +386,36 @@ struct CSceneBuilding {
 	void registerMembers(MemberStructure& ms);
 };
 
+struct ClusterData {
+	enum DataFormat {
+		CompressedMatrix = 1,
+		SwapPositionRotZTransform = 2,
+		FacadeInfo = 4,
+		U32 = 8,
+		NOP1 = 16,
+		NOP2 = 32,
+		Unknown = 64
+	};
+	uint16_t format = 0;
+
+	struct Data {
+		uint16_t matrix[4][4];
+
+		glm::vec3 pos;
+		uint16_t rot;
+		uint16_t z;
+
+		uint16_t facade[2];
+
+		uint32_t unk1;
+
+		uint32_t unk2;
+	};
+	std::vector<Data> data;
+
+	static uint32_t ComputeStride(uint16_t value);
+
+	void read(IBinaryArchive& fp);
+};
+
 #pragma pack(pop)

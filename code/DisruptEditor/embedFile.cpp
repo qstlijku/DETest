@@ -13,7 +13,7 @@ void embedFile::open(IBinaryArchive & fp) {
 
 	//If 0xAE27FBCC, then CEmbeddedResourceContainer::ProcessEmbbeddedData((void *,int))
 	if (magic == 0xAE27FBCC) {
-		fp.serializeNdVectorExternal(unk1);
+		fp.serializeNdVector(unk1);
 		db.open(fp);
 		SDL_assert_release(fp.tell() == fp.size());
 	}

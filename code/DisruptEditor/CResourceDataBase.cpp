@@ -4,7 +4,7 @@
 
 void CResourceDataBase::open(IBinaryArchive& fp) {
 	fp.padding = fp.PADDING_NONE;
-	fp.serializeNdVectorExternal(unk1);
+	fp.serializeNdVector(unk1);
 
 	uint32_t size = files.size();
 	fp.serialize(size);
@@ -20,7 +20,7 @@ void CResourceDataBase::open(IBinaryArchive& fp) {
 		fp.serialize(files[i].refType);
 	}
 
-	fp.serializeNdVectorExternal(types);
+	fp.serializeNdVector(types);
 
 	for (auto& it : unk1)
 		SDL_assert_release(it.unk1 < files.size());

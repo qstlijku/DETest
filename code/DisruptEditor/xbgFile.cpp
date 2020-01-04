@@ -90,10 +90,10 @@ void xbgFile::open(IBinaryArchive &fp) {
 
 	fp.serialize(unk3);
 	SDL_Log("SGfxBuffers: %u", fp.tell());
-	fp.serializeNdVectorExternal(buffers);
+	fp.serializeNdVector(buffers);
 
 	SDL_Log("GeometryMips: %u", fp.tell());
-	fp.serializeNdVectorExternal(mips);
+	fp.serializeNdVector(mips);
 
 	fp.serialize(clothWrinkleControlPatchBundles);
 	SDL_assert_release(fp.tell() == fp.size());
@@ -155,7 +155,7 @@ void xbgFile::SceneGeometryParams::read(IBinaryArchive &fp) {
 	fp.serialize(unk13);
 	//fp.serialize(unk14);
 
-	fp.serializeNdVectorExternal_pod(lods);
+	fp.serializeNdVector_pod(lods);
 
 	fp.serialize(unk15);
 	fp.serialize(unk16);
@@ -190,7 +190,7 @@ void xbgFile::MaterialResources::read(IBinaryArchive & fp, uint32_t lods) {
 	unk1.resize(s);
 	for (uint32_t i = 0; i < s; ++i)
 		fp.serialize(unk1[i]);
-	fp.serializeNdVectorExternal(materials);
+	fp.serializeNdVector(materials);
 }
 
 void xbgFile::MaterialResources::registerMembers(MemberStructure & ms) {
@@ -210,7 +210,7 @@ void xbgFile::MaterialResources::MaterialFile::registerMembers(MemberStructure &
 }
 
 void xbgFile::MaterialSlotToIndex::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(slots);
+	fp.serializeNdVector(slots);
 }
 
 void xbgFile::MaterialSlotToIndex::registerMembers(MemberStructure & ms) {
@@ -228,7 +228,7 @@ void xbgFile::MaterialSlotToIndex::Slot::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::SkinNames::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(skins);
+	fp.serializeNdVector(skins);
 }
 
 void xbgFile::SkinNames::registerMembers(MemberStructure & ms) {
@@ -236,7 +236,7 @@ void xbgFile::SkinNames::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::BonePalettes::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(pallets);
+	fp.serializeNdVector(pallets);
 }
 
 void xbgFile::BonePalettes::registerMembers(MemberStructure & ms) {
@@ -244,7 +244,7 @@ void xbgFile::BonePalettes::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::BonePalettes::BonesPallet::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal_pod(unk1);
+	fp.serializeNdVector_pod(unk1);
 }
 
 void xbgFile::BonePalettes::BonesPallet::registerMembers(MemberStructure & ms) {
@@ -255,7 +255,7 @@ void xbgFile::SkelResources::read(IBinaryArchive & fp) {
 	//Can either read 1 or 0
 	fp.serialize(unk1);
 	if (unk1) {
-		fp.serializeNdVectorExternal(resources);
+		fp.serializeNdVector(resources);
 
 		fp.serialize(unk2);
 
@@ -332,7 +332,7 @@ void xbgFile::ReflexSystem::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::SecondaryMotionObjects::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(smos);
+	fp.serializeNdVector(smos);
 }
 
 void xbgFile::SecondaryMotionObjects::registerMembers(MemberStructure& ms) {
@@ -406,13 +406,13 @@ void xbgFile::SecondaryMotionObjects::SMO::SSMSimulationParametersDesc::register
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitCollisionPrimitives::read(IBinaryArchive & fp) {
 	SDL_Log("Spheres: %u", fp.tell());
-	fp.serializeNdVectorExternal(spheres);
+	fp.serializeNdVector(spheres);
 	SDL_Log("Cylinders: %u", fp.tell());
-	fp.serializeNdVectorExternal(cylinders);
+	fp.serializeNdVector(cylinders);
 	SDL_Log("Capsules: %u", fp.tell());
-	fp.serializeNdVectorExternal(capsules);
+	fp.serializeNdVector(capsules);
 	SDL_Log("Planes: %u", fp.tell());
-	fp.serializeNdVectorExternal(planes);
+	fp.serializeNdVector(planes);
 
 	SDL_Log("%u", fp.tell());
 }
@@ -485,11 +485,11 @@ void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitCollisionPrimitive
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitLimits::read(IBinaryArchive & fp) {
 	SDL_Log("%u", fp.tell());
-	fp.serializeNdVectorExternal(spheres);
+	fp.serializeNdVector(spheres);
 	SDL_Log("%u", fp.tell());
-	fp.serializeNdVectorExternal(boxes);
+	fp.serializeNdVector(boxes);
 	SDL_Log("%u", fp.tell());
-	fp.serializeNdVectorExternal(cylinders);
+	fp.serializeNdVector(cylinders);
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitLimits::registerMembers(MemberStructure& ms) {
@@ -545,8 +545,8 @@ void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitLimits::SCylinderL
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitParticles::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(particles);
-	fp.serializeNdVectorExternal(meshes);
+	fp.serializeNdVector(particles);
+	fp.serializeNdVector(meshes);
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitParticles::registerMembers(MemberStructure& ms) {
@@ -571,7 +571,7 @@ void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitParticles::SSMPart
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitTriangles::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(triangles);
+	fp.serializeNdVector(triangles);
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitTriangles::registerMembers(MemberStructure& ms) {
@@ -592,7 +592,7 @@ void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitTriangles::Triangl
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitConnectivities::read(IBinaryArchive & fp) {
 	//TODO:!
-	fp.serializeNdVectorExternal(connectivity);
+	fp.serializeNdVector(connectivity);
 	SDL_assert_release(connectivity.empty());
 }
 
@@ -607,7 +607,7 @@ void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitConnectivities::SS
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitSpringDescs::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(springs);
+	fp.serializeNdVector(springs);
 }
 
 void xbgFile::SecondaryMotionObjects::SMO::SecondaryMotionUnitSpringDescs::registerMembers(MemberStructure& ms) {
@@ -637,7 +637,7 @@ void xbgFile::CMeshNameID::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::ProceduralNodes::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(nodes);
+	fp.serializeNdVector(nodes);
 }
 
 void xbgFile::ProceduralNodes::registerMembers(MemberStructure& ms) {
@@ -725,7 +725,7 @@ void xbgFile::ProceduralNodes::SProceduralNode::registerMembers(MemberStructure&
 }
 
 void xbgFile::LOD::read(IBinaryArchive & fp) {
-	fp.serializeNdVectorExternal(meshes);
+	fp.serializeNdVector(meshes);
 }
 
 void xbgFile::LOD::registerMembers(MemberStructure & ms) {
@@ -831,11 +831,11 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	
 	//CBufferRenderResource::Create(Device3D::EBufferType 0, const IRenderResourceCommandTrackerDecoratorFactory & (addi r4, r27, unk_107D7CDA@l), unsigned long, unsigned long 1, const void *, bool 0, bool 0, unsigned long 0, bool, bool)
 	fp.pad(4);
-	fp.serializeNdVectorExternal_pod(vertexData);
+	fp.serializeNdVector_pod(vertexData);
 	
 	//CBufferRenderResource::Create(Device3D::EBufferType 1, const IRenderResourceCommandTrackerDecoratorFactory &, unsigned long, unsigned long, const void *, bool, bool, unsigned long, bool, bool)
 	fp.pad(4);
-	fp.serializeNdVectorExternal_pod(indexData);
+	fp.serializeNdVector_pod(indexData);
 
 	//Device3D::CBuffer::Create(Device3D::EBufferType, Device3D::EBufferUsage, unsigned long elementSize, unsigned long elementCount, const void * ptr, bool)
 }

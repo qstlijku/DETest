@@ -23,17 +23,6 @@ public:
 	uint32_t unk7;
 	//Game skips everything before this except magic and version
 
-	//CMaterialResource::LoadMaterial((void const *,ulong))
-	uint32_t size;
-	uint32_t size2;
-	uint32_t unk8; //00
-	uint32_t unk9; //00
-	uint32_t size3; //Repeat of size
-	uint32_t unk10; //00
-	uint32_t size4; //Repeat of size
-	uint32_t unk11; //00
-	uint32_t unk12; //00
-
 	std::string name;
 	std::string shaderName;
 

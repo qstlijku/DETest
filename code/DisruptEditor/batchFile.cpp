@@ -20,31 +20,19 @@ void crashFileHandler() {
 bool batchFile::open(IBinaryArchive &reader) {
 	size_t size = reader.size();
 
-	reader.memBlock(&head, sizeof(head), 1);
-	assert_file_crash(head.magic == 1112818504);
-	assert_file_crash(head.unk1 == 32);
-	assert_file_crash(head.type == 0 || head.type == 1);
-	if(reader.isReading())
-		assert_file_crash(head.size == size - sizeof(head));
-	assert_file_crash(head.unk4 == 0);
-	assert_file_crash(head.unk5 == 0);
-	assert_file_crash(head.unk6 == 0);
-	//assert_file_crash(head.unk7 == 0);
-	//assert_file_crash(head.unk8 == 0);
-	//assert_file_crash(head.unk9 == 0);
-	//assert_file_crash(head.unk10 == 0);
+	reader.serialize(head);
 
 	if (head.type == 0) {
 		//assert_file_crash(strstr(filename, "_compound.cbatch"));
 
-		reader.serialize(compound);
+		reader.markHeader();
 
 		//assert_file_crash(compound.unk3 == 0);
 
 		reader.serialize(srcFilename);
 
 		//Resources
-		reader.serializeNdVectorExternal(resources);
+		reader.serializeNdVector(resources);
 
 		reader.serialize(physicsFile.id);
 
@@ -73,8 +61,9 @@ bool batchFile::open(IBinaryArchive &reader) {
 
 	if (!reader.isReading()) {
 		//Go back and write the size, head.size
-		SDL_RWseek(reader.fp, 12, RW_SEEK_SET);
-		SDL_WriteLE32(reader.fp, SDL_RWsize(reader.fp) - sizeof(head));
+		SDL_RWseek(reader.fp, 0, RW_SEEK_SET);
+		head.size = SDL_RWsize(reader.fp) - sizeof(head);
+		reader.serialize(head);
 	}
 
 	return true;
@@ -207,7 +196,7 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(stride);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CProjectedDecalInfo, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-	fp.serializeNdVectorExternal(decals);
+	fp.serializeNdVector(decals);
 
 	fp.serialize(unk12);
 
@@ -246,7 +235,7 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 
 void batchFile::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(head);
-	REGISTER_MEMBER(compound);
+	REGISTER_MEMBER(srcFilename);
 	REGISTER_MEMBER(resources);
 	REGISTER_MEMBER(physicsFile);
 	REGISTER_MEMBER(componentMBP);
@@ -262,6 +251,20 @@ void batchFile::CBatchModelProcessorsAndResources::registerMembers(MemberStructu
 	REGISTER_MEMBER(processors);
 }
 
+void batchFile::batchHeader::read(IBinaryArchive& fp) {
+	fp.memBlock(this, sizeof(*this), 1);
+	assert_file_crash(magic == 1112818504);
+	assert_file_crash(unk1 == 32);
+	assert_file_crash(type == 0 || type == 1 || type == 2);
+	assert_file_crash(unk4 == 0);
+	assert_file_crash(unk5 == 0);
+	assert_file_crash(unk6 == 0);
+	//assert_file_crash(head.unk7 == 0);
+	//assert_file_crash(head.unk8 == 0);
+	//assert_file_crash(head.unk9 == 0);
+	//assert_file_crash(head.unk10 == 0);
+}
+
 void batchFile::batchHeader::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(magic);
 	REGISTER_MEMBER(unk1);
@@ -271,30 +274,6 @@ void batchFile::batchHeader::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk4);
 	REGISTER_MEMBER(unk5);
 	REGISTER_MEMBER(unk6);
-}
-
-void batchFile::compoundHeader::read(IBinaryArchive& fp) {
-	fp.serialize(unk1);
-	fp.serialize(unk2);
-	fp.serialize(unk3);
-	fp.serialize(unk4);
-	fp.serialize(bridgeSize);
-	fp.serialize(unk6);
-	fp.serialize(unk7);
-	fp.serialize(unk8);
-	fp.serialize(unk9);
-}
-
-void batchFile::compoundHeader::registerMembers(MemberStructure & ms) {
-	REGISTER_MEMBER(unk1);
-	REGISTER_MEMBER(unk2);
-	REGISTER_MEMBER(unk3);
-	REGISTER_MEMBER(unk4);
-	REGISTER_MEMBER(bridgeSize);
-	REGISTER_MEMBER(unk6);
-	REGISTER_MEMBER(unk7);
-	REGISTER_MEMBER(unk8);
-	REGISTER_MEMBER(unk9);
 }
 
 void batchFile::CComponentMultiBatchProcessor::registerMembers(MemberStructure & ms) {
@@ -394,7 +373,7 @@ void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBlackoutEffectBatchProcessor::SEffectPosAndAngle, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-	fp.serializeNdVector(posAndAngles, 495023964, unk3);
+	fp.serializeNdVectorExternal(posAndAngles, 495023964, unk3);
 
 	fp.serialize(hasBatchInstanceIDs);
 	if (hasBatchInstanceIDs) {
@@ -436,7 +415,7 @@ void batchFile::CParticlesBatchProcessor::read(IBinaryArchive& fp) {
 	}
 
 
-	fp.serializeNdVector(hdls, 0x16BB23DD, unk3);
+	fp.serializeNdVectorExternal(hdls, 0x16BB23DD, unk3);
 
 }
 
@@ -457,7 +436,7 @@ void batchFile::CDynamicLightBatchProcessor::read(IBinaryArchive& fp) {
 		batchedInstanceID.read(fp);
 	}
 
-	fp.serializeNdVector(sceneLight, 0xFB4B8BEB, unk1);
+	fp.serializeNdVectorExternal(sceneLight, 0xFB4B8BEB, unk1);
 }
 
 void batchFile::CDynamicLightBatchProcessor::registerMembers(MemberStructure& ms) {
@@ -473,12 +452,12 @@ void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(hasBatchInstanceIDs);
 	if (hasBatchInstanceIDs) {
 		//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchedInstanceID, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-		fp.serializeNdVectorExternal(batchedInstanceID);
+		fp.serializeNdVector(batchedInstanceID);
 	}
 
 
 	//CSceneLightEffectInstance = 0xEB07AAAC
-	fp.serializeNdVector(instances, 0xEB07AAAC, unk2);
+	fp.serializeNdVectorExternal(instances, 0xEB07AAAC, unk2);
 }
 
 void batchFile::CLightEffectBatchProcessor::registerMembers(MemberStructure& ms) {
@@ -505,7 +484,7 @@ void batchFile::CSecurityCameraBatchProcessor::read(IBinaryArchive& fp) {
 		arche.read(fp);
 		info.read(fp);
 		fp.serialize(unk8);
-		fp.serializeNdVector(objects, 0x91B64372, unk9);
+		fp.serializeNdVectorExternal(objects, 0x91B64372, unk9);
 	}
 }
 
@@ -579,7 +558,7 @@ void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(count);
 	if (count == 0) return;
 
-	fp.serializeNdVectorExternal(buildingResources);
+	fp.serializeNdVector(buildingResources);
 
 	CStringID buildingType("CBuilding");
 	fp.serialize(buildingType);
@@ -779,7 +758,7 @@ void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk7);
 		fp.serialize(unk8);
 		fp.serialize(unk9);
-		fp.serializeNdVector(trafficLights, 0x60E4849E, unk10);
+		fp.serializeNdVectorExternal(trafficLights, 0x60E4849E, unk10);
 	}
 }
 
@@ -814,7 +793,7 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk9);
 		fp.serialize(unk10);
 		fp.serialize(unk11);
-		fp.serializeNdVector(mediaObjects, 0x5193828E, mediaObjects_unk);
+		fp.serializeNdVectorExternal(mediaObjects, 0x5193828E, mediaObjects_unk);
 		fp.serialize(what);
 		if(what == 0)
 			fp.serialize(SDynamicIngredientPresetRef);

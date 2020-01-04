@@ -13,8 +13,8 @@ void WaterMeshes::open(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 
-	fp.serializeNdVectorExternal(indexes);
-	fp.serializeNdVectorExternal(meshes);
+	fp.serializeNdVector(indexes);
+	fp.serializeNdVector(meshes);
 }
 
 void WaterMeshes::WaterMeshIndexBuffer::read(IBinaryArchive& fp) {

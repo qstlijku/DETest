@@ -14,6 +14,7 @@
 #include <xbgFile.h>
 #include <SplineLoft.h>
 #include <glm\gtx\quaternion.hpp>
+#include <buildingBatchFile.h>
 
 World world;
 
@@ -246,8 +247,13 @@ void World::loaderThread() {
 					}
 				}
 
-				/*batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
-				if (building.lowGeom.id != -1) {
+				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
+				for (auto& it : building.buildingResources) {
+					//std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
+
+
+				}
+				/*if (building.lowGeom.id != -1) {
 					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
 
 					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk7);

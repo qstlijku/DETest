@@ -23,19 +23,6 @@ public:
 		uint32_t unk4;//0
 		uint32_t unk5;//0, Game Checks
 		uint32_t unk6;//0
-		void registerMembers(MemberStructure &ms);
-	};
-	struct compoundHeader {
-		uint32_t unk1;
-		uint32_t unk2;
-		uint32_t unk3;
-		uint32_t unk4;
-		uint32_t bridgeSize;
-		uint32_t unk6;
-
-		uint32_t unk7;
-		uint32_t unk8;
-		uint32_t unk9;
 		void read(IBinaryArchive& fp);
 		void registerMembers(MemberStructure &ms);
 	};
@@ -381,7 +368,6 @@ public:
 	
 #pragma pack(pop)
 	batchHeader head;
-	compoundHeader compound;
 	std::string srcFilename;
 	Vector<CResourceContainer> resources;
 	CPathID physicsFile;

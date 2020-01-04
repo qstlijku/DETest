@@ -59,16 +59,7 @@ bool materialFile::open(IBinaryArchive &fp) {
 	fp.serialize(unk7);
 	//Game skips the above
 
-	fp.serialize(size);
-	fp.serialize(size2);
-	fp.serialize(unk8);
-	fp.serialize(unk9);
-	fp.serialize(size3);
-	fp.serialize(unk10);
-	fp.serialize(size4);
-	fp.serialize(unk11);
-	fp.serialize(unk12);
-	//SDL_assert_release(size == size3 == size4);
+	fp.markHeader();
 
 	fp.serialize(name);
 	fp.serialize(shaderName);
@@ -84,10 +75,10 @@ bool materialFile::open(IBinaryArchive &fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<CMaterialResource::CGradient, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
 	if (fp.isReading()) {
 		if (fp.tell() != fp.size())
-			fp.serializeNdVectorExternal(gradients);
+			fp.serializeNdVector(gradients);
 	} else {
 		if (!gradients.empty()) {
-			fp.serializeNdVectorExternal(gradients);
+			fp.serializeNdVector(gradients);
 		}
 	}
 	
@@ -105,16 +96,6 @@ void materialFile::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(unk5);
 	REGISTER_MEMBER(unk6);
 	REGISTER_MEMBER(unk7);
-
-	REGISTER_MEMBER(size);
-	REGISTER_MEMBER(size2);
-	REGISTER_MEMBER(unk8); //00
-	REGISTER_MEMBER(unk9); //00
-	REGISTER_MEMBER(size3); //Repeat of size
-	REGISTER_MEMBER(unk10); //00
-	REGISTER_MEMBER(size4); //Repeat of size
-	REGISTER_MEMBER(unk11); //00
-	REGISTER_MEMBER(unk12); //00
 
 	REGISTER_MEMBER(name);
 	REGISTER_MEMBER(shaderName);
@@ -149,7 +130,7 @@ void materialFile::SInitSettings::registerMembers(MemberStructure & ms) {
 
 void materialFile::CGradient::read(IBinaryArchive & fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<ndVec_tpl<float, (int)4>, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
-	fp.serializeNdVectorExternal_pod(vecs);
+	fp.serializeNdVector_pod(vecs);
 
 	fp.serialize(id.id);
 	fp.serialize(unk1);

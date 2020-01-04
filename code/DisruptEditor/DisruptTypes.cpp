@@ -220,7 +220,7 @@ void CDynamicLightSettings::read(IBinaryArchive& fp) {
 	SDL_Log("Tell %u", fp.tell());
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CSceneLightClipPlane, NoLock, ndVectorPropertiesWrapper<ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, ndVectorAllowExternalCopyProperties>>]
-	fp.serializeNdVectorExternal(clipPlanes);
+	fp.serializeNdVector(clipPlanes);
 
 	fp.serialize(unk47);
 	fp.serialize(unk48);
@@ -317,7 +317,7 @@ void CSceneLightClipPlane::registerMembers(MemberStructure& ms) {
 }
 
 void CSceneLight::read(IBinaryArchive& fp) {
-	fp.serializeNdVector(clipPlanes, 2461405956, u1);
+	fp.serializeNdVectorExternal(clipPlanes, 2461405956, u1);
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
@@ -376,7 +376,7 @@ void CSceneLightEffect::read(IBinaryArchive& fp) {
 	SDL_Log("Tell: %u", fp.tell());
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<CLightEffectFlareElement, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
-	fp.serializeNdVectorExternal(flares);
+	fp.serializeNdVector(flares);
 
 	fp.serialize(effectType);
 	fp.serialize(sourceType);
@@ -511,7 +511,7 @@ void SSecurityCameraBatchArchetypeInformation::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 	fp.serialize(unk3);
 	fp.serialize(unk4);
-	fp.serializeNdVectorExternal_pod(unk5);
+	fp.serializeNdVector_pod(unk5);
 }
 
 void SSecurityCameraBatchArchetypeInformation::registerMembers(MemberStructure& ms) {
@@ -645,4 +645,98 @@ void CBuildingMaterialPaletteResource::read(IBinaryArchive& fp) {
 void CBuildingMaterialPaletteResource::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(file);
 	REGISTER_MEMBER(type);
+}
+
+void ClusterData::read(IBinaryArchive& fp) {
+	fp.serialize(format);
+
+	uint32_t count = data.size();
+	fp.serialize(count);
+	data.resize(count);
+
+	//T1 *SerializeInPlace<T1>(IBinaryArchive &, T1 *, count * ComputeStride(format), 0, 0) [with T1=unsigned char]
+	uint32_t byteSize = count * ComputeStride(format);
+	std::vector<uint8_t> byteData(byteSize);
+
+	//Convert to compressed hell
+	{
+		uint8_t* ptr = byteData.data();
+		for (uint32_t i = 0; i < count; ++i) {
+			if ((1 & format) != 0) {
+				memcpy(ptr, data[i].matrix, 32);
+				ptr += 32;
+			}
+			if ((2 & format) != 0) {//SwapPositionRotZTransform, float3 ushort2
+				memcpy(ptr, &data[i].pos, 16);
+				ptr += 16;
+			}
+			if ((4 & format) != 0) {//SwapFacadeInfo, 2 ushorts
+				memcpy(ptr, data[i].facade, 4);
+				ptr += 4;
+			}
+			if ((8 & format) != 0) {//U32
+				memcpy(ptr, &data[i].unk1, 4);
+				ptr += 4;
+			}
+			if ((64 & format) != 0) {//Unknown
+				memcpy(ptr, &data[i].unk2, 4);
+				ptr += 4;
+			}
+		}
+	}
+
+	fp.memBlockInPlace(byteData.data(), 1, byteData.size());
+
+	//Convert to You know what
+	{
+		uint8_t* ptr = byteData.data();
+		for (uint32_t i = 0; i < count; ++i) {
+			if ((1 & format) != 0) {
+				memcpy(data[i].matrix, ptr, 32);
+				ptr += 32;
+			}
+			if ((2 & format) != 0) {//SwapPositionRotZTransform, float3 ushort2
+				memcpy(&data[i].pos, ptr, 16);
+				ptr += 16;
+			}
+			if ((4 & format) != 0) {//SwapFacadeInfo, 2 ushorts
+				memcpy(data[i].facade, ptr, 4);
+				ptr += 4;
+			}
+			if ((8 & format) != 0) {//U32
+				memcpy(&data[i].unk1, ptr, 4);
+				ptr += 4;
+			}
+			if ((64 & format) != 0) {//Unknown
+				memcpy(&data[i].unk2, ptr, 4);
+				ptr += 4;
+			}
+		}
+	}
+}
+
+uint32_t ClusterData::ComputeStride(uint16_t format) {
+	uint32_t uVar1 = 0;
+	if ((1 & format) != 0) {//SwapCompressedMatrix, 16 ushorts
+		uVar1 = 32;
+	}
+	if ((2 & format) != 0) {//SwapPositionRotZTransform, float3 ushort2
+		uVar1 = uVar1 + 16;
+	}
+	if ((4 & format) != 0) {//SwapFacadeInfo, 2 ushorts
+		uVar1 = uVar1 + 4;
+	}
+	if ((8 & format) != 0) {//U32
+		uVar1 = uVar1 + 4;
+	}
+	if ((16 & format) != 0) {//NOP
+		uVar1 = uVar1 + 0;
+	}
+	if ((32 & format) != 0) {//NOP
+		uVar1 = uVar1 + 0;
+	}
+	if ((64 & format) != 0) {//Unknown
+		uVar1 = uVar1 + 4;
+	}
+	return uVar1;
 }

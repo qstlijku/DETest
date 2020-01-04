@@ -6,7 +6,7 @@ void RoadNetwork::read(IBinaryArchive& fp) {
 
 	//CRoadNetworkManager::SerializeRoadNetworkLowRes
 	//SerializeRoadNetworkVehicleDensitySelectors
-	fp.serializeNdVectorExternal(densities);
+	fp.serializeNdVector(densities);
 }
 
 void RoadNetwork::CVehicleDensitySelector::read(IBinaryArchive& fp) {
