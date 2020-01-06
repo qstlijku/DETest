@@ -70,7 +70,7 @@ public:
 	dd::GlyphTextureHandle createGlyphTexture(int width, int height, const void * pixels);
 	void destroyGlyphTexture(dd::GlyphTextureHandle glyphTex);
 
-	bool CreateDeviceD3D(HWND hWnd);
+	void CreateDeviceD3D(HWND hWnd);
 	void CreateRenderTarget();
 
 	//

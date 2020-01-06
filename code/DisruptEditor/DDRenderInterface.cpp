@@ -21,10 +21,7 @@ RenderInterface::RenderInterface() {
 	SDL_VERSION(&info.version);
 	SDL_GetWindowWMInfo(window, &info);
 
-	if (!CreateDeviceD3D(info.info.win.window)) {
-		//CleanupDeviceD3D();
-		exit(1);
-	}
+	CreateDeviceD3D(info.info.win.window);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -142,7 +139,7 @@ void RenderInterface::CreateRenderTarget() {
 	pBackBuffer->Release();
 }
 
-bool RenderInterface::CreateDeviceD3D(HWND hWnd) {
+void RenderInterface::CreateDeviceD3D(HWND hWnd) {
 	// Setup swap chain
 	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
@@ -164,11 +161,15 @@ bool RenderInterface::CreateDeviceD3D(HWND hWnd) {
 	//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	D3D_FEATURE_LEVEL featureLevel;
 	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_1, };
-	if (D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 1, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext) != S_OK)
-		return false;
+	HRESULT ret = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 1, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext);
+
+	if (ret != S_OK) {
+		char buf[255];
+		snprintf(buf, sizeof(buf), "D3D11CreateDeviceAndSwapChain ret:%08x", ret);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed D3D11CreateDeviceAndSwapChain", buf, NULL);
+	}
 
 	CreateRenderTarget();
-	return true;
 }
 
 void RenderInterface::beginDraw() {
