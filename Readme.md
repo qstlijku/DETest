@@ -4,14 +4,14 @@
 
 You can download stable builds from the [Releases](https://github.com/j301scott/DisruptEditor/releases) Page
 
-You can also download unstable builds from GitHub [Actions](https://github.com/j301scott/DisruptEditor/actions)
+You can also download unstable builds from [AppVeyor](https://ci.appveyor.com/project/j301scott/disrupteditor/history)
 
 # Setup
 Run Disrupt Editor, it will first prompt you for where the Watch_Dogs.exe file is
 
 # Documentation
 
-Documentation is located on the [Wiki](https://github.com/j301scott/DisruptEditor/wiki)
+Documentation is located [here](https://jonathanscott.me/disrupt-editor/)
 
 # Building
 
