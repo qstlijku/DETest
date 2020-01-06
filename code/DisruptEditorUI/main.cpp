@@ -111,22 +111,42 @@ int main(int argc, char **argv) {
 			if (!it.second.Children.empty()) continue;
 
 			std::string filename = "graphics\\_materials\\" + it.second.Key;
-			SDL_RWops* fp = FH::openFile(filename.c_str());
+			SDL_RWops* fp = FH::openFile(filename.c_str(), true);
 			if (fp) {
+				SDL_Log("Size: %u", SDL_RWsize(fp));
+
+				{
+					SDL_RWops* fpo = FH::openFileWrite((filename + ".orig").c_str());
+					for (int i = 0; i < SDL_RWsize(fp); ++i)
+						SDL_WriteU8(fpo, SDL_ReadU8(fp));
+					SDL_RWclose(fpo);
+					SDL_RWseek(fp, 0, RW_SEEK_SET);
+				}
+
 				CBinaryArchiveReader reader(fp);
 				materialFile mat;
 				mat.open(reader);
 				SDL_assert_release(SDL_RWtell(fp) == SDL_RWsize(fp));
+				SDL_assert_release(SDL_RWsize(fp) % 16 == 0);
+
+				SDL_Log("%08x %08x %08x %08x %08x %08x %08x %08x %08x %s", reader.header.inPlaceOffset, reader.header.unk2, reader.header.unk3, reader.header.unk4, reader.header.unk5, reader.header.unk6, reader.header.unk7, reader.header.unk8, reader.header.unk9, filename.c_str());
+
+				SDL_RWops* fpo = FH::openFileWrite(filename.c_str());
+				CBinaryArchiveWriter writer(fpo);
+				mat.open(writer);
+				SDL_Log("NewSize: %u", SDL_RWsize(fpo));
+				SDL_assert_release(SDL_RWsize(fpo) == SDL_RWsize(fp));
+				SDL_RWclose(fpo);
 				SDL_RWclose(fp);
 
-				SDL_Log("%08x %08x %08x %08x %08x %08x %08x %08x %08x %s", reader.header.unk1, reader.header.unk2, reader.header.unk3, reader.header.unk4, reader.header.unk5, reader.header.unk6, reader.header.unk7, reader.header.unk8, reader.header.unk9, filename.c_str());
+				SDL_assert_release(reader.header == writer.header);
 			}
 		}
 		return 0;
 		
 	}
 #endif
-#if 1
+#if 0
 	{
 		FH::Init();
 		SDL_RWops* fp = FH::openFileHash(0x49637b42);

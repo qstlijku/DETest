@@ -78,12 +78,14 @@ Vector<FileInfo> FH::getFileListFromAbsDir(const std::string & fullDir, const st
 	return outFiles;
 }
 
-SDL_RWops * FH::openFile(const char *path) {
+SDL_RWops * FH::openFile(const char *path, bool byPassPatch) {
 	//Check if file in patch dir exists
-	char fullPath[512];
-	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
-	if (std::filesystem::exists(fullPath))
-		return SDL_RWFromFile(fullPath, "rb");
+	if (!byPassPatch) {
+		char fullPath[512];
+		snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
+		if (std::filesystem::exists(fullPath))
+			return SDL_RWFromFile(fullPath, "rb");
+	}
 
 	//Return by hash
 	for (auto& it : dats) {
@@ -94,12 +96,14 @@ SDL_RWops * FH::openFile(const char *path) {
 	return NULL;
 }
 
-SDL_RWops * FH::openFileHash(CPathID path) {
-	std::string dbPath = DB::instance().getFileByHash(path);
-	char fullPath[512];
-	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), dbPath.c_str());
-	if (std::filesystem::exists(fullPath))
-		return SDL_RWFromFile(fullPath, "rb");
+SDL_RWops * FH::openFileHash(CPathID path, bool byPassPatch) {
+	if (!byPassPatch) {
+		std::string dbPath = DB::instance().getFileByHash(path);
+		char fullPath[512];
+		snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), dbPath.c_str());
+		if (std::filesystem::exists(fullPath))
+			return SDL_RWFromFile(fullPath, "rb");
+	}
 
 	for (auto& it : dats) {
 		SDL_RWops* fp = it.openRead(path);

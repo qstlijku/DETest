@@ -10,7 +10,7 @@ void xbgMipFile::open(IBinaryArchive & fp) {
 	SDL_assert_release(magic == 1196247376);
 
 	uint32_t one = 1;
-	fp.serialize(unk1);
+	fp.serialize(one);
 	SDL_assert_release(one == 1);
 
 	fp.serialize(unk1);

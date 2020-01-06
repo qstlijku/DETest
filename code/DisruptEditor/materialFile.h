@@ -41,7 +41,7 @@ public:
 	SInitSettings initSettings;
 
 	struct SCommand {
-		uint8_t type;
+		uint8_t type = 0;
 
 		//Only for types greater than 10?
 		uint8_t unk1 = 0;

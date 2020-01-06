@@ -192,7 +192,6 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 
 	materialSlots.read(fp);
 
-
 	fp.serialize(stride);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CProjectedDecalInfo, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]

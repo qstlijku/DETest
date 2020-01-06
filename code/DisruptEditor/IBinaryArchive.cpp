@@ -1,5 +1,6 @@
 #include "IBinaryArchive.h"
 #include "FileHandler.h"
+#include <SDL_log.h>
 
 template <typename T>
 static void serializePOD(IBinaryArchive &fp, T &value) {
@@ -108,10 +109,16 @@ void IBinaryArchive::serialize(glm::mat4& value) {
 }
 
 void IBinaryArchive::serialize(std::string& value) {
-	uint32_t len = (uint32_t)value.size() + 1;
+	uint32_t len = (uint32_t)value.size();
 	serialize(len);
-	value.resize(len, '\0');
-	memBlock(value.data(), 1, len);
+
+	if (isReading()) {
+		std::vector<char> data(len + 1);
+		memBlock(data.data(), 1, len);
+		value = data.data();
+	} else {
+		memBlock(value.data(), 1, value.size());
+	}
 }
 
 size_t IBinaryArchive::size() {
@@ -139,8 +146,6 @@ void IBinaryArchive::Header::read(IBinaryArchive& fp) {
 	fp.serialize(unk8);
 	fp.serialize(unk9);
 
-	SDL_assert_release(inPlaceOffset == unk2 || inPlaceOffset == unk5);
-
 	SDL_assert_release(unk5 == unk7);//Size of header + non-inplace serialized data
 
 	SDL_assert_release(unk4 == 0);
@@ -163,7 +168,7 @@ void CBinaryArchiveReader::pad(size_t padding) {
 	Vector<uint8_t> data(seek);
 	memBlock(data.data(), 1, seek);
 	for (Sint64 i = 0; i < seek; ++i)
-		SDL_assert(data[i] == 0);
+		SDL_assert_release(data[i] == 0);
 	offset = SDL_RWtell(fp);
 }
 
@@ -183,8 +188,22 @@ void CBinaryArchiveReader::memBlockInPlace(void* ptr, size_t objSize, size_t obj
 }
 
 void CBinaryArchiveReader::markHeader() {
+	pad(16);
 	serialize(header);
-	inPlaceOffset = header.inPlaceOffset + 0x2f & 0xfffffff0;
+	inPlaceOffset = header.inPlaceOffset + beginOffset;
+}
+
+void CBinaryArchiveReader::finish() {
+	SDL_Log("end read at %u", SDL_RWtell(fp));
+
+	size_t padding = 16;
+	size_t size = SDL_RWtell(fp) - beginOffset;
+	size_t seek = (padding - (size % padding)) % padding;
+
+	Vector<uint8_t> data(seek);
+	memBlock(data.data(), 1, seek);
+	for (Sint64 i = 0; i < seek; ++i)
+		SDL_assert_release(data[i] == 0);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {
@@ -208,9 +227,6 @@ void CBinaryArchiveWriter::memBlock(void* ptr, size_t objSize, size_t objCount) 
 	size_t ret = SDL_RWwrite(fp, ptr, objSize, objCount);
 	SDL_assert_release(ret == objCount);
 	offset = SDL_RWtell(fp);
-
-	if (headerOffset > 0)
-		dataSize += objSize + objCount;
 }
 
 void CBinaryArchiveWriter::memBlockInPlace(void* ptr, size_t objSize, size_t objCount) {
@@ -218,23 +234,36 @@ void CBinaryArchiveWriter::memBlockInPlace(void* ptr, size_t objSize, size_t obj
 }
 
 void CBinaryArchiveWriter::markHeader() {
+	pad(16);
 	headerOffset = SDL_RWtell(fp);
 	IBinaryArchive::Header header;
 	serialize(header);
 }
 
 void CBinaryArchiveWriter::finish() {
-	if (headerOffset > 0) {
-		//Write Inplace Data
-		pad(16);
-		SDL_RWwrite(fp, inPlaceData.data(), 1, inPlaceData.size());
+	if (headerOffset >= 0) {
+		header.inPlaceOffset = SDL_RWtell(fp) - beginOffset;
+
+		//Write Padding
+		size_t padding = 16;
+		size_t size = SDL_RWtell(fp) - beginOffset;
+		size_t seek = (padding - (size % padding)) % padding;
+		SDL_Log("Unpadded Size: %u", SDL_RWtell(fp));
+		SDL_Log("Pad: %u", seek);
+		char temp[64] = { 0 };
+		SDL_RWwrite(fp, temp, 1, seek);
 
 		//TODO: Write back correct Header
-		IBinaryArchive::Header header;
-		header.inPlaceOffset = dataSize;
-		header.unk5 = header.unk7 = dataSize;
+		header.unk2 = SDL_RWtell(fp) - headerOffset;
+		header.unk5 = header.unk7 = header.inPlaceOffset;
+
+		SDL_RWwrite(fp, inPlaceData.data(), 1, inPlaceData.size());
 
 		SDL_RWseek(fp, headerOffset, RW_SEEK_SET);
 		serialize(header);
 	}
+}
+
+bool operator==(const IBinaryArchive::Header& lhs, const IBinaryArchive::Header& rhs) {
+	return memcmp(&lhs, &rhs, sizeof(lhs)) == 0;
 }

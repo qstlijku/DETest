@@ -47,6 +47,8 @@ void materialFile::bind(ID3D11DeviceContext* context) {
 }
 
 bool materialFile::open(IBinaryArchive &fp) {
+	fp.beginOffset = 0x20;
+
 	fp.serialize(magic);
 	SDL_assert_release(magic == 5062996);
 	fp.serialize(version);
@@ -81,8 +83,8 @@ bool materialFile::open(IBinaryArchive &fp) {
 			fp.serializeNdVector(gradients);
 		}
 	}
-	
-	fp.pad(16);
+
+	fp.finish();
 
 	return true;
 }
@@ -181,6 +183,8 @@ void materialFile::SCommand::read(IBinaryArchive & fp) {
 	case 11:
 		fp.serialize(unks11.id);
 		fp.serialize(unks11_2);
+		break;
+	case 0:
 		break;
 	default:
 		SDL_assert_release(false);

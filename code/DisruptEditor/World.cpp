@@ -219,7 +219,7 @@ void World::loaderThread() {
 			}
 
 			//Draw Batch
-#if 1
+#if 0
 			if (entityPtr->get<CStringID>("hidEntityClass") == CStringID("CBatchMeshEntity")) {
 				Attribute* ExportPath = entityPtr->getAttribute("ExportPath");
 				std::string compound = (char*)ExportPath->buffer.data();
@@ -227,7 +227,7 @@ void World::loaderThread() {
 				compound += "_Compound.cbatch";
 
 				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
-				auto& component = batch->componentMBP;
+				/*auto& component = batch->componentMBP;
 				for (auto& it : component.batchProcessors) {
 					for (auto& it : it.processors) {
 						auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
@@ -245,7 +245,7 @@ void World::loaderThread() {
 							model->draw(pDeferredContext);
 						}
 					}
-				}
+				}*/
 
 				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
 				for (auto& it : building.buildingResources) {

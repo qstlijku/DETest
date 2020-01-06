@@ -17,10 +17,9 @@ void SplineLoftHiRes::open(IBinaryArchive& fp) {
 
 	fp.markHeader();
 
-	/*fp.serializeNdVectorExternal(networkRegionResources);
+	/*fp.serializeNdVectorExternal(networkRegionResources, CStringID("CSplineNetworkRegionResourceEntry").id, unk2);
 
 	fp.serialize(lowRes);*/
-
 }
 
 void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
@@ -99,13 +98,17 @@ void CSceneSplineLoftRegion::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
-	fp.serializeNdVector(splines);
+	fp.serializeNdVectorExternal(splines, CStringID("CSpline").id, splineUnk);
 	fp.serialize(unk4);
 }
 
 void CSplineNetworkRegionResourceEntry::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	if (!unk1) return;
+
+	CStringID CSceneSplineLoftRegion("CSceneSplineLoftRegion");
+	fp.serialize(CSceneSplineLoftRegion);
+	SDL_assert_release(CSceneSplineLoftRegion == CStringID("CSceneSplineLoftRegion"));
 
 	fp.serialize(loftReigon);
 	fp.serializeNdVector(primitiveDesc);

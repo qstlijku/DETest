@@ -9,10 +9,11 @@
 
 class CSplineControlPoint {
 public:
-	glm::vec3 unk1;
 	glm::vec4 unk2;//quat
+	glm::vec3 unk1;
 	float unk3;
 	uint32_t unk4;
+	uint32_t pad;
 	float unk5;
 	float unk6;
 	void read(IBinaryArchive& fp);
@@ -33,7 +34,10 @@ public:
 	glm::vec2 unk1;
 	float unk2;
 	uint32_t unk3;
+
 	Vector<CSpline> splines;
+	uint32_t splineUnk;
+
 	uint32_t unk4;
 
 	void read(IBinaryArchive& fp);
@@ -78,6 +82,7 @@ public:
 	Vector<uint16_t> indexData;
 	std::shared_ptr<IndexBuffer> index;
 
+	uint32_t unk2;
 	Vector<CSplineNetworkRegionResourceEntry> networkRegionResources;
 
 	CPathID lowRes;

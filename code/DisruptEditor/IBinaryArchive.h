@@ -63,8 +63,8 @@ public:
 	size_t getPadSize(size_t padding);
 
 	virtual void markHeader() = 0;
-protected:
-	Sint64 offset = 0;//Usefull for debugging
+	virtual void finish() = 0;
+
 	struct Header {
 		uint32_t inPlaceOffset = 0;//Padded out to 16
 		uint32_t unk2 = 0;//Unused.
@@ -79,15 +79,21 @@ protected:
 		uint32_t unk9 = 0;
 		void read(IBinaryArchive& fp);
 	};
+	IBinaryArchive::Header header;
+
+	uint32_t beginOffset = 0;
+
+protected:
+	Sint64 offset = 0;//Usefull for debugging
 };
 
+bool operator==(const IBinaryArchive::Header& lhs, const IBinaryArchive::Header& rhs);
 
 class CBinaryArchiveReader : public IBinaryArchive {
 public:
 	CBinaryArchiveReader(SDL_RWops* _fp);
 	~CBinaryArchiveReader() {}
 
-	IBinaryArchive::Header header;
 	Sint64 inPlaceOffset = -1;
 
 	bool isReading() const;
@@ -95,6 +101,7 @@ public:
 	void memBlock(void* ptr, size_t objSize, size_t objCount);
 	void memBlockInPlace(void* ptr, size_t objSize, size_t objCount);
 	void markHeader();
+	void finish();
 };
 
 class CBinaryArchiveWriter : public IBinaryArchive {
@@ -103,7 +110,6 @@ public:
 	~CBinaryArchiveWriter();
 
 	int64_t headerOffset = -1;
-	int64_t dataSize = 0;
 	std::vector<uint8_t> inPlaceData;
 
 	bool isReading() const;

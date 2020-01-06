@@ -16,8 +16,8 @@ namespace FH {
 	Vector<FileInfo> getFileList(const std::string &dir, const std::string &extFilter = std::string());
 	Vector<FileInfo> getFileListFromAbsDir(const std::string &dir, const std::string &extFilter = std::string());
 
-	SDL_RWops* openFile(const char *path);
-	SDL_RWops* openFileHash(CPathID hash);
+	SDL_RWops* openFile(const char *path, bool byPassPatch = false);
+	SDL_RWops* openFileHash(CPathID hash, bool byPassPatch = false);
 
 	bool fileExists(const char* path);
 	std::string getFileLocations(const char* path);
