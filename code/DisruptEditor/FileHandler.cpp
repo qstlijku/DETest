@@ -148,8 +148,7 @@ SDL_RWops* FH::openFileWrite(const std::string& path) {
 	//Create parent directories
 	std::size_t found = fullPath.find_last_of("/\\");
 	std::string parentDir = fullPath.substr(0, found);
-	bool ret = std::filesystem::create_directories(parentDir);
-	SDL_assert_release(ret);
+	std::filesystem::create_directories(parentDir);
 
 	return SDL_RWFromFile(fullPath.c_str(), "wb");
 }
