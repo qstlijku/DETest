@@ -42,5 +42,6 @@ public:
 	std::unordered_map<uint32_t, uint32_t> dareBaoList;
 	void handleCRCFile(const char* file, const char* type);
 	void handleFNVFile(const char* file);
+	void addFNVEntry(const char* file);
 };
 

@@ -95,7 +95,11 @@ SDL_RWops * FH::openFile(const char *path) {
 }
 
 SDL_RWops * FH::openFileHash(CPathID path) {
-	//TODO, check if patch exists
+	std::string dbPath = DB::instance().getFileByHash(path);
+	char fullPath[512];
+	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), dbPath.c_str());
+	if (std::filesystem::exists(fullPath))
+		return SDL_RWFromFile(fullPath, "rb");
 
 	for (auto& it : dats) {
 		SDL_RWops* fp = it.openRead(path);

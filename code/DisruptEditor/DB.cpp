@@ -3,6 +3,8 @@
 #include "Hash.h"
 #include "SDL.h"
 #include "FileHandler.h"
+#include <filesystem>
+#include <Common.h>
 
 void NodeEntryCollection::AddEntry(std::string sEntry, int wBegIndex) {
 	if (wBegIndex < sEntry.size()) {
@@ -98,6 +100,17 @@ void DB::reinit() {
 		dareBaoList[sbao] = spk;
 	}
 	fclose(fp);
+
+	//Scan the Patch Dir
+	try {
+		for (auto& p : std::filesystem::recursive_directory_iterator(settings.patchDir)) {
+			if (p.is_regular_file()) {
+				std::string path = p.path().generic_string();
+				std::replace(path.begin(), path.end(), '/', '\\');
+				addFNVEntry(path.c_str() + settings.patchDir.size());
+			}
+		}
+	} catch (...) {}
 }
 
 DB & DB::instance() {
@@ -129,13 +142,16 @@ void DB::handleFNVFile(const char* file) {
 	char line[512];
 	while (fgets(line, sizeof(line), fp)) {
 		line[strlen(line) - 1] = '\0';
-
-		CPathID path(line);
-		fnvList[path] = line;
-
-		if(FH::fileExists(line))
-			root.AddEntry(line);
+		addFNVEntry(line);
 	}
 
 	fclose(fp);
+}
+
+void DB::addFNVEntry(const char* file) {
+	CPathID path(file);
+	fnvList[path] = file;
+
+	if (FH::fileExists(file))
+		root.AddEntry(file);
 }
