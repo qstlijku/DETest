@@ -9,3 +9,4 @@ for /f "usebackq tokens=*" %%i in (`%cd%/tools/win/vswhere.exe -latest -requires
 
 "%MSBUILDDIR%" "%cd%/build/DisruptEditor.sln" /p:Configuration=Release
 
+7z a DisruptEditor.zip .\bin\Release\*
