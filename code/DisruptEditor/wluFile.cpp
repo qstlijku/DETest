@@ -36,6 +36,21 @@ bool wluFile::open(SDL_RWops* fp) {
 		isWD2 = true;
 	}
 
+	//Read CityLifeObjects
+	Node* CityLifeObjects = root.findFirstChild("CityLifeObjects");
+	if (CityLifeObjects) {
+		Attribute* CCityLifeObjectManagerData = CityLifeObjects->getAttribute("CCityLifeObjectManagerData");
+		if (CCityLifeObjectManagerData) {
+			uint32_t InPlaceOffset = CityLifeObjects->getAttrValue<uint32_t>("InPlaceOffset");
+			SDL_RWops* cloFP = SDL_RWFromConstMem(CCityLifeObjectManagerData->buffer.data(), CCityLifeObjectManagerData->buffer.size());
+			CBinaryArchiveReader reader(cloFP);
+			reader.markHeader();
+			reader.markInPlaceOffset(InPlaceOffset);
+			cityLifeObjectManagerData.read(reader);
+			SDL_RWclose(cloFP);
+		}
+	}
+
 	return ret;
 }
 
@@ -249,8 +264,8 @@ void wluFile::draw(bool drawImgui) {
 		char imguiHash[512];
 		Attribute *hidName = entity.getAttribute("hidName");
 		Attribute *hidPos = entity.getAttribute("hidPos");
-		glm::vec3 &pos = entity.get<glm::vec3>("hidPos");
-		glm::vec3 &angles = entity.get<glm::vec3>("hidAngles");
+		glm::vec3 pos = entity.getAttrValue<glm::vec3>("hidPos");
+		glm::vec3 angles = entity.getAttrValue<glm::vec3>("hidAngles");
 		float scale[3] = { 1.f };
 		glm::mat4 matrix;
 
@@ -259,6 +274,8 @@ void wluFile::draw(bool drawImgui) {
 		ImGuizmo::RecomposeMatrixFromComponents(&pos.x, &angles.x, scale, &matrix[0][0]);
 		EditTransform(&renderInterface.sceneCB.View[0][0], &renderInterface.sceneCB.Projection[0][0], &matrix[0][0]);
 		ImGuizmo::DecomposeMatrixToComponents(&matrix[0][0], &pos.x, &angles.x, scale);
+		entity.setAttrValue<glm::vec3>("hidPos", pos);
+		entity.setAttrValue<glm::vec3>("hidAngles", angles);
 		ImGui::Separator();
 
 		//Iterate through Entity Attributes

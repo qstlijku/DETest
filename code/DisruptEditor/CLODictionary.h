@@ -43,13 +43,67 @@ struct CCityLifeObjectData {
 	void read(IBinaryArchive& fp);
 };
 
+struct ECLOTriggeredBhvType {
+	void read(IBinaryArchive& fp);
+};
+
+struct ECLOTriggeredBhv_RaycastCheckType {
+	void read(IBinaryArchive& fp);
+};
+
+struct ECLOConversationRole {
+	void read(IBinaryArchive& fp);
+};
+
 struct CCityLifeSingleObjectData {
 	CCityLifeObjectData objectData;
 	bool unk1;
 
+	//if unk1
 	uint32_t Layer;//0x80
 	bool unk2;
 	bool unk3;
+
+	//if WTF?
+	bool unk4;
+	bool unk5;
+	struct SCityLifeObjectProximityBhvSettings {
+		float unk1;
+		float unk2;
+		glm::vec3 unk3;
+		float unk4;
+		float unk5;
+		float unk6;
+		float unk7;
+		float unk8;
+		float unk9;
+
+		void read(IBinaryArchive& fp);
+	};
+	SCityLifeObjectProximityBhvSettings unk6;
+
+	bool unk7;
+
+	std::string unk8;
+
+	bool unk9;
+
+	ECLOTriggeredBhvType unk10;
+	float unk11;
+	float unk12;
+	ECLOTriggeredBhv_RaycastCheckType unk13;
+
+	bool unk14;
+	struct SVigilanteSettings {
+		uint32_t unk1;
+		uint32_t unk2;
+		uint32_t unk3;
+		uint32_t unk4;
+		ECLOConversationRole unk5;
+
+		void read(IBinaryArchive& fp);
+	};
+	SVigilanteSettings unk15;
 
 	void read(IBinaryArchive& fp);
 };
@@ -555,24 +609,31 @@ struct CEnticerNPCData {
 
 template <typename T>
 struct CCityLifeObjectDataDictionary {
-	uint32_t version;
-	Vector<uint32_t> unk1;
+	uint32_t unk2;
+	Vector<uint32_t> unk3;
+	uint8_t count = 0;
+	Vector<uint8_t> unkData;
 	Vector<T> elements;
 	void read(IBinaryArchive& fp) {
 		uint32_t elementCount = elements.size();
 		fp.serialize(elementCount);
 		elements.resize(elementCount);
 
-		fp.serialize(version);
-		fp.serializeNdVector_pod(unk1);
+		fp.serialize(unk2);
+		fp.serializeNdVector_pod(unk3);
 
-		uint8_t count = 0;
 		fp.serialize(count);
-		while (count) {
-			fp.serialize(count);
-			count--;
-			count &= 0xFF;
+		//Counts down from count
+		uint8_t i = count;
+		while (i) {
+			fp.serialize(i);
+			i--;
+			i &= 0xFF;
 		}
+
+		//What?
+		unkData.resize(elementCount);
+		fp.memBlock(unkData.data(), elementCount, 1);
 
 		for (uint32_t i = 0; i < elementCount; ++i)
 			fp.serialize(elements[i]);
@@ -581,12 +642,16 @@ struct CCityLifeObjectDataDictionary {
 
 class CLODataDictionaries {
 public:
+	CLODataDictionaries();
+
 	//CLODataDictionaries::SerializeDictionaries((IBinaryArchive &))
 	void read(IBinaryArchive& fp);
 
+	static CLODataDictionaries& instance();
+
 	uint32_t version;
 	CCityLifeObjectDataDictionary<CEnticerData> enticerData;//TODO
-	CCityLifeObjectDataDictionary<CEnticerNPCData> enticerNPCData;
+	CCityLifeObjectDataDictionary<CEnticerNPCData> enticerNPCData;//TODO
 	CCityLifeObjectDataDictionary<CAttractorData> enticerAttractorData;//TODO
 	CCityLifeObjectDataDictionary<CEnticerVehicleData> enticerVehicleData;//Might be wrong
 	CCityLifeObjectDataDictionary<CNavigationHelperData> navigationHelperData;
@@ -622,7 +687,41 @@ class CCityLifeDataAndStateHandler {
 public:
 	void read(IBinaryArchive& fp);
 
-	CPathID unk1;
+	CPathID wlu; // eg. worlds\windy_city\generated\wlu\wlu_data_near205.xml.data.fcb
 	std::vector<SCityLifeObjectInstanceDataArrays> instances;
-	uint32_t unk3;
+	struct InPlaceData {
+		uint32_t field_0x0;
+		uint32_t field_0x4;
+		uint32_t field_0x8;
+		uint32_t field_0xc;
+		uint32_t field_0x10;
+		uint8_t unk_0x14;
+		uint8_t unk_0x15;
+		uint8_t unk_0x16;
+		uint8_t unk_0x17;
+		uint32_t unk_0x18;
+		uint32_t unk_0x1c;
+		uint32_t field_0x20;
+		uint32_t field_0x24;
+		uint32_t field_0x28;
+		uint8_t unk_0x2c;
+		uint8_t unk_0x2d;
+		uint8_t unk_0x2e;
+		uint8_t unk_0x2f;
+		uint32_t field_0x30;
+		uint32_t field_0x34;
+		uint32_t field_0x38;
+		uint32_t unk_0x3c;
+		uint16_t field_0x40;
+		uint16_t field_0x42;
+		uint16_t field_0x44;
+		uint8_t field_0x46;
+		uint8_t unk_0x47;
+		uint32_t field_0x48;
+		uint8_t unk_0x4c;
+		uint8_t unk_0x4d;
+		uint8_t unk_0x4e;
+		uint8_t unk_0x4f;
+	};
+	std::vector<InPlaceData> inPlaceData;
 };

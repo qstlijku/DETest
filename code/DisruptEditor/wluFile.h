@@ -7,6 +7,7 @@
 #include "NBCF.h"
 #include <d3d11.h>
 #include "DDRenderInterface.h"
+#include <CLODictionary.h>
 
 class IBinaryArchive;
 
@@ -40,6 +41,7 @@ public:
 	void draw(bool drawImgui = false);
 	
 	Node root;
+	CCityLifeDataAndStateHandler cityLifeObjectManagerData;
 
 	std::string shortName; //ex. wlu_data_01_loop_vigilante_01.xml.data.fcb
 

@@ -88,8 +88,8 @@ void UI::displayWLU() {
 					Node& entity = *entityPtr;
 
 					Attribute* hidName = entity.getAttribute("hidName");
-					glm::vec3& pos = entity.get<glm::vec3>("hidPos");
-					glm::vec3& angles = entity.get<glm::vec3>("hidAngles");
+					glm::vec3 pos = entity.getAttrValue<glm::vec3>("hidPos");
+					glm::vec3 angles = entity.getAttrValue<glm::vec3>("hidAngles");
 
 					//
 					Node* hidBBox = entity.findFirstChild("hidBBox");

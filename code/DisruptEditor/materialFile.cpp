@@ -76,12 +76,13 @@ bool materialFile::open(IBinaryArchive &fp) {
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<CMaterialResource::CGradient, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
 	if (fp.isReading()) {
-		if (fp.tell() != fp.size())
-			fp.serializeNdVector(gradients);
-	} else {
-		if (!gradients.empty()) {
+		gradients.clear();
+		if (fp.tell() != fp.size()) {
+			SDL_Log("Read Gradients");
 			fp.serializeNdVector(gradients);
 		}
+	} else {
+		fp.serializeNdVector(gradients);
 	}
 
 	fp.finish();

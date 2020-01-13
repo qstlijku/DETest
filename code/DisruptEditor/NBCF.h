@@ -48,7 +48,10 @@ public:
 	Attribute* getAttribute(CStringID hash);
 
 	template <typename T>
-	T& get(CStringID hash);
+	T getAttrValue(CStringID hash);
+
+	template <typename T>
+	void setAttrValue(CStringID hash, const T& value);
 
 	int countNodes();
 
@@ -68,12 +71,24 @@ void writeFCBB(SDL_RWops *fp, Node &node);
 Node mergeNodes(Node& base, Node& patch);
 
 template<typename T>
-inline T & Node::get(CStringID name) {
-	static T dummy;
+inline T Node::getAttrValue(CStringID name) {
+	T ret;
+	memset(&ret, 0, sizeof(ret));
 	Attribute *attr = getAttribute(name);
 	if (attr) {
-		SDL_assert_release(sizeof(T) == attr->buffer.size());
-		return *((T*)attr->buffer.data());
+		SDL_assert_release(attr->buffer.size() <= sizeof(T));
+		memcpy(&ret, attr->buffer.data(), attr->buffer.size());
 	}
-	return dummy;
+	return ret;
+}
+
+template<typename T>
+inline void Node::setAttrValue(CStringID name, const T& value) {
+	Attribute* attr = getAttribute(name);
+	if (!attr) {
+		attr = &attributes.emplace_back();
+		attr->name = name;
+	}
+	attr->buffer.resize(sizeof(T));
+	memcpy(attr->buffer.data(), &value, attr->buffer.size());
 }

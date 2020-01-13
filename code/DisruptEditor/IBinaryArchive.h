@@ -36,7 +36,7 @@ public:
 	void serializeInPlace(glm::vec4& value);
 
 	virtual bool isReading() const = 0;
-	virtual void pad(size_t padding) = 0;
+	void pad(size_t padding);
 	size_t size();
 	size_t tell();
 	virtual void memBlock(void* ptr, size_t objSize, size_t objCount) = 0;
@@ -63,20 +63,21 @@ public:
 	size_t getPadSize(size_t padding);
 
 	virtual void markHeader() = 0;
+	virtual void markInPlaceOffset(size_t offset) = 0;
 	virtual void finish() = 0;
 
 	struct Header {
-		uint32_t inPlaceOffset = 0;//Padded out to 16
-		uint32_t unk2 = 0;//Unused.
-		uint32_t unk3 = 0;//Used in SerailizeBasicTypeInPlace
+		uint32_t unk1 = 0;//head1 = *(uint *)&param_1->dataSize;
+		uint32_t unk2 = 0;//head2 = *(uint *)&param_1->dataSize + pad to 16;
+		uint32_t unk3 = 0;//head3 = *(uint*)&param_1->InPlaceDataSize;
+		uint32_t unk4 = 0;//head4
 
-		uint32_t unk4 = 0;
-		uint32_t unk5 = 0;//Size of header + non-inplace serialized data
-		uint32_t unk6 = 0;//Number of Loops, done on construction
+		uint32_t unk5 = 0;//head5 = *(uint *)&param_1->dataSize;
+		uint32_t unk6 = 0;//head6
 
-		uint32_t unk7 = 0;//Size of header + non-inplace serialized data
-		uint32_t unk8 = 0;//Unused?
-		uint32_t unk9 = 0;
+		uint32_t unk7 = 0;//head7 = head6 * 0x10 + head5;
+		uint32_t unk8 = 0;//head8
+		uint32_t unk9 = 0;//head9
 		void read(IBinaryArchive& fp);
 	};
 	IBinaryArchive::Header header;
@@ -97,10 +98,10 @@ public:
 	Sint64 inPlaceOffset = -1;
 
 	bool isReading() const;
-	void pad(size_t padding);
 	void memBlock(void* ptr, size_t objSize, size_t objCount);
 	void memBlockInPlace(void* ptr, size_t objSize, size_t objCount);
 	void markHeader();
+	void markInPlaceOffset(size_t offset);
 	void finish();
 };
 
@@ -113,10 +114,10 @@ public:
 	std::vector<uint8_t> inPlaceData;
 
 	bool isReading() const;
-	void pad(size_t padding);
 	void memBlock(void* ptr, size_t objSize, size_t objCount);
 	void memBlockInPlace(void* ptr, size_t objSize, size_t objCount);
 	void markHeader();
+	void markInPlaceOffset(size_t offset);
 	void finish();
 };
 

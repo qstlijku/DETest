@@ -146,7 +146,7 @@ void World::loaderThread() {
 
 			//Add to AABB
 			{
-				glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
+				glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
 				it.second->aabb.minp.x = glm::min(it.second->aabb.minp.x, pos.x);
 				it.second->aabb.minp.y = glm::min(it.second->aabb.minp.y, pos.y);
 				it.second->aabb.minp.z = glm::min(it.second->aabb.minp.z, pos.z);
@@ -176,8 +176,8 @@ void World::loaderThread() {
 						if (path.id != 0xffffffff) {
 							auto model = loadXBG(path);
 
-							glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
-							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
+							glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
+							glm::vec3 angles = entityPtr->getAttrValue<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
 							modelMatrix *= convertRotation(angles);
@@ -205,8 +205,8 @@ void World::loaderThread() {
 						if (path.id != 0xffffffff) {
 							auto model = loadXBG(path);
 
-							glm::vec3& pos = entityPtr->get<glm::vec3>("hidPos");
-							glm::vec3& angles = entityPtr->get<glm::vec3>("hidAngles");
+							glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
+							glm::vec3 angles = entityPtr->getAttrValue<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
 							modelMatrix *= convertRotation(angles);

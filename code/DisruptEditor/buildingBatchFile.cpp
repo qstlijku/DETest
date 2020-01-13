@@ -3,11 +3,13 @@
 void buildingBatchFile::open(IBinaryArchive& reader) {
 	reader.serialize(head);
 	reader.markHeader();
+	reader.markInPlaceOffset(reader.header.unk2);
 	reader.serialize(unk1);
 	reader.serialize(compoundParent);
 	reader.serializeNdVector(resources);
 	reader.serialize(facadeGfxModels);
 	reader.serializeNdVectorExternal(buildingData, CStringID("CHiResBuildingData").id, unk2);
+	reader.finish();
 }
 
 void buildingBatchFile::FacadeGfxModels::read(IBinaryArchive& fp) {
