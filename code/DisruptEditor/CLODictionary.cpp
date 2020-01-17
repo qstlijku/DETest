@@ -8,15 +8,7 @@ static void TestSerialize(IBinaryArchive& fp) {
 }
 
 CLODataDictionaries::CLODataDictionaries() {
-	SDL_RWops* fp = FH::openFile("worlds\\windy_city\\generated\\citylifedatadict.dat");
-
-	/*{
-		SDL_RWops* fpo = FH::openFileWrite("worlds\\windy_city\\generated\\citylifedatadict.dat");
-		for (int i = 0; i < SDL_RWsize(fp); ++i)
-			SDL_WriteU8(fpo, SDL_ReadU8(fp));
-		SDL_RWclose(fpo);
-		SDL_RWseek(fp, 0, RW_SEEK_SET);
-	}*/
+	SDL_RWops* fp = FH::openFile("worlds\\" WORLDNAME "\\generated\\citylifedatadict.dat");
 
 	CBinaryArchiveReader reader(fp);
 	read(reader);
@@ -27,8 +19,7 @@ CLODataDictionaries::CLODataDictionaries() {
 void CLODataDictionaries::read(IBinaryArchive& fp) {
 	fp.markHeader();
 	fp.serialize(version);
-	//fp.serialize(enticerData);
-	SDL_RWseek(fp.fp, 520280, RW_SEEK_SET);
+	fp.serialize(enticerData);
 	fp.serialize(enticerNPCData);
 	fp.serialize(enticerAttractorData);
 	fp.serialize(enticerVehicleData);
@@ -50,22 +41,60 @@ void CEnticerData::read(IBinaryArchive& fp) {
 	TestSerialize(fp);
 	fp.serialize(entdescDescription);
 	
-	if (entdescDescription.unk1 == 0) {
+	if (entdescDescription.unk1 == 0 || entdescDescription.EnticerDescriptionRef.libID == 0) {
 		TestSerialize(fp);
 		fp.serialize(entactAction);
 	}
 	TestSerialize(fp);
 
+	if (!singleObjectData.unk4 && (entdescDescription.unk1 == 0 || entdescDescription.EnticerDescriptionRef.libID == 0)) {
+		//Might be wrong
+		if (entactAction.unk1 == 0)
+			return;
+		if (entactAction.EnticerDescriptionRef.libID == 0)
+			return;
+	}
+
+	if (!singleObjectData.unk1) {
+		TestSerialize(fp);
+		fp.serialize(entcontContext);
+		TestSerialize(fp);
+		fp.serialize(ActivationMandatory);
+		fp.serialize(fActivationProba);
+		TestSerialize(fp);
+		//Less than version 0xb, not used
+	} else {
+		fp.serialize(unk6);
+	}
+
 	TestSerialize(fp);
-	fp.serialize(entcontContext);
-	TestSerialize(fp);
-	fp.serialize(ActivationMandatory);
-	fp.serialize(fActivationProba);
-	TestSerialize(fp);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+
+	if (unk8) {
+		TestSerialize(fp);
+		fp.serialize(VigilanteAttractedSettings);
+	}
+
+	if (!singleObjectData.objectData.IsSimpleCLO) {
+		TestSerialize(fp);
+		//If less than version 10, not used
+		
+		TestSerialize(fp);
+		fp.serialize(unk8);
+
+		TestSerialize(fp);
+		fp.serialize(fleeDir);
+
+		TestSerialize(fp);
+		fp.serialize(unk9);
+
+		fp.serialize(unk10);
+		fp.serialize(unk11);
+	}
 }
 
 void CCityLifeSingleObjectData::read(IBinaryArchive& fp) {
-#if 0
 	fp.serialize(objectData);
 	TestSerialize(fp);
 	fp.serialize(unk1);
@@ -75,19 +104,21 @@ void CCityLifeSingleObjectData::read(IBinaryArchive& fp) {
 		fp.serialize(unk2);
 		fp.serialize(unk3);
 	}
-	if (0x38/*TODO*/) {
+	if (!objectData.IsSimpleCLO) {
 		TestSerialize(fp);
 		fp.serialize(unk4);
 		fp.serialize(unk5);
-		if () {
+		if (unk4) {
 			TestSerialize(fp);
 			fp.serialize(unk6);
 		}
 		TestSerialize(fp);
-		if () {
+		//Calls vtable on objectData
+		//CCityLifeSingleObjectData = CCityLifeSingleObjectData::ShowDominoSettings = 1
+		if (1) {
 			TestSerialize(fp);
 			fp.serialize(unk7);
-			if () {
+			if (unk7) {
 				TestSerialize(fp);
 				fp.serialize(unk8);
 			}
@@ -95,7 +126,7 @@ void CCityLifeSingleObjectData::read(IBinaryArchive& fp) {
 		TestSerialize(fp);
 		fp.serialize(unk9);
 
-		if () {
+		if (unk4) {
 			TestSerialize(fp);
 			fp.serialize(unk10);
 			fp.serialize(unk11);
@@ -111,14 +142,13 @@ void CCityLifeSingleObjectData::read(IBinaryArchive& fp) {
 			fp.serialize(unk15);
 		}
 	}
-#endif
 }
 
 void CCityLifeObjectData::read(IBinaryArchive& fp) {
 	TestSerialize(fp);
 	fp.serialize(IsSimpleCLO);
 
-	if (IsSimpleCLO) {//Calls it's own vtable, I Think this is always true CCityLifeObjectData::ShowActivationSettings
+	if (IsSimpleCLO ^ 1 != 0) {//Calls it's own vtable, I Think this is always true CCityLifeObjectData::ShowActivationSettings
 		TestSerialize(fp);
 		fp.serialize(ActivationSettings);
 	}
@@ -242,13 +272,4 @@ void CCityLifeSingleObjectData::SVigilanteSettings::read(IBinaryArchive& fp) {
 	fp.serialize(unk3);
 	fp.serialize(unk4);
 	fp.serialize(unk5);
-}
-
-void ECLOTriggeredBhvType::read(IBinaryArchive& fp) {
-}
-
-void ECLOTriggeredBhv_RaycastCheckType::read(IBinaryArchive& fp) {
-}
-
-void ECLOConversationRole::read(IBinaryArchive& fp) {
 }

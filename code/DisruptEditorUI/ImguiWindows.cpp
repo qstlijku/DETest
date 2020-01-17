@@ -82,7 +82,7 @@ void UI::displayTopMenu() {
 				it->second->wluhead.unknown1 = 0;
 				it->second->wluhead.unknown2 = 0;*/
 
-				SDL_RWops* fp = FH::openFileWrite("worlds/windy_city/generated/wlu/" + it->second->shortName);
+				SDL_RWops* fp = FH::openFileWrite("worlds/" WORLDNAME "/generated/wlu/" + it->second->shortName);
 				it->second->serialize(fp);
 				SDL_RWclose(fp);
 			}

@@ -5,10 +5,17 @@
 class MemberStructure;
 class IBinaryArchive;
 
+#if WD2 || WD3
+typedef uint64_t CPathIDType;
+#else
+typedef uint32_t CPathIDType;
+#endif
+
 class CPathID {
 public:
 	CPathID() {}
-	CPathID(uint32_t _id) : id(_id) {}
+
+	CPathID(CPathIDType _id) : id(_id) {}
 	CPathID(const std::string& filename);
 	CPathID(const char *filename);
 
@@ -16,7 +23,7 @@ public:
 	void read(IBinaryArchive& fp);
 	void registerMembers(MemberStructure &ms);
 
-	uint32_t id = -1;
+	CPathIDType id = -1;
 };
 
 static bool operator==(const CPathID& lhs, const CPathID& rhs) { 
@@ -28,7 +35,7 @@ namespace std {
 		typedef CPathID argument_type;
 		typedef std::size_t result_type;
 		result_type operator()(argument_type const& s) const noexcept {
-			return std::hash<uint32_t>{}(s.id);
+			return std::hash<CPathIDType>{}(s.id);
 		}
 	};
 }

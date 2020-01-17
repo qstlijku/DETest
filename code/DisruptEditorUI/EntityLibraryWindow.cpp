@@ -31,7 +31,7 @@ void UI::displayEntityLibrary() {
 		std::string name = (const char*)entity.getAttribute("hidName")->buffer.data();
 		if (name.find(searchBuffer) != std::string::npos) {
 			ImGui::PushID(name.c_str());
-			ImGui::Image((ImTextureID)generateEntityIcon(&entity), ImVec2(128.f, 128.f));
+			//ImGui::Image((ImTextureID)generateEntityIcon(&entity), ImVec2(128.f, 128.f));
 			ImGui::PopID();
 
 			if (ImGui::IsItemHovered())

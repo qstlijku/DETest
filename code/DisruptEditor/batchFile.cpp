@@ -34,7 +34,7 @@ bool batchFile::open(IBinaryArchive &reader) {
 		//Resources
 		reader.serializeNdVector(resources);
 
-		reader.serialize(physicsFile.id);
+		reader.serialize(physicsFile);
 
 		componentMBP.read(reader);
 		buildingMBP.read(reader);

@@ -58,6 +58,4 @@ void saveSettings();
 std::string readFile(const std::string &file);
 bool writeFile(const std::string &file, const std::string &contents);
 
-uint32_t loadResTexture(const std::string &path);
-
 #include "imgui.h"

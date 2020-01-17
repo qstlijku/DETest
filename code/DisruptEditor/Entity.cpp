@@ -31,7 +31,7 @@ Node* findEntityByUID(CPathID UID) {
 }
 
 void loadEntityLibrary() {
-	SDL_RWops *fp = FH::openFile("worlds\\windy_city\\generated\\entitylibrary_rt.fcb");
+	SDL_RWops *fp = FH::openFile("worlds\\" WORLDNAME "\\generated\\entitylibrary_rt.fcb");
 	if (!fp) {
 		SDL_ShowSimpleMessageBox(0, "Disrupt Editor", "Failed to load entity Library", NULL);
 		exit(0);
@@ -43,7 +43,8 @@ void loadEntityLibrary() {
 	SDL_RWseek(fp, infoOffset, RW_SEEK_SET);
 
 	for (uint32_t i = 0; i < infoCount; ++i) {
-		uint32_t UID = SDL_ReadLE32(fp);
+		CPathID UID;
+		SDL_RWread(fp, &UID.id, sizeof(UID.id), 1);
 		uint32_t offset = SDL_ReadLE32(fp) + 8;
 
 		size_t curOffset = SDL_RWtell(fp) + 4;
@@ -56,67 +57,4 @@ void loadEntityLibrary() {
 		SDL_RWseek(fp, curOffset, RW_SEEK_SET);
 	}
 	SDL_RWclose(fp);
-}
-
-void drawCGraphicComponent(Node *entity, Node *node, bool drawImGui, bool draw3D) {
-	
-}
-
-#define handleComponent(componentName) else if(name == #componentName) draw##componentName(entity, node, drawImGui, draw3D);
-
-void drawComponent(Node *entity, Node *node, bool drawImGui, bool draw3D) {
-	std::string name = node->name.getReverseName();
-
-	if (false) {
-
-	}
-	handleComponent(CGraphicComponent)
-	else {
-		if (drawImGui)
-			ImGui::Text("Unimplemented Component: %s", name.c_str());
-	}
-}
-
-std::unordered_set<std::string> eiBroken;
-
-uint32_t generateEntityIcon(Node *entity) {
-	char path[500];
-	snprintf(path, sizeof(path), "elcache/%s.png", entity->getAttribute("hidName")->buffer.data());
-	if (eiBroken.count(path)) return loadResTexture("loading.png");
-
-	//TODO:
-	return loadResTexture("loading.png");
-
-	/*GLuint image = loadResTexture(path);
-	if (image != 0) return image;
-
-	Node *Components = entity->findFirstChild("Components");
-	SDL_assert_release(Components);
-
-	Node* CGraphicComponent = Components->findFirstChild("CGraphicComponent");
-	if (CGraphicComponent) {
-		Attribute* fileModel = CGraphicComponent->getAttribute("fileModel");
-
-		if (fileModel) {
-			auto &model = loadXBG(*(uint32_t*)fileModel->buffer.data());
-			/*if (!model.meshes.empty()) {
-				glBindFramebuffer(GL_FRAMEBUFFER, RenderInterface::instance().fbo);
-				glClearColor(0.f, 0.f, 0.f, 0.f);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				RenderInterface::instance().model.use();
-				glm::mat4 MVP = RenderInterface::instance().VP * glm::scale(glm::mat4(), glm::vec3(.5f));
-				glUniformMatrix4fv(RenderInterface::instance().model.uniforms["MVP"], 1, GL_FALSE, &MVP[0][0]);
-				model.draw();
-
-				char savePath[500];
-				snprintf(savePath, sizeof(savePath), "res/elcache/%s.png", entity->getAttribute("hidName")->buffer.data());
-
-				RenderInterface::instance().saveFBO(savePath);
-				return loadResTexture(path);
-			}*//*
-		}
-	}
-
-	eiBroken.emplace(path);
-	return loadResTexture("loading.png");*/
 }

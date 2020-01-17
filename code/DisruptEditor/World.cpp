@@ -20,7 +20,7 @@ World world;
 
 void World::loadWLUAsync() {
 	int i = 0;
-	Vector<FileInfo> files = FH::getFileList("worlds/windy_city/generated/wlu", "xml.data.fcb");
+	Vector<FileInfo> files = FH::getFileList("worlds/" WORLDNAME "/generated/wlu", "xml.data.fcb");
 	for (FileInfo& file : files) {
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
@@ -42,11 +42,19 @@ void World::loadWLUAsync() {
 }
 
 void World::loadSectors() {
-	//This is hardcoded!
-	world.sectors.reserve(64 * 80);
-	for (uint32_t x = 0; x < 64; x += 4) {
-		for (uint32_t y = 0; y < 80; y += 4) {
-			uint32_t offset = (y * 64) + x;
+	tinyxml2::XMLElement* Grids = world.gameXML->RootElement()->FirstChildElement("Grids");
+	world.GridsWorldOffset.x = Grids->IntAttribute("WorldOffsetX");
+	world.GridsWorldOffset.y = Grids->IntAttribute("WorldOffsetY");
+
+	tinyxml2::XMLElement* GridMapSectors = Grids->FirstChildElement("GridMapSectors");
+	world.GridMapSectorsCount.x = GridMapSectors->IntAttribute("CountX");
+	world.GridMapSectorsCount.y = GridMapSectors->IntAttribute("CountY");
+	world.GridMapSectorsGranularity = GridMapSectors->IntAttribute("Granularity");
+
+	world.sectors.reserve(world.GridMapSectorsCount.x * world.GridMapSectorsCount.y);
+	for (uint32_t x = 0; x < world.GridMapSectorsCount.x; x += 4) {
+		for (uint32_t y = 0; y < world.GridMapSectorsCount.y; y += 4) {
+			uint32_t offset = (y * world.GridMapSectorsCount.x) + x;
 			SDL_Log("Loading Sector %u", offset);
 
 			CSector sector;
@@ -55,7 +63,7 @@ void World::loadSectors() {
 			sector.sectorID = offset;
 
 			char filename[80];
-			snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdat", offset);
+			snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/sd%u.sdat", offset);
 			SDL_RWops* fp = FH::openFile(filename);
 			SDL_assert_release(fp);
 			CBinaryArchiveReader reader(fp);
@@ -93,12 +101,14 @@ void World::loaderThread() {
 	setLoadingStatus("Setting Up Database");
 	DB::instance();
 
+	world.gameXML = loadRml(FH::openFile("worlds\\" WORLDNAME "\\generated\\" WORLDNAME ".game.xml"));
+
 	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
-	std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/windy_city/generated/windy_city_deploadnewparticles.rml")); });
+	std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/" WORLDNAME "/generated/" WORLDNAME "_deploadnewparticles.rml")); });
 	std::future<void> loadWLUF = std::async(world.loadWLUAsync);
 	std::future<void> loadSectorF = std::async(world.loadSectors);
 
-	world.spawnPointList = loadXml(FH::openFile("worlds/windy_city/generated/spawnpointlist.xml"));
+	world.spawnPointList = loadXml(FH::openFile("worlds/" WORLDNAME "/generated/spawnpointlist.xml"));
 
 	loadEntityLibraryF.get();
 	particlesF.get();
@@ -322,8 +332,8 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 	for (size_t i = 0; i < maxSectors; ++i) {
 		auto& sector = world.sectors[i];
 		std::shared_ptr<CSectorHighRes> hiRes = sector.getHiRes();
-		float xOffset = sector.xPos * 64;
-		float yOffset = sector.yPos * 64;
+		float xOffset = sector.xPos * GridMapSectorsGranularity;
+		float yOffset = sector.yPos * GridMapSectorsGranularity;
 
 		ID3D11ShaderResourceView* views[] = {
 			sector.getColorTexture()->pResource,
@@ -337,7 +347,7 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 				auto& map = hiRes->getMap(x, y);
 				auto vertexBuffer = map.getVertexBuffer();
 
-				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - 2048 - 32, (yOffset + y * 64) - 2560 - 32, 0));
+				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - GridsWorldOffset.x - 32, (yOffset + y * GridMapSectorsGranularity) - GridsWorldOffset.y - 32, 0));
 				RenderInterface::instance().objectCB.Offset = glm::vec4(x / 4.f, y / 4.f, 0, 0);
 				context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 

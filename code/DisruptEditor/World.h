@@ -13,6 +13,12 @@ public:
 	std::unique_ptr<tinyxml2::XMLDocument> particles;
 	std::unique_ptr<tinyxml2::XMLDocument> spawnPointList;
 	std::map<std::string, std::shared_ptr<wluFile> > wlus;
+	std::unique_ptr<tinyxml2::XMLDocument> gameXML;
+
+	//Terrain Sectors
+	glm::ivec2 GridsWorldOffset;
+	glm::ivec2 GridMapSectorsCount;
+	int GridMapSectorsGranularity;
 
 	bool readyToRender = false;
 	float loadingProgress = 1.f;

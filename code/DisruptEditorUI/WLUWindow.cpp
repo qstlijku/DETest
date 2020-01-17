@@ -44,7 +44,7 @@ void UI::displayWLU() {
 			wluFile& wlu = *currentWlu;
 
 			if (ImGui::Button("Save")) {
-				SDL_RWops* fp = FH::openFileWrite("worlds/windy_city/generated/wlu/" + wlu.shortName + ".xml.data.fcb");
+				SDL_RWops* fp = FH::openFileWrite("worlds/" WORLDNAME "/generated/wlu/" + wlu.shortName + ".xml.data.fcb");
 				wlu.serialize(fp);
 				SDL_RWclose(fp);
 			}

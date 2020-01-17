@@ -43,6 +43,9 @@ public:
 	virtual void memBlockInPlace(void* ptr, size_t objSize, size_t objCount) = 0;
 
 	template<typename T>
+	void serializeConstant(T value);
+
+	template<typename T>
 	void serializeNdVector(Vector<T>& vec);
 
 	template<typename T>
@@ -71,10 +74,8 @@ public:
 		uint32_t unk2 = 0;//head2 = *(uint *)&param_1->dataSize + pad to 16;
 		uint32_t unk3 = 0;//head3 = *(uint*)&param_1->InPlaceDataSize;
 		uint32_t unk4 = 0;//head4
-
 		uint32_t unk5 = 0;//head5 = *(uint *)&param_1->dataSize;
 		uint32_t unk6 = 0;//head6
-
 		uint32_t unk7 = 0;//head7 = head6 * 0x10 + head5;
 		uint32_t unk8 = 0;//head8
 		uint32_t unk9 = 0;//head9
@@ -122,6 +123,13 @@ public:
 };
 
 template<typename T>
+inline void IBinaryArchive::serializeConstant(T value) {
+	T v = value;
+	serialize(v);
+	SDL_assert_release(v == value);
+}
+
+template<typename T>
 inline void IBinaryArchive::serializeNdVector(Vector<T>& vec) {
 	uint32_t count = (uint32_t)vec.size();
 	serialize(count);
@@ -149,9 +157,7 @@ inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, uint32_t t
 	uint32_t counter = vec.size(), counter2 = vec.size();
 	serialize(counter);
 
-	uint32_t unknownTypeID = typeId;
-	serialize(unknownTypeID);
-	SDL_assert_release(unknownTypeID == typeId);
+	serializeConstant(typeId);
 
 	serialize(unk);
 

@@ -343,14 +343,6 @@ void wluFile::draw(bool drawImgui) {
 			}
 		}
 
-		//Handle Components
-		Node* Components = entity.findFirstChild("Components");
-		if (Components) {
-			for (Node &it : Components->children) {
-				drawComponent(&entity, &it, true, true);
-			}
-		}
-
 		Node* PatrolDescription = entity.findFirstChild("PatrolDescription");
 		if (PatrolDescription && ImGui::TreeNode("PatrolDescription")) {
 			Node* PatrolPointList = PatrolDescription->findFirstChild("PatrolPointList");

@@ -71,13 +71,17 @@ workspace "DisruptEditor"
             "_WINSOCK_DEPRECATED_NO_WARNINGS",
         }
 
+    defines {
+        "WD1",
+        "WORLDNAME=\"windy_city\"",
+    }
+
 	group "Editor"
 	include "./DisruptEditor"
 	include "./DisruptEditorUI"
 	
 	group "Tools"
 	include "./ConvertMaterials"
-	include "./ConvertLoc"
     include "./ConvertXBG"
 	
 	group "Vendor"

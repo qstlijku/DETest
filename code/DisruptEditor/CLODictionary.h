@@ -3,6 +3,7 @@
 #include "IBinaryArchive.h"
 #include "CPathID.h"
 #include "CStringID.h"
+#include "NomadDB.h"
 
 template <typename T>
 struct CGameplayQuality {
@@ -21,17 +22,17 @@ struct SCityLifeObjectActivationSettings {
 	ECityLifeObjectActivationType selActivationType;
 	ECityLifeObjectActivationZoneType selActivationZoneType;
 
-	//This is for activationZoneType == 1
+	//This is for selActivationZoneType == 1
 	float ActivationRadius;
 	float ActivationMinRadius;
 	glm::vec3 ActivationOffset;
 
-	//This is for activationType == 0
+	//This is for selActivationType == 0
 	bool IsActiveByDefault;
 
 	bool NeverReactivate;
 
-	//If unk5 is false
+	//If NeverReactivate is false
 	float timeBeforeReactivate;
 
 	void read(IBinaryArchive& fp);
@@ -43,17 +44,9 @@ struct CCityLifeObjectData {
 	void read(IBinaryArchive& fp);
 };
 
-struct ECLOTriggeredBhvType {
-	void read(IBinaryArchive& fp);
-};
-
-struct ECLOTriggeredBhv_RaycastCheckType {
-	void read(IBinaryArchive& fp);
-};
-
-struct ECLOConversationRole {
-	void read(IBinaryArchive& fp);
-};
+typedef uint32_t ECLOTriggeredBhvType;
+typedef uint32_t ECLOTriggeredBhv_RaycastCheckType;
+typedef uint32_t ECLOConversationRole;
 
 struct CCityLifeSingleObjectData {
 	CCityLifeObjectData objectData;
@@ -64,7 +57,7 @@ struct CCityLifeSingleObjectData {
 	bool unk2;
 	bool unk3;
 
-	//if WTF?
+	//if !objectData.IsSimpleCLO
 	bool unk4;
 	bool unk5;
 	struct SCityLifeObjectProximityBhvSettings {
@@ -110,14 +103,14 @@ struct CCityLifeSingleObjectData {
 
 struct CEnticerDescription {
 	uint32_t unk1;
-	uint32_t EnticerDescriptionRef;
+	NomadDBRef EnticerDescriptionRef = "EnticerDescription";
 
 	void read(IBinaryArchive& fp);
 };
 
 struct CEnticerAction {
 	uint32_t unk1;
-	uint32_t EnticerDescriptionRef;
+	NomadDBRef EnticerDescriptionRef = "EnticerDescription";
 
 	void read(IBinaryArchive& fp);
 };
@@ -136,21 +129,34 @@ struct SVigilanteAttractedSettings {
 	}
 };
 
+typedef uint32_t EMValueCLO_FLEE_DIRECTION;
+typedef uint32_t EMValue_ENTICER_SETUPBEHAVIORS;
+
 struct CEnticerData {
 	CCityLifeSingleObjectData singleObjectData;
 	CEnticerDescription entdescDescription;
+
+	//
 	CEnticerAction entactAction;
 
 	uint32_t entcontContext;
 	CGameplayQuality<bool> ActivationMandatory;
 	uint32_t fActivationProba;
 
+	bool unk6;
+
+	bool unk7;
+	bool unk8;
+
 	SVigilanteAttractedSettings VigilanteAttractedSettings;//0xA0
 
-	bool bIsPillsDealer;
+	EMValueCLO_FLEE_DIRECTION fleeDir;
 
-	typedef uint32_t EMValueCLO_FLEE_DIRECTION;
-	typedef uint32_t EMValue_ENTICER_SETUPBEHAVIORS;
+	uint32_t unk9;
+
+	bool unk10;
+
+	EMValue_ENTICER_SETUPBEHAVIORS unk11;
 
 	void read(IBinaryArchive& fp);
 };

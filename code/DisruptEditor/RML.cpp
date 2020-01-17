@@ -102,11 +102,16 @@ std::unique_ptr<tinyxml2::XMLDocument> loadRml(SDL_RWops *fp) {
 std::unique_ptr<tinyxml2::XMLDocument> loadXml(SDL_RWops * fp) {
 	std::unique_ptr<tinyxml2::XMLDocument> doc = std::make_unique<tinyxml2::XMLDocument>();
 
-	Vector<char> contents(SDL_RWsize(fp));
+	Vector<char> contents(SDL_RWsize(fp) + 1);
 	SDL_RWread(fp, contents.data(), 1, contents.size());
 	SDL_RWclose(fp);
-	contents.push_back('\0');
 	doc->Parse(contents.data());
 
 	return doc;
+}
+
+std::string XMLToString(tinyxml2::XMLDocument& doc) {
+	tinyxml2::XMLPrinter printer;
+	doc.Accept(&printer);
+	return printer.CStr();
 }

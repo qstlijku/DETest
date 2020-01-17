@@ -272,14 +272,14 @@ void CSector::save() {
 	//Extra interesting data at 18296 bytes
 
 	char filename[80];
-	snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdat", sectorID);
+	snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/sd%u.sdat", sectorID);
 	SDL_RWops* fp = FH::openFileWrite(filename);
 	CBinaryArchiveWriter writer(fp);
 	open(writer);
 	SDL_RWclose(fp);
 
 	if (highRes) {
-		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdhr", sectorID);
+		snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/sd%u.sdhr", sectorID);
 		fp = FH::openFileWrite(filename);
 		CBinaryArchiveWriter writer(fp);
 		highRes->open(writer);
@@ -290,7 +290,7 @@ void CSector::save() {
 std::shared_ptr<xbtFile> CSector::getColorTexture() {
 	if (!color) {
 		char filename[80];
-		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/atlas%u_color.xbt", sectorID);
+		snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/atlas%u_color.xbt", sectorID);
 		color = loadTexture(filename);
 	}
 	return color;
@@ -299,7 +299,7 @@ std::shared_ptr<xbtFile> CSector::getColorTexture() {
 std::shared_ptr<xbtFile> CSector::getDiffuseTexture() {
 	if (!diffuse) {
 		char filename[80];
-		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/atlas%u_diffuse_high.xbt", sectorID);
+		snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/atlas%u_diffuse_high.xbt", sectorID);
 		diffuse = loadTexture(filename);
 	}
 	return diffuse;
@@ -308,7 +308,7 @@ std::shared_ptr<xbtFile> CSector::getDiffuseTexture() {
 std::shared_ptr<xbtFile> CSector::getMaskTexture() {
 	if (!mask) {
 		char filename[80];
-		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/atlas%u_mask_high.xbt", sectorID);
+		snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/atlas%u_mask_high.xbt", sectorID);
 		mask = loadTexture(filename);
 	}
 	return mask;
@@ -318,7 +318,7 @@ std::shared_ptr<CSectorHighRes> CSector::getHiRes() {
 	if (!highRes) {
 		highRes = std::make_shared<CSectorHighRes>();
 		char filename[80];
-		snprintf(filename, sizeof(filename), "worlds/windy_city/generated/sdat/sd%u.sdhr", sectorID);
+		snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/sd%u.sdhr", sectorID);
 		SDL_RWops* fp = FH::openFile(filename);
 		SDL_assert_release(fp);
 		CBinaryArchiveReader reader(fp);

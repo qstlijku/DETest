@@ -6,8 +6,8 @@
 #include "IBinaryArchive.h"
 
 void CResourceContainer::read(IBinaryArchive& fp) {
-	fp.serialize(type.id);
-	fp.serialize(file.id);
+	fp.serialize(type);
+	fp.serialize(file);
 }
 
 void CResourceContainer::registerMembers(MemberStructure & ms) {
@@ -16,9 +16,9 @@ void CResourceContainer::registerMembers(MemberStructure & ms) {
 }
 
 void CArchetypeResource::read(IBinaryArchive& fp) {
-	fp.serialize(file.id);
+	fp.serialize(file);
 	if(file.id != -1)
-		fp.serialize(type.id);
+		fp.serialize(type);
 }
 
 void CArchetypeResource::registerMembers(MemberStructure & ms) {
@@ -27,7 +27,7 @@ void CArchetypeResource::registerMembers(MemberStructure & ms) {
 }
 
 void CGeometryResource::read(IBinaryArchive& fp) {
-	fp.serialize(file.id);
+	fp.serialize(file);
 	if (file.id != -1)
 		fp.serialize(type.id);
 }
@@ -46,7 +46,7 @@ void CMaterialSlotsMap::read(IBinaryArchive& fp) {
 	slots.resize(count);
 	for (uint32_t i = 0; i < count; ++i) {
 		auto &it = slots[i];
-		fp.serialize(it.first.id);
+		fp.serialize(it.first);
 		it.second.read(fp);
 	}
 }

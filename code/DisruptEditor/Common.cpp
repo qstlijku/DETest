@@ -69,39 +69,7 @@ bool writeFile(const std::string & file, const std::string &contents) {
 	return false;
 }
 
-static std::unordered_map<std::string, uint32_t> texturesRes;
-uint32_t loadResTexture(const std::string &path) {
-	/*if (texturesRes.count(path) == 0) {
-		int width, height, bpc;
-		uint8_t *pixels = stbi_load(("res/" + path).c_str(), &width, &height, &bpc, 0);
-		if (!pixels) return 0;
-		GLuint id;
-		glGenTextures(1, &id);
-		glBindTexture(GL_TEXTURE_2D, id);
-		switch (bpc) {
-			case 4:
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-				break;
-			case 3:
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-				break;
-			case 2:
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, pixels);
-				break;
-			case 1:
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
-				break;
-		}
-		glGenerateMipmap(GL_TEXTURE_2D);
-		texturesRes[path] = id;
-		free(pixels);
-		return id;
-	}*/
-	return texturesRes[path];
-}
-
 void Settings::registerMembers(MemberStructure & ms) {
-	//REGISTER_MEMBER(searchPaths);
 	REGISTER_MEMBER(gameDir);
 	REGISTER_MEMBER(soundLang);
 	REGISTER_MEMBER(patchDir);

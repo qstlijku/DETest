@@ -39,7 +39,11 @@ std::string DB::getFileByHash(CPathID hash) {
 		return it->second;
 
 	char buffer[12];
+#if WD2 || WD3
+	snprintf(buffer, sizeof(buffer), "_%16x", hash);
+#else
 	snprintf(buffer, sizeof(buffer), "_%08x", hash);
+#endif
 	return std::string(buffer);
 }
 

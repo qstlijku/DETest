@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 	FH::Init();
 	CLODataDictionaries::instance();
 #endif
-#if 1
+#if 0
 	{
 		FH::Init();
 		SDL_RWops* fp = FH::openFileHash(0x49637b42);
