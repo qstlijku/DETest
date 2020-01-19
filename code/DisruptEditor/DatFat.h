@@ -20,12 +20,20 @@ public:
 		uint64_t offset;
 		uint32_t realSize;
 		uint32_t size;
+#if WD2
+		enum Compression {
+			None = 0,
+			LZMA = 1,
+			LZ4 = 2,
+		};
+#else
 		enum Compression {
 			None = 0,
 			LZO1x = 1,
 			Zlib = 2,
 			Xbox = 3,
 		};
+#endif
 		Compression compression;
 	};
 	std::unordered_map<CPathID, FileEntry> files;

@@ -165,6 +165,16 @@ void FH::Init() {
 	InitXCompress();
 	dats.reserve(60);
 
+#if WD2
+	AddDatFat(settings.gameDir2 + "data_win64/patch2.fat");
+	AddDatFat(settings.gameDir2 + "data_win64/patch.fat");
+
+	AddDatFat(settings.gameDir2 + "data_win64/common.fat");
+	AddDatFat(settings.gameDir2 + "data_win64/shadersobj.fat");
+	AddDatFat(settings.gameDir2 + "data_win64/sound.fat");
+
+	AddDatFat(settings.gameDir2 + "data_win64/worlds/san_francisco/san_francisco.fat");
+#else
 	AddDatFat(settings.gameDir + "data_win64/patch1.fat");
 	AddDatFat(settings.gameDir + "data_win64/patch.fat");
 
@@ -187,6 +197,7 @@ void FH::Init() {
 
 	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
 	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
+#endif
 }
 
 void FH::AddDatFat(const std::string& filename) {
@@ -214,7 +225,7 @@ const char* FH::getTypeFromExtension(const char* name) {
 		return "CParticlesSystemParamResource";
 
 	//File Types
-	if (endsWith(name, ".xml.data.fcb"))
+	if (endsWith(name, ".xml.data.fcb") || endsWith(name, ".wlu"))
 		return "CWorldUnitDataResource";
 
 	if (endsWith(name, ".ano"))

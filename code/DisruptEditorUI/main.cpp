@@ -68,6 +68,18 @@ static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) 
 	exit(0);
 }
 
+class Test {
+public:
+	Test() {
+		STARTUPINFOW info;
+		GetStartupInfoW(&info);
+
+		__debugbreak();
+	}
+};
+
+Test test;
+
 void renderProgressBar() {
 	if (world.loadingProgress >= 1.f)
 		return;

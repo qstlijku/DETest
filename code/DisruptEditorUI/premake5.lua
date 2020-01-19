@@ -21,6 +21,7 @@ project "DisruptEditorUI"
 		"../DisruptEditor",
 		"../vendor/SDL2",
 		"../vendor/tinyxml2",
+		"../vendor/lz4",
 		"../vendor/glm",
 		"../vendor/imgui",
 		"../vendor/ImGuizmo",
@@ -39,6 +40,7 @@ project "DisruptEditorUI"
 		"dxguid",
 
 		"tinyxml2",
+		"lz4",
 
 		-- imgui
 		"imgui",

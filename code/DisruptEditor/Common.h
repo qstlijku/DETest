@@ -17,10 +17,12 @@ typedef uint32_t SDL_Keymod_V;
 
 struct Settings {
 	//Filesystem Settings
-	//Vector<std::string> searchPaths;
 	std::string gameDir;
-	std::string soundLang = "english";
+	std::string gameDir2;
 	std::string patchDir;
+	std::string patchDir2;
+
+	std::string soundLang = "english";
 
 	//Graphics Settings
 	float near_plane = 0.25f;

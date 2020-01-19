@@ -22,6 +22,16 @@
 Settings settings;
 
 static void promptGameDir() {
+#if WD2
+	SDL_ShowSimpleMessageBox(0, "Disrupt Editor 2 Setup", "Please select the Watch Dogs 2 EAC.exe file in the next window", NULL);
+	const char* dir = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "Watch Dogs 2 EAC Exe\EAC.exe\0", NULL, NULL);
+	if (!dir) {
+		exit(0);
+	}
+
+	settings.gameDir2 = dir;
+	settings.gameDir2 = settings.gameDir2.substr(0, settings.gameDir2.size() - strlen("EAC.exe"));
+#else
 	SDL_ShowSimpleMessageBox(0, "Disrupt Editor Setup", "Please select the main Watch_Dogs.exe file in the next window", NULL);
 	const char* dir = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "Watch Dogs Exe\0Watch_Dogs.exe\0", NULL, NULL);
 	if (!dir) {
@@ -30,12 +40,24 @@ static void promptGameDir() {
 
 	settings.gameDir = dir;
 	settings.gameDir = settings.gameDir.substr(0, settings.gameDir.size() - strlen("bin/Watch_Dogs.exe"));
+#endif
 }
 
 void reloadSettings() {
 	std::string contents = readFile("settings.xml");
 	unserializeFromXML(settings, contents.c_str());
 
+#if WD2
+	if (settings.gameDir2.empty() || !std::filesystem::exists(settings.gameDir2)) {
+		promptGameDir();
+		saveSettings();
+	}
+
+	if (settings.patchDir2.empty() || !std::filesystem::exists(settings.patchDir2)) {
+		settings.patchDir2 = "patch2/";
+		saveSettings();
+	}
+#else
 	if (settings.gameDir.empty() || !std::filesystem::exists(settings.gameDir)) {
 		promptGameDir();
 		saveSettings();
@@ -45,6 +67,7 @@ void reloadSettings() {
 		settings.patchDir = "patch/";
 		saveSettings();
 	}
+#endif
 }
 
 void saveSettings() {
@@ -71,8 +94,10 @@ bool writeFile(const std::string & file, const std::string &contents) {
 
 void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(gameDir);
-	REGISTER_MEMBER(soundLang);
+	REGISTER_MEMBER(gameDir2);
 	REGISTER_MEMBER(patchDir);
+	REGISTER_MEMBER(patchDir2);
+	REGISTER_MEMBER(soundLang);
 
 	REGISTER_MEMBER(near_plane);
 	REGISTER_MEMBER(far_plane);

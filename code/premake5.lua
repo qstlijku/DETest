@@ -72,8 +72,13 @@ workspace "DisruptEditor"
         }
 
     defines {
-        "WD1",
-        "WORLDNAME=\"windy_city\"",
+        --"WD1",
+        --"WORLDNAME=\"windy_city\"",
+        --"WLUEXT=\"xml.data.fcb\"",
+
+        "WD2",
+        "WORLDNAME=\"san_francisco\"",
+        "WLUEXT=\"wlu\"",
     }
 
 	group "Editor"
@@ -82,12 +87,12 @@ workspace "DisruptEditor"
 	
 	group "Tools"
 	include "./ConvertMaterials"
-    include "./ConvertXBG"
 	
 	group "Vendor"
 	include "vendor/tinyxml2"
 	include "vendor/imgui"
-	include "vendor/ImGuizmo"
+    include "vendor/ImGuizmo"
+    include "vendor/lz4"
 
 -- Cleanup
 if _ACTION == "clean" then

@@ -20,7 +20,7 @@ World world;
 
 void World::loadWLUAsync() {
 	int i = 0;
-	Vector<FileInfo> files = FH::getFileList("worlds/" WORLDNAME "/generated/wlu", "xml.data.fcb");
+	Vector<FileInfo> files = FH::getFileList("worlds/" WORLDNAME "/generated/wlu", WLUEXT);
 	for (FileInfo& file : files) {
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
@@ -66,11 +66,13 @@ void World::loadSectors() {
 			snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/sd%u.sdat", offset);
 			SDL_RWops* fp = FH::openFile(filename);
 			SDL_assert_release(fp);
-			CBinaryArchiveReader reader(fp);
-			sector.open(reader);
-			SDL_RWclose(fp);
+			if (fp) {
+				CBinaryArchiveReader reader(fp);
+				sector.open(reader);
+				SDL_RWclose(fp);
 
-			world.sectors.push_back(sector);
+				world.sectors.push_back(sector);
+			}
 		}
 	}
 }
@@ -102,6 +104,7 @@ void World::loaderThread() {
 	DB::instance();
 
 	world.gameXML = loadRml(FH::openFile("worlds\\" WORLDNAME "\\generated\\" WORLDNAME ".game.xml"));
+	std::string debug = XMLToString(*world.gameXML.get());
 
 	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
 	std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/" WORLDNAME "/generated/" WORLDNAME "_deploadnewparticles.rml")); });

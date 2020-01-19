@@ -17,6 +17,7 @@ project "DisruptEditor"
 		".",
 		"../vendor/SDL2",
 		"../vendor/tinyxml2",
+		"../vendor/lz4",
 		"../vendor/glm",
 		"../vendor/imgui",
 		"../vendor/ImGuizmo",
@@ -34,6 +35,7 @@ project "DisruptEditor"
 		"Shlwapi",
 
 		"tinyxml2",
+		"lz4",
 
 		-- imgui
 		"imgui",
