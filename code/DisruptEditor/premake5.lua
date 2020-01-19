@@ -21,7 +21,7 @@ project "DisruptEditor"
 		"../vendor/glm",
 		"../vendor/imgui",
 		"../vendor/ImGuizmo",
-		"../vendor/noc_file_dialog",
+		"../vendor/portable-file-dialogs",
 		"../vendor/tinyfiles",
 		"../vendor/stb",
 		"../vendor/dr_wav",

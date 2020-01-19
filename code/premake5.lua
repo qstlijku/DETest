@@ -72,13 +72,13 @@ workspace "DisruptEditor"
         }
 
     defines {
-        --"WD1",
-        --"WORLDNAME=\"windy_city\"",
-        --"WLUEXT=\"xml.data.fcb\"",
+        "WD1",
+        "WORLDNAME=\"windy_city\"",
+        "WLUEXT=\"xml.data.fcb\"",
 
-        "WD2",
-        "WORLDNAME=\"san_francisco\"",
-        "WLUEXT=\"wlu\"",
+        --"WD2",
+        --"WORLDNAME=\"san_francisco\"",
+        --"WLUEXT=\"wlu\"",
     }
 
 	group "Editor"

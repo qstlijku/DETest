@@ -23,7 +23,7 @@ project "ConvertMaterials"
 		"../vendor/imgui",
 		"../vendor/ImGuizmo",
 		"../vendor/tinyfiles",
-		"../vendor/noc_file_dialog",
+		"../vendor/portable-file-dialogs",
 		"../vendor/stb",
 		"../vendor/dr_wav",
 		"../vendor/debug_draw",
@@ -47,11 +47,6 @@ project "ConvertMaterials"
 		"SDL2main",
 
 		"DisruptEditor"
-	}
-
-	defines
-	{
-		"NOC_FILE_DIALOG_WIN32"
 	}
 
     files

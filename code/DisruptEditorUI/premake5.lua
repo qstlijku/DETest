@@ -26,7 +26,7 @@ project "DisruptEditorUI"
 		"../vendor/imgui",
 		"../vendor/ImGuizmo",
 		"../vendor/tinyfiles",
-		"../vendor/noc_file_dialog",
+		"../vendor/portable-file-dialogs",
 		"../vendor/stb",
 		"../vendor/dr_wav",
 		"../vendor/debug_draw",

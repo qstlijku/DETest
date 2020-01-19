@@ -3,7 +3,6 @@
 #include "imgui.h"
 #include "Common.h"
 #include "batchFile.h"
-#include "noc_file_dialog.h"
 
 void UI::displayCBATCH() {
 	if (!settings.openWindows["CBATCH"])

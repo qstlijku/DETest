@@ -6,12 +6,12 @@
 #include "sbaoFile.h"
 #include "spkFile.h"
 #include "Audio.h"
-#include "noc_file_dialog.h"
 #include "dr_wav.h"
 #define STB_VORBIS_HEADER_ONLY
 #include "stb_vorbis.h"
 #include <SDL.h>
 #include "DARE.h"
+#include <portable-file-dialogs.h>
 
 static uint32_t loadedSPK = 0;
 
@@ -81,11 +81,11 @@ void displayImGui(ResourceDescriptor& obj) {
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Replace")) {
-			const char* newFile = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "wav\0*.wav\0", NULL, NULL);
-			if (newFile) {
+			auto newFile = pfd::open_file("Choose a wav file", "", { "Wav File (.wav)", "*.wav" }, false);
+			if (!newFile.result().empty()) {
 				unsigned int channels, sampleRate;
 				drwav_uint64 totalSampleCount;
-				short* pSampleData = drwav_open_and_read_file_s16(newFile, &channels, &sampleRate, &totalSampleCount);
+				short* pSampleData = drwav_open_and_read_file_s16(newFile.result()[0].data(), &channels, &sampleRate, &totalSampleCount);
 				if (pSampleData) {
 					srd.ulFreq = sampleRate;
 					srd.ulNbChannels = channels;
