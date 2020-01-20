@@ -3,6 +3,7 @@
 #include <string>
 #include "Vector.h"
 struct SDL_RWops;
+class DatFat;
 
 struct FileInfo {
 	std::string fullPath;
@@ -25,6 +26,8 @@ namespace FH {
 	const char* getTypeFromExtension(const char* name);
 
 	SDL_RWops* openFileWrite(const std::string& path);
+
+	extern std::vector<DatFat> dats;
 }
 
 char* RWgets(SDL_RWops* rw, char* s, int size);

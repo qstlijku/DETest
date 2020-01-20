@@ -261,7 +261,6 @@ void wluFile::draw(bool drawImgui) {
 		ImGui::Separator();
 		Node &entity = *selectedEntity;
 
-		char imguiHash[512];
 		Attribute *hidName = entity.getAttribute("hidName");
 		Attribute *hidPos = entity.getAttribute("hidPos");
 		glm::vec3 pos = entity.getAttrValue<glm::vec3>("hidPos");
@@ -279,8 +278,6 @@ void wluFile::draw(bool drawImgui) {
 		ImGui::Separator();
 
 		//Iterate through Entity Attributes
-		snprintf(imguiHash, sizeof(imguiHash), "%s##%p", hidName->buffer.data(), &entity);
-
 		Attribute *ArchetypeGuid = entity.getAttribute("ArchetypeGuid");
 		if (ArchetypeGuid) {
 			uint32_t uid = Hash::getFilenameHash((const char*)ArchetypeGuid->buffer.data());

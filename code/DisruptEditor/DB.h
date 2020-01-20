@@ -39,9 +39,11 @@ public:
 	std::unordered_map<CStringID, std::string> crcList;
 	std::unordered_map<CDobbsID, std::string> dobbsList;
 	std::unordered_map<CPathID, std::string> fnvList;
+	std::unordered_map<CPathID, const char*> fileTypes;
 	std::unordered_map<uint32_t, uint32_t> dareBaoList;
 	void handleCRCFile(const char* file, const char* type);
 	void handleFNVFile(const char* file);
 	void addFNVEntry(const char* file);
+	void addFNVEntry(CPathID hash, const char* file);
 };
 

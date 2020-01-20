@@ -122,6 +122,11 @@ void UI::displayTopMenu() {
 			ShellExecute(0, 0, L"https://github.com/wasdennnoch", 0, 0, SW_SHOW);
 		ImGui::EndMenu();
 	}
+
+	if (settings.devTools && ImGui::MenuItem("Dev")) {
+		windows["DevTools"] ^= true;
+	}
+
 	ImGui::EndMainMenuBar();
 }
 

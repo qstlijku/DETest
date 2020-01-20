@@ -4,7 +4,14 @@ project "DisruptEditorUI"
 	kind "WindowedApp"
 	postbuildcommands "{COPY} $(SolutionDir)../code/vendor/SDL2/SDL2.dll %{cfg.targetdir}"
 	postbuildcommands "{COPY} $(SolutionDir)../res/ %{cfg.targetdir}/res/"
-	libdirs { "$(SolutionDir)../code/vendor/SDL2" }
+	libdirs { 
+		"$(SolutionDir)../code/vendor/SDL2",
+	}
+	configuration "Debug"
+		libdirs { "C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/lib/vs2015/x64/debug" }
+	configuration "Release"
+		libdirs { "C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/lib/vs2015/x64/release" }
+	configuration {}
 	debugdir "%{cfg.targetdir}"
 
 	vpaths
@@ -30,6 +37,8 @@ project "DisruptEditorUI"
 		"../vendor/stb",
 		"../vendor/dr_wav",
 		"../vendor/debug_draw",
+
+		"C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/include",
 	}
 
 	links
@@ -38,6 +47,8 @@ project "DisruptEditorUI"
 		"Dbghelp",
 		"D3d11",
 		"dxguid",
+
+		"libfbxsdk-md",
 
 		"tinyxml2",
 		"lz4",
@@ -51,11 +62,6 @@ project "DisruptEditorUI"
 		"SDL2main",
 
 		"DisruptEditor"
-	}
-
-	defines
-	{
-		"NOC_FILE_DIALOG_WIN32"
 	}
 
     files

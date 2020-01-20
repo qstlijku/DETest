@@ -15,6 +15,7 @@
 #include "batchFile.h"
 #include <Serialization.h>
 #include <SDL.h>
+#include <fbxsdk.h>
 
 static std::string currentFile;
 static std::vector<uint8_t> currentFileData;
@@ -103,17 +104,44 @@ void UI::displayFileBrowser() {
 			RenderInterface::instance().objectCB.Model = glm::mat4(1.f);
 			xbg->draw(context, selLod);
 
+			displayImGui(*xbg);
+
 			if (ImGui::Button("XML")) {
 				std::string xml = serializeToXML(*xbg);
 				SDL_SetClipboardText(xml.c_str());
 			}
-			if (ImGui::Button("Save")) {
+			if (ImGui::Button("Save XBG")) {
 				SDL_RWops* fp = FH::openFileWrite(currentFile.c_str());
 				SDL_RWwrite(fp, currentFileData.data(), 1, currentFileData.size());
 				SDL_RWclose(fp);
 			}
-			if (ImGui::Button("Save to OBJ")) {
+			if (ImGui::Button("Export")) {
+				auto selection = pfd::save_file("Select a fbx to export to", "", {"FBX Files (fbx)", "*.fbx"}, true).result();
+				if (!selection.empty()) {
+					FbxManager* lSdkManager = FbxManager::Create();
+					FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+					lSdkManager->SetIOSettings(ios);
+					FbxExporter* lExporter = FbxExporter::Create(lSdkManager, "");
 
+					FbxScene* lScene = FbxScene::Create(lSdkManager, currentFile.c_str());
+
+					//Add The Lods
+
+
+					bool lExportStatus = lExporter->Initialize(selection.c_str(), -1, lSdkManager->GetIOSettings());
+					if (!lExportStatus) {
+						SDL_Log("Call to FbxExporter::Initialize() failed.\n");
+						SDL_Log("Error returned: %s\n\n", lExporter->GetStatus().GetErrorString());
+					}
+					lExporter->Export(lScene);
+					lExporter->Destroy();
+				}
+			}
+			if (ImGui::Button("Import")) {
+				auto selection = pfd::select_folder("Select the folder to import from").result();
+				if (!selection.empty()) {
+					std::string xml = serializeToXML(*xbg);
+				}
 			}
 		} else if (type == "CGeometryMipResource") {
 			ImGui::Text("You can't edit a mip resource, find its xbg!");

@@ -98,6 +98,7 @@ void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(patchDir);
 	REGISTER_MEMBER(patchDir2);
 	REGISTER_MEMBER(soundLang);
+	REGISTER_MEMBER(devTools);
 
 	REGISTER_MEMBER(near_plane);
 	REGISTER_MEMBER(far_plane);

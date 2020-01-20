@@ -26,6 +26,7 @@ bool batchFile::open(IBinaryArchive &reader) {
 		//assert_file_crash(strstr(filename, "_compound.cbatch"));
 
 		reader.markHeader();
+		reader.markInPlaceOffset(reader.header.unk2);
 
 		//assert_file_crash(compound.unk3 == 0);
 
@@ -43,6 +44,8 @@ bool batchFile::open(IBinaryArchive &reader) {
 		vegetationMBP.read(reader);
 
 		reader.serialize(batchResource);
+
+		reader.finish();
 
 		//assert_file_crash(compound.bridgeSize == reader.tell() - 24);
 	} else if (head.type == 1) {

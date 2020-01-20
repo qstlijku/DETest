@@ -23,6 +23,7 @@ struct Settings {
 	std::string patchDir2;
 
 	std::string soundLang = "english";
+	bool devTools = false;
 
 	//Graphics Settings
 	float near_plane = 0.25f;

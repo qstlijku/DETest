@@ -104,7 +104,6 @@ void World::loaderThread() {
 	DB::instance();
 
 	world.gameXML = loadRml(FH::openFile("worlds\\" WORLDNAME "\\generated\\" WORLDNAME ".game.xml"));
-	std::string debug = XMLToString(*world.gameXML.get());
 
 	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
 	std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/" WORLDNAME "/generated/" WORLDNAME "_deploadnewparticles.rml")); });
@@ -117,6 +116,8 @@ void World::loaderThread() {
 	particlesF.get();
 	loadWLUF.get();
 	loadSectorF.get();
+
+	world.readyToRender = true;
 
 	//Create a deffered context
 	HRESULT hr;
@@ -132,8 +133,6 @@ void World::loaderThread() {
 	//Start Creating command queues
 	hr = pDeferredContext->FinishCommandList(FALSE, &world.pd3dCommandList);
 	assert(hr == S_OK);
-
-	world.readyToRender = true;
 
 	//Start Drawing WLUs
 	int i = 0;
@@ -350,7 +349,7 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 				auto& map = hiRes->getMap(x, y);
 				auto vertexBuffer = map.getVertexBuffer();
 
-				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - GridsWorldOffset.x - 32, (yOffset + y * GridMapSectorsGranularity) - GridsWorldOffset.y - 32, 0));
+				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - GridsWorldOffset.x, (yOffset + y * GridMapSectorsGranularity) - GridsWorldOffset.y, 0));
 				RenderInterface::instance().objectCB.Offset = glm::vec4(x / 4.f, y / 4.f, 0, 0);
 				context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 

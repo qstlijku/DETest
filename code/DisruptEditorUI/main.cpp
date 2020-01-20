@@ -60,7 +60,7 @@ static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) 
 		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &ExInfo, NULL, NULL);
 		::CloseHandle(hFile);
 
-		MessageBox(NULL, L"DisruptEditor has crashed! A crash.mdmp has been written",
+		MessageBox(NULL, L"DisruptEditor " DE_VERSIONSTR " has crashed! A crash.mdmp has been written",
 			L"Your session has been Disrupted!",
 			MB_ICONERROR | MB_OK
 		);
@@ -270,8 +270,9 @@ int main(int argc, char **argv) {
 			UI::displayTempWindows();
 			UI::displayWindows();
 
-			if (settings.drawTerrain && world.pd3dCommandList)
+			if (settings.drawTerrain && world.pd3dCommandList) {
 				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
+			}
 
 			for (auto& it : world.wlus) {
 				if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;

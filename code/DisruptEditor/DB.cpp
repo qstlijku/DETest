@@ -38,7 +38,7 @@ std::string DB::getFileByHash(CPathID hash) {
 	if (it != fnvList.end())
 		return it->second;
 
-	char buffer[12];
+	char buffer[20];
 #if WD2 || WD3
 	snprintf(buffer, sizeof(buffer), "_%16x", hash);
 #else
@@ -79,6 +79,7 @@ void DB::reinit() {
 	dobbsList.clear();
 	crcList.clear();
 	fnvList.clear();
+	fileTypes.clear();
 	dareBaoList.clear();
 	root.clear();
 
@@ -87,7 +88,6 @@ void DB::reinit() {
 
 	//Fill with known FNV
 	handleFNVFile((base + "res/arches.txt").c_str());
-
 	handleFNVFile((base + "res/archeBrute.txt").c_str());
 
 	handleCRCFile((base + "res/classNames.txt").c_str(), "ClassNames");
@@ -95,6 +95,7 @@ void DB::reinit() {
 	handleCRCFile((base + "res/strings.txt").c_str(), "etc");
 	handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
 
+	//Load Dare
 	char line[64];
 	FILE *fp = fopen((base + "res/dare.txt").c_str(), "r");
 	while (fgets(line, sizeof(line), fp)) {
@@ -153,9 +154,13 @@ void DB::handleFNVFile(const char* file) {
 }
 
 void DB::addFNVEntry(const char* file) {
-	CPathID path(file);
-	fnvList[path] = file;
+	CPathID hash(file);
+	addFNVEntry(hash, file);
+}
 
-	if (FH::fileExists(file))
+void DB::addFNVEntry(CPathID hash, const char* file) {
+	if (FH::fileExists(file)) {
+		fnvList[hash] = file;
 		root.AddEntry(file);
+	}
 }
