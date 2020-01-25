@@ -125,23 +125,30 @@ void RenderInterface::setupState(ID3D11DeviceContext* context) {
 }
 
 void RenderInterface::CreateRenderTarget() {
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
 	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(pBackBuffer.GetAddressOf()));
 	g_pd3dDevice->CreateRenderTargetView(pBackBuffer.Get(), NULL, &g_mainRenderTargetView);
 
 	// create the depth and stencil buffer
 	D3D11_TEXTURE2D_DESC dsd;
 	pBackBuffer->GetDesc(&dsd);
-	dsd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	dsd.Format = DXGI_FORMAT_D32_FLOAT;
 	dsd.Usage = D3D11_USAGE_DEFAULT;
 	dsd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	g_pd3dDevice->CreateTexture2D(&dsd, NULL, dsBuffer.GetAddressOf());
 	g_pd3dDevice->CreateDepthStencilView(dsBuffer.Get(), NULL, g_depthStencilView.GetAddressOf());
+
+	//Create a copy for CPU access
+	dsBuffer->GetDesc(&dsd);
+	dsd.BindFlags &= ~D3D11_BIND_DEPTH_STENCIL;
+	dsd.CPUAccessFlags |= D3D11_CPU_ACCESS_READ;
+	dsd.Usage = D3D11_USAGE_STAGING;
+	g_pd3dDevice->CreateTexture2D(&dsd, NULL, dsBufferCPU.GetAddressOf());
 }
 
 void RenderInterface::CleanupRenderTarget() {
 	g_mainRenderTargetView.Reset();
 	g_depthStencilView.Reset();
+	dsBufferCPU.Reset();
 	dsBuffer.Reset();
 }
 

@@ -11,6 +11,9 @@ workspace "DisruptEditor"
         buildoptions "-std=c++17"
     end
 
+    -- multi threaded compilation
+    flags "MultiProcessorCompile"
+
     symbols "On"
 	pic "On"
     targetprefix ""
@@ -79,6 +82,8 @@ workspace "DisruptEditor"
         --"WD2",
         --"WORLDNAME=\"san_francisco\"",
         --"WLUEXT=\"wlu\"",
+
+        "GLM_FORCE_DEPTH_ZERO_TO_ONE",
     }
 
 	group "Editor"

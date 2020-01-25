@@ -5,13 +5,9 @@
 #include "CPathID.h"
 
 void bundleFile::open(IBinaryArchive & fp) {
-	uint32_t magic = 1114530924;
-	fp.serialize(magic);
-	SDL_assert_release(magic == 1114530924);
+	fp.serializeConstant<uint32_t>(1114530924);
 
-	uint16_t unk1 = 12804;
-	fp.serialize(unk1);
-	SDL_assert_release(unk1 == 12804);
+	fp.serializeConstant<uint16_t>(12804);
 
 	uint16_t count = 0;
 	fp.serialize(count);

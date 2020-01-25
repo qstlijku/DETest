@@ -23,22 +23,22 @@ Settings settings;
 
 static void promptGameDir() {
 #if WD2
-	SDL_ShowSimpleMessageBox(0, "Disrupt Editor 2 Setup", "Please select the Watch Dogs 2 EAC.exe file in the next window", NULL);
-	auto f = pfd::open_file("Please select the Watch Dogs 2 EAC.exe file", "", { "EAC exe", "EAC.exe" }, false);
-	if (f.result().empty()) {
+	pfd::message("Disrupt Editor 2 Setup", "Please select the Watch Dogs 2 EAC.exe file in the next window", pfd::choice::ok);
+	auto f = pfd::open_file("Please select the Watch Dogs 2 EAC.exe file", "", { "EAC exe", "EAC.exe" }, false).result();
+	if (f.empty()) {
 		exit(0);
 	}
 
-	settings.gameDir2 = f.result()[0];
+	settings.gameDir2 = f[0];
 	settings.gameDir2 = settings.gameDir2.substr(0, settings.gameDir2.size() - strlen("EAC.exe"));
 #else
-	SDL_ShowSimpleMessageBox(0, "Disrupt Editor Setup", "Please select the main Watch_Dogs.exe file in the next window", NULL);
-	auto f = pfd::open_file("Please select the main Watch_Dogs.exe file", "", { "Watch Dogs exe", "Watch_Dogs.exe" }, false);
-	if (f.result().empty()) {
+	pfd::message("Disrupt Editor Setup", "Please select the main Watch_Dogs.exe file in the next window", pfd::choice::ok);
+	auto f = pfd::open_file("Please select the main Watch_Dogs.exe file", "", { "Watch Dogs exe", "Watch_Dogs.exe" }, false).result();
+	if (f.empty()) {
 		exit(0);
 	}
 
-	settings.gameDir = f.result()[0];
+	settings.gameDir = f[0];
 	settings.gameDir = settings.gameDir.substr(0, settings.gameDir.size() - strlen("bin/Watch_Dogs.exe"));
 #endif
 }

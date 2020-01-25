@@ -210,7 +210,7 @@ void UI::displayFileBrowser() {
 			}
 
 			//List the Material UI Parameters for the Selected Shader
-			tinyxml2::XMLDocument* materialDescriptor = NULL;
+			tinyxml2::XMLDocument* materialDescriptor = nullptr;
 			for (auto& it : DriverShaders::instance().materialDescriptors) {
 				if (mat->shaderName == it->RootElement()->Attribute("name")) {
 					materialDescriptor = it.get();
@@ -218,7 +218,7 @@ void UI::displayFileBrowser() {
 				}
 			}
 			if (materialDescriptor) {
-				for (tinyxml2::XMLElement* it = materialDescriptor->RootElement()->FirstChildElement("parameter"); it != NULL; it = it->NextSiblingElement("parameter")) {
+				for (tinyxml2::XMLElement* it = materialDescriptor->RootElement()->FirstChildElement("parameter"); it != nullptr; it = it->NextSiblingElement("parameter")) {
 					std::string_view name = it->Attribute("name");
 					std::string_view type = it->Attribute("type");
 
@@ -268,7 +268,7 @@ void UI::displayFileBrowser() {
 						defaultCommand.unks7 = it->Attribute("defaultValue");
 						std::string value = command->unks7.getReverseName();
 						if (ImGui::BeginCombo(name.data(), value.c_str())) {
-							for (tinyxml2::XMLElement* it = DriverShaders::instance().samplerStates->RootElement()->FirstChildElement("samplerstate"); it != NULL; it = it->NextSiblingElement("samplerstate")) {
+							for (tinyxml2::XMLElement* it = DriverShaders::instance().samplerStates->RootElement()->FirstChildElement("samplerstate"); it != nullptr; it = it->NextSiblingElement("samplerstate")) {
 								const char* name = it->Attribute("name");
 								bool is_selected = (value == name);
 								if (ImGui::Selectable(name, is_selected)) {

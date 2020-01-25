@@ -188,7 +188,7 @@ void UI::displayTempWindows() {
 		ImGui::Text("%s", currentFile.c_str());
 		ImGui::SameLine();
 		if (ImGui::Button("Open")) {
-			//currentFile = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "cseq\0*.cseq\0", getAbsoluteFilePath("sequences").c_str(), NULL);
+			//currentFile = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "cseq\0*.cseq\0", getAbsoluteFilePath("sequences").c_str(), nullptr);
 			//file.open(currentFile.c_str());
 		}
 

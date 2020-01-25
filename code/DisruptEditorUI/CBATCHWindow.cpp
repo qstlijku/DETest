@@ -14,11 +14,11 @@ void UI::displayCBATCH() {
 
 	static batchFile file;
 	if (ImGui::Button("Open")) {
-		//file.open(noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "sbao\0*.sbao\0", NULL, NULL));
+		//file.open(noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "sbao\0*.sbao\0", nullptr, nullptr));
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Save")) {
-		//file.save(noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "sbao\0*.sbao\0", NULL, NULL));
+		//file.save(noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "sbao\0*.sbao\0", nullptr, nullptr));
 	}
 
 	ImGui::Text("TODO");

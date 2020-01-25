@@ -8,12 +8,6 @@
 #include "DDRenderInterface.h"
 #include "debug_draw.hpp"
 
-static glm::vec3 Intersect(glm::vec3 planeP, glm::vec3 planeN, glm::vec3 rayP, glm::vec3 rayD) {
-	float d = glm::dot(planeP, -planeN);
-	float t = -(d + rayP.z * planeN.z + rayP.y * planeN.y + rayP.x * planeN.x) / (rayD.z * planeN.z + rayD.y * planeN.y + rayD.x * planeN.x);
-	return rayP + t * rayD;
-}
-
 void UI::displaySector() {
 	if (!settings.openWindows["Sector"])
 		return;
@@ -68,53 +62,9 @@ void UI::displaySector() {
 		ImGui::DragFloat("Target Height", &targetHeight, 0.f, 255.f);
 
 	//Get Cursor Ray
-	glm::vec3 rayFrom(RenderInterface::instance().camera.location);
-	glm::vec3 rayTo;
-	/*{
-		glm::ivec2 mouse;
-		uint32_t mouseButton = SDL_GetMouseState(&mouse.x, &mouse.y);
-		glm::vec2 mousePos = mouse;
+	glm::vec3 col = world.terrainCursor;
 
-		float top = 1.f;
-		float bottom = -1.f;
-		float nearPlane = RenderInterface::instance().camera.near_plane;
-		float farPlane = RenderInterface::instance().camera.far_plane;
-		float fov = RenderInterface::instance().camera.fov;
-
-		glm::vec3 camTarget(RenderInterface::instance().camera.lookingAt);
-
-		glm::vec3 rayForward = glm::normalize(camTarget - rayFrom);
-		rayForward *= farPlane;
-
-		glm::vec3 vertical(RenderInterface::instance().camera.up);
-
-		glm::vec3 hor = glm::normalize(glm::cross(rayForward, vertical));
-		vertical = glm::normalize(glm::cross(hor, rayForward));
-
-		float tanfov = tanf(0.5f * fov);
-
-		hor *= 2.f * farPlane * tanfov;
-		vertical *= 2.f * farPlane * tanfov;
-
-		float width = RenderInterface::instance().windowSize.x;
-		float height = RenderInterface::instance().windowSize.y;
-		float aspect = width / height;
-
-		hor *= aspect;
-
-		glm::vec3 rayToCenter = rayFrom + rayForward;
-		glm::vec3 dHor = hor * 1.f / width;
-		glm::vec3 dVert = vertical * 1.f / height;
-
-		rayTo = rayToCenter - 0.5f * hor + 0.5f * vertical;
-		rayTo += mousePos.x * dHor;
-		rayTo -= mousePos.y * dVert;
-		rayTo = glm::normalize(rayTo);
-	}*/
-
-	glm::vec3 col = Intersect(glm::vec3(0, 0, 70.f), glm::vec3(0, 0, 1), rayFrom, rayTo);
-
-	if (col.x >= -2048 && col.x <= 2048 && col.y >= -2560 && col.y <= 2560) {
+	if (col != glm::vec3(0)) {
 		ImGui::Text("Col %f %f %f", col.x, col.y, col.z);
 		if (squareBrush) {
 

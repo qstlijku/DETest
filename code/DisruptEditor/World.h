@@ -20,6 +20,8 @@ public:
 	glm::ivec2 GridMapSectorsCount;
 	int GridMapSectorsGranularity;
 
+	glm::vec3 terrainCursor;
+
 	bool readyToRender = false;
 	float loadingProgress = 1.f;
 	std::string loadingStatus;

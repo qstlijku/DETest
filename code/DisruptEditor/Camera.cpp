@@ -35,22 +35,22 @@ void Camera::update(float delta) {
 
 			glm::vec3 movement(0);
 
-			if (moveForward) {
+			if (moveBackward) {
 				movement.x -= dx;
 				movement.y -= dy;
 				movement.z -= dz;
 			}
-			if (moveBackward) {
+			if (moveForward) {
 				movement.x += dx;
 				movement.y += dy;
 				movement.z += dz;
 			}
-			if (moveLeft) {
+			if (moveRight) {
 				movement.x += dy;
 				//movement.y += dy;
 				movement.y -= dx;
 			}
-			if (moveRight) {
+			if (moveLeft) {
 				movement.x -= dy;
 				//movement.y += dy;
 				movement.y += dx;
@@ -70,7 +70,7 @@ void Camera::update(float delta) {
 				actualLookSpeed = 0.f;
 
 			lon -= mouseX * actualLookSpeed;
-			lat += mouseY * actualLookSpeed;
+			lat -= mouseY * actualLookSpeed;
 
 			lat = max(-85, min(85, lat));
 			phi = (90 - lat) * (3.141592f / 180.f);

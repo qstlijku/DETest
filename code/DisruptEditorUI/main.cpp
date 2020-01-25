@@ -79,7 +79,7 @@ void renderProgressBar() {
 	else
 		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);
-	ImGui::Begin("Loading Disrupt Editor", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+	ImGui::Begin("Loading Disrupt Editor", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
 	const char* messages[]{
 		"Reticulating Splines...",
@@ -88,7 +88,7 @@ void renderProgressBar() {
 		"You wouldn't download a car",
 		"Kweh!",
 	};
-	static int num = time(NULL) % (sizeof(messages) / sizeof(messages[0]));
+	static int num = time(nullptr) % (sizeof(messages) / sizeof(messages[0]));
 	ImGui::Text(messages[num]);
 
 	ImGui::ProgressBar(world.loadingProgress, ImVec2(-1.0f, 0.0f), world.loadingStatus.c_str());
@@ -110,137 +110,6 @@ int main(int argc, char **argv) {
 	FH::Init();
 	CLODataDictionaries::instance();
 #endif
-#if 0
-	{
-		FH::Init();
-		SDL_RWops* fp = FH::openFileHash(0x49637b42);
-		/*SDL_RWops* temp = SDL_RWFromFile("test.cbatch", "wb");
-		std::vector<uint8_t> data(SDL_RWsize(fp));
-		SDL_RWread(fp, data.data(), 1, data.size());
-		SDL_RWwrite(temp, data.data(), 1, data.size());
-		SDL_RWclose(temp);*/
-
-		buildingBatchFile b;
-		CBinaryArchiveReader reader(fp);
-		b.open(reader);
-		SDL_RWclose(fp);
-		return 1;
-	}
-#endif
-
-	//DEBUG Save SBAO
-	/*{
-		SDL_RWops* fp = SDL_RWFromFile("000b1d29.sbao", "wb");
-		size_t size = 0;
-
-		Vector< Vector<uint8_t> > layers(3);
-		Vector< std::string > layerFiles = {
-			"bgm_ex1_alex08 l1.scd.ogg",
-			"bgm_ex1_alex08 l2.scd.ogg",
-			"bgm_ex1_alex08 l3.scd.ogg",
-		};
-		for (int i = 0; i < 3; ++i) {
-#if 0
-			unsigned int channels, sampleRate;
-			drwav_uint64 totalSampleCount;
-			short* pSampleData = drwav_open_and_read_file_s16(layerFiles[i].c_str(), &channels, &sampleRate, &totalSampleCount);
-			layers[i].resize(totalSampleCount * sizeof(short));
-			memcpy(layers[i].data(), pSampleData, layers[i].size());
-			drwav_free(pSampleData);
-#endif
-			SDL_RWops* a = SDL_RWFromFile(layerFiles[i].c_str(), "rb");
-			layers[i].resize(SDL_RWsize(a));
-			SDL_RWread(a, layers[i].data(), 1, SDL_RWsize(a));
-			SDL_RWclose(a);
-		}
-		layers[0].resize(21546520);
-		layers[1].resize(10773318);
-		layers[2].resize(10773318);
-
-		Vector< Vector<uint8_t> > headers(layers.size());
-		Vector< uint8_t* > ptrs(layers.size());
-
-		//Get first 4 packets of ogg as the header
-		for (int i = 0; i < layers.size(); ++i) {
-			ptrs[i] = layers[i].data() + 4096;
-			headers[i].insert(headers[i].end(), layers[i].data(), layers[i].data() + 4096);
-		}
-
-		uint32_t maxOgglength = 0;
-		for (auto &layer : layers)
-			maxOgglength = std::max(maxOgglength, (uint32_t)layer.size());
-
-		uint32_t totalBlocks = (maxOgglength / 162) + 1;
-
-		Vector<uint32_t> infoTable;
-		infoTable.push_back(0);//Temporary
-		infoTable.push_back(644);//Todo
-		for (int i = 0; i < layers.size(); ++i)
-			infoTable.push_back(layers[i].end()._Ptr - ptrs[i]);
-
-		struct sbaoHeader {
-			uint32_t magic = 207362;
-			uint32_t unk1 = 0;
-			uint32_t unk2 = 0;
-			uint32_t unk3 = 0;
-			uint32_t unk4 = 0;
-			uint32_t unk5 = 1342177280;
-			uint32_t unk6 = 2;
-		};
-		sbaoHeader head;
-		SDL_RWwrite(fp, &head, sizeof(head), 1);
-		SDL_WriteLE32(fp, 1048585);//type = interweaved 9 stream
-		SDL_WriteLE32(fp, 0);
-		SDL_WriteLE32(fp, layers.size());
-		SDL_WriteLE32(fp, totalBlocks);//totalBlocks
-		SDL_WriteLE32(fp, infoTable.size() * sizeof(uint32_t));//totalInfoSize
-		size_t infoOffset = SDL_RWtell(fp);
-		SDL_RWwrite(fp, infoTable.data(), sizeof(uint32_t), infoTable.size());
-		for (size_t i = 0; i < 64 - layers.size() * 4; ++i)
-			SDL_WriteU8(fp, 0);
-
-		//Write Header sizes
-		for (int i = 0; i < layers.size(); ++i)
-			SDL_WriteLE32(fp, headers[i].size());
-
-		//Write Headers
-		for (int i = 0; i < layers.size(); ++i)
-			SDL_RWwrite(fp, headers[i].data(), 1, headers[i].size());
-
-		infoTable[0] = SDL_RWtell(fp) - 120;
-
-		//Write Blocks
-		for (uint32_t blockI = 0; blockI < totalBlocks; ++blockI) {
-			SDL_WriteLE32(fp, 3);//BlockId
-			SDL_WriteLE32(fp, blockI == totalBlocks - 1 ? 0 : 644);//unk
-
-																	// Read in the block sizes
-			for (unsigned long i = 0; i < layers.size(); i++) {
-				uint32_t left = layers[i].end()._Ptr - ptrs[i];
-				uint32_t out = std::min(left, (uint32_t)326);
-				SDL_LogVerbose(SDL_LOG_CATEGORY_AUDIO, "%u", out);
-
-				SDL_WriteLE32(fp, out);
-			}
-
-			for (unsigned long i = 0; i < layers.size(); i++) {
-				uint32_t left = layers[i].end()._Ptr - ptrs[i];
-				uint32_t out = std::min(left, (uint32_t)326);
-
-				SDL_RWwrite(fp, ptrs[i], 1, out);
-				ptrs[i] += out;
-			}
-		}
-
-		size = SDL_RWtell(fp);
-
-		//Rewrite info table
-		SDL_RWseek(fp, infoOffset, RW_SEEK_SET);
-		SDL_RWwrite(fp, infoTable.data(), sizeof(uint32_t), infoTable.size());
-
-		SDL_RWclose(fp);
-		return 0;
-	}*/
 
 	//Start World Loader
 	std::thread worldLoaderThread(world.loaderThread);
@@ -299,7 +168,7 @@ int main(int argc, char **argv) {
 			delta = 0.5f;
 
 		RenderInterface &renderInterface = RenderInterface::instance();
-		renderInterface.sceneCB.View = glm::lookAtLH(camera.location, camera.lookingAt, camera.up);
+		renderInterface.sceneCB.View = glm::lookAt(camera.location, camera.lookingAt, camera.up);
 		renderInterface.sceneCB.Projection = glm::perspective(settings.fov, (float)settings.windowSize.x / settings.windowSize.y, settings.near_plane, settings.far_plane);
 		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
 		RenderInterface::instance().newFrame();
@@ -313,9 +182,35 @@ int main(int argc, char **argv) {
 			UI::displayTempWindows();
 			UI::displayWindows();
 
-			if (settings.drawTerrain) {
-				if(world.terrainCommandList)
-					RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.terrainCommandList, TRUE);
+			world.terrainCursor = glm::vec3(0.f);
+			if (settings.drawTerrain && world.terrainCommandList) {
+				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.terrainCommandList, TRUE);
+
+				//Get Depth At Cursor
+				RenderInterface::instance().g_pd3dDeviceContext->CopySubresourceRegion(RenderInterface::instance().dsBufferCPU.Get(), 0, 0, 0, 0, RenderInterface::instance().dsBuffer.Get(), 0, NULL);
+
+				D3D11_MAPPED_SUBRESOURCE msr;
+				HRESULT ret = RenderInterface::instance().g_pd3dDeviceContext->Map(RenderInterface::instance().dsBufferCPU.Get(), 0, D3D11_MAP_READ, 0, &msr);
+				
+				int posX, posY;
+				SDL_GetMouseState(&posX, &posY);
+
+				// copy data
+				float depth = 1.f;
+				SDL_assert_release(msr.RowPitch == settings.windowSize.x * sizeof(float));
+				Sint64 offset = (posY * msr.RowPitch) + (posX * sizeof(float));
+				if(msr.pData)
+					memcpy(&depth, (uint8_t*)msr.pData + offset, sizeof(depth));
+
+				RenderInterface::instance().g_pd3dDeviceContext->Unmap(RenderInterface::instance().dsBufferCPU.Get(), 0);
+
+				//Convert
+				if (depth != 1.f) {
+					glm::vec2 texCoord(posX / (float)settings.windowSize.x, 1.f - (posY / (float)settings.windowSize.y));
+					glm::vec4 worldPos = glm::inverse(renderInterface.sceneCB.ViewProjection) * glm::vec4(texCoord * 2.f - 1.f, depth, 1.f);
+					worldPos /= worldPos.w;
+					world.terrainCursor = glm::vec3(worldPos.x, worldPos.y, worldPos.z);
+				}
 			}
 
 			for (auto& it : world.wlus) {

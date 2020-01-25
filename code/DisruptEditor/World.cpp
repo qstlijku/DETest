@@ -89,6 +89,8 @@ glm::mat4 convertRotation(const glm::vec3 &a) {
 }
 
 void World::loaderThread() {
+	world.graphicMutex.lock();
+
 	//These two need to be set up before anything else
 	setLoadingStatus("Scanning Files");
 	FH::Init();
@@ -111,6 +113,8 @@ void World::loaderThread() {
 	loadSectorF.get();
 
 	world.readyToRender = true;
+
+	world.graphicMutex.unlock();
 	onResize();
 }
 
@@ -128,7 +132,6 @@ void World::regenWLUCommandList() {
 	ID3D11DeviceContext* pDeferredContext = NULL;
 	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
 	assert(hr == S_OK);
-	RenderInterface::instance().setupState(pDeferredContext);
 
 	//Start Drawing WLUs
 	int i = 0;

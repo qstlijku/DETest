@@ -21,11 +21,11 @@ void UI::displayDomino() {
 	if (ImGui::MenuItem("Save As")) {
 	}
 	if (ImGui::MenuItem("Import Lua")) {
-		/*const char *currentFile = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, NULL, NULL, NULL);
+		/*const char *currentFile = noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, nullptr, nullptr, nullptr);
 		db.open(currentFile);*/
 	}
 	if (ImGui::MenuItem("Export Lua")) {
-		//const char *currentFile = noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, NULL, NULL, NULL);
+		//const char *currentFile = noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, nullptr, nullptr, nullptr);
 	}
 	ImGui::EndMenuBar();
 

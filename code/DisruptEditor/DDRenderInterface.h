@@ -102,7 +102,9 @@ public:
 	Microsoft::WRL::ComPtr<IDXGISwapChain> g_pSwapChain;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> g_mainRenderTargetView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> g_depthStencilView;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> dsBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> dsBufferCPU;
 
 	struct SceneConstantBuffer {
 		glm::mat4 View;

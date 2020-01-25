@@ -164,7 +164,7 @@ void UI::displayDARE() {
 	}
 
 	static uint32_t inputSpk;
-	ImGui::InputScalar("SPK", ImGuiDataType_U32, &inputSpk, NULL, NULL, "%08x", ImGuiInputTextFlags_CharsHexadecimal);
+	ImGui::InputScalar("SPK", ImGuiDataType_U32, &inputSpk, nullptr, nullptr, "%08x", ImGuiInputTextFlags_CharsHexadecimal);
 	ImGui::SameLine();
 	if (ImGui::Button("Load")) {
 		DARE::instance().reset();
@@ -185,7 +185,7 @@ void UI::displayDARE() {
 			DARE::instance().spks.begin()->second.open(writer);
 			SDL_RWclose(fp);
 		} else {
-			SDL_ShowSimpleMessageBox(0, "Failed to open file for writing", buffer, NULL);
+			SDL_ShowSimpleMessageBox(0, "Failed to open file for writing", buffer, nullptr);
 		}
 
 		//TODO: Save external sbao files
