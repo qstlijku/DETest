@@ -27,7 +27,7 @@ RenderInterface::RenderInterface() {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui_ImplSDL2_InitForD3D(window);
-	ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
+	ImGui_ImplDX11_Init(g_pd3dDevice.Get(), g_pd3dDeviceContext.Get());
 
 	//Style
 	ImGui::StyleColorsDark(NULL);
@@ -91,9 +91,9 @@ void RenderInterface::newFrame() {
 	ImGui_ImplSDL2_NewFrame(window);
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();
-	setupState(g_pd3dDeviceContext);
+	setupState(g_pd3dDeviceContext.Get());
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, (float*)& clear_color);
+	g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView.Get(), (float*)& clear_color);
 	g_pd3dDeviceContext->ClearDepthStencilView(g_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	g_pd3dDeviceContext->UpdateSubresource(sceneCBB, 0, NULL, &sceneCB, 0, 0);
 }
@@ -106,15 +106,17 @@ void RenderInterface::endFrame() {
 }
 
 void RenderInterface::setupState(ID3D11DeviceContext* context) {
+	sceneCB.windowSize = settings.windowSize;
+
 	context->ClearState();
 	context->VSSetConstantBuffers(0, 1, &sceneCBB);
 	context->VSSetConstantBuffers(1, 1, &objectCBB);
-	context->OMSetRenderTargets(1, &g_mainRenderTargetView, g_depthStencilView.Get());
+	context->OMSetRenderTargets(1, g_mainRenderTargetView.GetAddressOf(), g_depthStencilView.Get());
 
 	D3D11_VIEWPORT vp;
 	memset(&vp, 0, sizeof(D3D11_VIEWPORT));
-	vp.Width = sceneCB.windowSize.x;
-	vp.Height = sceneCB.windowSize.y;
+	vp.Width = settings.windowSize.x;
+	vp.Height = settings.windowSize.y;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = vp.TopLeftY = 0;
@@ -123,21 +125,30 @@ void RenderInterface::setupState(ID3D11DeviceContext* context) {
 }
 
 void RenderInterface::CreateRenderTarget() {
-	ID3D11Texture2D* pBackBuffer;
-	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-	g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_mainRenderTargetView);
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
+	g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(pBackBuffer.GetAddressOf()));
+	g_pd3dDevice->CreateRenderTargetView(pBackBuffer.Get(), NULL, &g_mainRenderTargetView);
 
 	// create the depth and stencil buffer
 	D3D11_TEXTURE2D_DESC dsd;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> dsBuffer;
 	pBackBuffer->GetDesc(&dsd);
 	dsd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsd.Usage = D3D11_USAGE_DEFAULT;
 	dsd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	g_pd3dDevice->CreateTexture2D(&dsd, NULL, dsBuffer.GetAddressOf());
 	g_pd3dDevice->CreateDepthStencilView(dsBuffer.Get(), NULL, g_depthStencilView.GetAddressOf());
+}
 
-	pBackBuffer->Release();
+void RenderInterface::CleanupRenderTarget() {
+	g_mainRenderTargetView.Reset();
+	g_depthStencilView.Reset();
+	dsBuffer.Reset();
+}
+
+void RenderInterface::onResize() {
+	CleanupRenderTarget();
+	g_pSwapChain->ResizeBuffers(0, (UINT)settings.windowSize.x, (UINT)settings.windowSize.y, DXGI_FORMAT_UNKNOWN, 0);
+	CreateRenderTarget();
 }
 
 void RenderInterface::CreateDeviceD3D(HWND hWnd) {
@@ -159,10 +170,12 @@ void RenderInterface::CreateDeviceD3D(HWND hWnd) {
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	UINT createDeviceFlags = 0;
-	//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#if DEBUG
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 	D3D_FEATURE_LEVEL featureLevel;
 	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
-	HRESULT ret = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext);
+	HRESULT ret = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, g_pSwapChain.GetAddressOf(), g_pd3dDevice.GetAddressOf(), &featureLevel, g_pd3dDeviceContext.GetAddressOf());
 
 	if (ret != S_OK) {
 		char buf[255];

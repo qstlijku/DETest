@@ -85,14 +85,8 @@ workspace "DisruptEditor"
 	include "./DisruptEditor"
 	include "./DisruptEditorUI"
 	
-	group "Tools"
-	include "./ConvertMaterials"
-	
 	group "Vendor"
-	include "vendor/tinyxml2"
-	include "vendor/imgui"
-    include "vendor/ImGuizmo"
-    include "vendor/lz4"
+	include "vendor/3rdparty.lua"
 
 -- Cleanup
 if _ACTION == "clean" then

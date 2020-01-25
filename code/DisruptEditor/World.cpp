@@ -84,15 +84,8 @@ static void setLoadingStatus(const char* str, float progress = 0.f) {
 	world.mutex.unlock();
 }
 
-glm::mat4 convertRotation(const glm::vec3 a) {
-	float sx = sin(a.x / 2), sy = sin(a.y / 2), sz = sin(a.z / 2);
-	float cx = cos(a.x / 2), cy = cos(a.y / 2), cz = cos(a.z / 2);
-
-	glm::quat b(cx * cy * cz + sx * sy * sz,
-		sx * cy * cz - cx * sy * sz,
-		cx * sy * cz + sx * cy * sz,
-		cx * cy * sz - sx * sy * cz); // for XYZ application order
-	return glm::toMat4(b);
+glm::mat4 convertRotation(const glm::vec3 &a) {
+	return glm::eulerAngleYXZ(a.x, a.y, a.z);
 }
 
 void World::loaderThread() {
@@ -118,21 +111,24 @@ void World::loaderThread() {
 	loadSectorF.get();
 
 	world.readyToRender = true;
+	onResize();
+}
 
-	//Create a deffered context
+void World::onResize() {
+	if (world.graphicMutex.try_lock()) {
+		world.regenTerrainCommandList();
+		world.regenWLUCommandList();
+		world.graphicMutex.unlock();
+	}
+}
+
+void World::regenWLUCommandList() {
+	//Create a deferred context
 	HRESULT hr;
 	ID3D11DeviceContext* pDeferredContext = NULL;
 	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
 	assert(hr == S_OK);
 	RenderInterface::instance().setupState(pDeferredContext);
-
-	//Render Terrain
-	world.loadingStatus = "Preloading Sectors";
-	world.drawTerrain(pDeferredContext);
-
-	//Start Creating command queues
-	hr = pDeferredContext->FinishCommandList(FALSE, &world.pd3dCommandList);
-	assert(hr == S_OK);
 
 	//Start Drawing WLUs
 	int i = 0;
@@ -297,11 +293,16 @@ void World::loaderThread() {
 			}
 		}
 
+		if (it.second->plist)
+			it.second->plist->Release();
+
 		hr = pDeferredContext->FinishCommandList(FALSE, &it.second->plist);
 		assert(hr == S_OK);
 
 		world.loadingProgress = (i++ + world.sectors.size() + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
+
+	pDeferredContext->Release();
 }
 
 void World::drawTerrain(ID3D11DeviceContext* context) {
@@ -349,7 +350,7 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 				auto& map = hiRes->getMap(x, y);
 				auto vertexBuffer = map.getVertexBuffer();
 
-				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(), glm::vec3((xOffset + x * 64) - GridsWorldOffset.x, (yOffset + y * GridMapSectorsGranularity) - GridsWorldOffset.y, 0));
+				RenderInterface::instance().objectCB.Model = glm::translate(glm::mat4(1), glm::vec3((xOffset + x * 64) - GridsWorldOffset.x, (yOffset + y * GridMapSectorsGranularity) - GridsWorldOffset.y, 0));
 				RenderInterface::instance().objectCB.Offset = glm::vec4(x / 4.f, y / 4.f, 0, 0);
 				context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
 
@@ -360,7 +361,26 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 				context->DrawIndexed(CSectorHighRes::CSceneTerrainSectorPackedData::getIndexBuffer()->size, 0, 0);
 			}
 		}
-
-		world.loadingProgress = (i + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
+}
+
+void World::regenTerrainCommandList() {
+	if (terrainCommandList)
+		terrainCommandList->Release();
+
+	//Create a deferred context
+	HRESULT hr;
+	ID3D11DeviceContext* pDeferredContext = NULL;
+	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
+	assert(hr == S_OK);
+	RenderInterface::instance().setupState(pDeferredContext);
+
+	//Render Terrain
+	drawTerrain(pDeferredContext);
+
+	//Start Creating command queues
+	hr = pDeferredContext->FinishCommandList(FALSE, &terrainCommandList);
+	assert(hr == S_OK);
+
+	pDeferredContext->Release();
 }

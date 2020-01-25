@@ -145,7 +145,7 @@ inline void IBinaryArchive::serializeNdVector_pod(Vector<T>& vec) {
 
 template<>
 inline void IBinaryArchive::serializeNdVector_pod(Vector<uint8_t>& vec) {
-	uint32_t count = vec.size();
+	uint32_t count = (uint32_t) vec.size();
 	serialize(count);
 	vec.resize(count);
 	memBlock(vec.data(), 1, count);
@@ -154,7 +154,7 @@ inline void IBinaryArchive::serializeNdVector_pod(Vector<uint8_t>& vec) {
 template<typename T>
 inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, uint32_t typeId, uint32_t &unk) {
 	//PreAllocateSizeOfType behavior
-	uint32_t counter = vec.size(), counter2 = vec.size();
+	uint32_t counter = (uint32_t)vec.size(), counter2 = (uint32_t)vec.size();
 	serialize(counter);
 
 	serializeConstant(typeId);

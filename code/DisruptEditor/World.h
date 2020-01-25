@@ -31,10 +31,14 @@ public:
 	static void loadSectors();
 
 	static void loaderThread();
+	std::mutex graphicMutex;
+	static void onResize();
+
+	void regenWLUCommandList();
 
 	void drawTerrain(ID3D11DeviceContext* context);
-
-	ID3D11CommandList* pd3dCommandList = NULL;
+	void regenTerrainCommandList();
+	ID3D11CommandList* terrainCommandList = NULL;
 };
 
 extern World world;

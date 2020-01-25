@@ -98,7 +98,7 @@ void UI::displayFileBrowser() {
 			static int selLod = 0;
 			ImGui::SliderInt("Lod", &selLod, 0, xbg->lods.size() - 1);
 
-			ID3D11DeviceContext *context = RenderInterface::instance().g_pd3dDeviceContext;
+			ID3D11DeviceContext *context = RenderInterface::instance().g_pd3dDeviceContext.Get();
 			context->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
 			context->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
 			RenderInterface::instance().objectCB.Model = glm::mat4(1.f);
@@ -124,9 +124,34 @@ void UI::displayFileBrowser() {
 					FbxExporter* lExporter = FbxExporter::Create(lSdkManager, "");
 
 					FbxScene* lScene = FbxScene::Create(lSdkManager, currentFile.c_str());
+					FbxNode* lRootNode = lScene->GetRootNode();
 
 					//Add The Lods
+					int count = 0;
+					for (auto& lod : xbg->lods) {
+						char name[15];
+						snprintf(name, sizeof(name), "LOD%u", count);
+						FbxNode* lChild = FbxNode::Create(lScene, name);
+						lRootNode->AddChild(lChild);
 
+						for (auto& mesh : lod.meshes) {
+							// Create a node for our mesh in the scene.
+							FbxNode* lMeshNode = FbxNode::Create(lScene, "meshNode");
+
+							// Create a mesh.
+							FbxMesh* lMesh = FbxMesh::Create(lScene, "mesh");
+
+							// Set the node attribute of the mesh node.
+							lMeshNode->SetNodeAttribute(lMesh);
+
+							// Add the mesh node to the lod node in the scene.
+							lChild->AddChild(lMeshNode);
+
+
+						}
+
+						++count;
+					}
 
 					bool lExportStatus = lExporter->Initialize(selection.c_str(), -1, lSdkManager->GetIOSettings());
 					if (!lExportStatus) {

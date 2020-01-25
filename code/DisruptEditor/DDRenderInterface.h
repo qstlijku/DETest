@@ -72,6 +72,8 @@ public:
 
 	void CreateDeviceD3D(HWND hWnd);
 	void CreateRenderTarget();
+	void CleanupRenderTarget();
+	void onResize();
 
 	//
 	// Batch drawing methods for the primitives used by the debug renderer.
@@ -95,11 +97,12 @@ public:
 
 	SDL_Window* window;
 
-	ID3D11Device* g_pd3dDevice = NULL;
-	ID3D11DeviceContext* g_pd3dDeviceContext = NULL;
-	IDXGISwapChain* g_pSwapChain = NULL;
-	ID3D11RenderTargetView* g_mainRenderTargetView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11Device> g_pd3dDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> g_pd3dDeviceContext;
+	Microsoft::WRL::ComPtr<IDXGISwapChain> g_pSwapChain;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> g_mainRenderTargetView;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> g_depthStencilView;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> dsBuffer;
 
 	struct SceneConstantBuffer {
 		glm::mat4 View;

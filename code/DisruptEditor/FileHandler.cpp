@@ -114,19 +114,18 @@ SDL_RWops * FH::openFileHash(CPathID path, bool byPassPatch) {
 }
 
 bool FH::fileExists(const char* path) {
+	//Check dats
+	CPathID hash(path);
+	for (auto& it : dats) {
+		if (it.files.count(hash))
+			return true;
+	}
+
 	//Check if file in patch dir exists
 	char fullPath[512];
 	snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
 	if (std::filesystem::exists(fullPath))
 		return true;
-
-	CPathID hash(path);
-
-	//Check dats
-	for (auto& it : dats) {
-		if (it.files.count(hash))
-			return true;
-	}
 
 	return false;
 }

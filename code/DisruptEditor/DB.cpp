@@ -5,6 +5,7 @@
 #include "FileHandler.h"
 #include <filesystem>
 #include <Common.h>
+#include <future>
 
 void NodeEntryCollection::AddEntry(std::string sEntry, int wBegIndex) {
 	if (wBegIndex < sEntry.size()) {
@@ -40,9 +41,9 @@ std::string DB::getFileByHash(CPathID hash) {
 
 	char buffer[20];
 #if WD2 || WD3
-	snprintf(buffer, sizeof(buffer), "_%16x", hash);
+	snprintf(buffer, sizeof(buffer), "_%16x", hash.id);
 #else
-	snprintf(buffer, sizeof(buffer), "_%08x", hash);
+	snprintf(buffer, sizeof(buffer), "_%08x", hash.id);
 #endif
 	return std::string(buffer);
 }
@@ -53,7 +54,7 @@ std::string DB::getStrFromCRC(CStringID hash) {
 		return it->second;
 
 	char buffer[12];
-	snprintf(buffer, sizeof(buffer), "_%08x", hash);
+	snprintf(buffer, sizeof(buffer), "_%08x", hash.id);
 	return std::string(buffer);
 }
 
@@ -63,7 +64,7 @@ std::string DB::getStrFromDobbs(CDobbsID hash) {
 		return it->second;
 
 	char buffer[12];
-	snprintf(buffer, sizeof(buffer), "_%08x", hash);
+	snprintf(buffer, sizeof(buffer), "_%08x", hash.id);
 	return std::string(buffer);
 }
 
@@ -83,28 +84,39 @@ void DB::reinit() {
 	dareBaoList.clear();
 	root.clear();
 
-	//Fill with Known files
-	handleFNVFile((base + "res/Watch Dogs.filelist").c_str());
+	dobbsList.reserve(275000);
+	crcList.reserve(275000);
+	fnvList.reserve(275000);
+	dareBaoList.reserve(150000);
 
-	//Fill with known FNV
-	handleFNVFile((base + "res/arches.txt").c_str());
-	handleFNVFile((base + "res/archeBrute.txt").c_str());
+	std::future<void> futureFNV = std::async([&]() {
+		//Fill with Known files
+		handleFNVFile((base + "res/Watch Dogs.filelist").c_str());
 
-	handleCRCFile((base + "res/classNames.txt").c_str(), "ClassNames");
-	handleCRCFile((base + "res/exeStrings.txt").c_str(), "etc");
-	handleCRCFile((base + "res/strings.txt").c_str(), "etc");
-	handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
+		//Fill with known FNV
+		handleFNVFile((base + "res/arches.txt").c_str());
+		handleFNVFile((base + "res/archeBrute.txt").c_str());
+	});
+
+	std::future<void> futureCRC = std::async([&]() {
+		handleCRCFile((base + "res/classNames.txt").c_str(), "ClassNames");
+		handleCRCFile((base + "res/exeStrings.txt").c_str(), "etc");
+		handleCRCFile((base + "res/strings.txt").c_str(), "etc");
+		handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
+	});
 
 	//Load Dare
-	char line[64];
-	FILE *fp = fopen((base + "res/dare.txt").c_str(), "r");
-	while (fgets(line, sizeof(line), fp)) {
-		line[strlen(line) - 1] = '\0';
-		uint32_t spk, sbao;
-		sscanf(line, "%u,%u", &spk, &sbao);
-		dareBaoList[sbao] = spk;
-	}
-	fclose(fp);
+	std::future<void> futureDARE = std::async([&]() {
+		char line[64];
+		FILE* fp = fopen((base + "res/dare.txt").c_str(), "r");
+		while (fgets(line, sizeof(line), fp)) {
+			line[strlen(line) - 1] = '\0';
+			uint32_t spk, sbao;
+			sscanf(line, "%u,%u", &spk, &sbao);
+			dareBaoList[sbao] = spk;
+		}
+		fclose(fp);
+	});
 
 	//Scan the Patch Dir
 	try {
@@ -116,6 +128,10 @@ void DB::reinit() {
 			}
 		}
 	} catch (...) {}
+
+	futureFNV.get();
+	futureCRC.get();
+	futureDARE.get();
 }
 
 DB & DB::instance() {

@@ -1,15 +1,10 @@
 
 #define DEBUG_DRAW_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STB_TRUETYPE_IMPLEMENTATION
 #define DR_WAV_IMPLEMENTATION
 
-#include "../vendor/DirectXTex/DDSTextureLoader.cpp"
-
 #include "stb_image.h"
-#include "stb_image_write.h"
-#include "stb_truetype.h"
 #include "dr_wav.h"
 #include "debug_draw.hpp"
-#include "stb_vorbis.h"
+#include "stb_vorbis.c"
+

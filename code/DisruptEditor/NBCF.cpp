@@ -421,9 +421,6 @@ void readFCB(IBinaryArchive & fp, Node &root) {
 		root.deserializeA(fp.fp, list, fp.bigEndian);
 	}
 
-	if (fp.size() != fp.tell())
-		SDL_Log("Warning: Extra data at the end of fcb");
-
 	fp.bigEndian = orig_bigEndian;
 	fp.padding = orig_padding;
 }

@@ -1,0 +1,24 @@
+[submodule "code/vendor/ImGuizmo"]
+	path = code/vendor/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "code/vendor/dr_libs"]
+	path = code/vendor/dr_libs
+	url = https://github.com/mackron/dr_libs.git
+[submodule "code/vendor/stb"]
+	path = code/vendor/stb
+	url = https://github.com/nothings/stb.git
+[submodule "code/vendor/tinyxml2"]
+	path = code/vendor/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git
+[submodule "code/vendor/glm"]
+	path = code/vendor/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "code/vendor/portable-file-dialogs"]
+	path = code/vendor/portable-file-dialogs
+	url = https://github.com/samhocevar/portable-file-dialogs.git
+[submodule "code/vendor/DirectXTex"]
+	path = code/vendor/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git
+[submodule "code/vendor/debug-draw"]
+	path = code/vendor/debug-draw
+	url = https://github.com/glampert/debug-draw.git

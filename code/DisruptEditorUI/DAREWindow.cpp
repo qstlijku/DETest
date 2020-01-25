@@ -8,7 +8,7 @@
 #include "Audio.h"
 #include "dr_wav.h"
 #define STB_VORBIS_HEADER_ONLY
-#include "stb_vorbis.h"
+#include "stb_vorbis.c"
 #include <SDL.h>
 #include "DARE.h"
 #include <portable-file-dialogs.h>

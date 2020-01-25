@@ -33,7 +33,7 @@ void Camera::update(float delta) {
 			float dz = cosf(phi) * actualMoveSpeed;
 			float dy = sinf(phi) * sinf(theta) * actualMoveSpeed;
 
-			glm::vec3 movement;
+			glm::vec3 movement(0);
 
 			if (moveForward) {
 				movement.x -= dx;

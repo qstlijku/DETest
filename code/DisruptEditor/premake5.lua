@@ -24,9 +24,9 @@ project "DisruptEditor"
 		"../vendor/portable-file-dialogs",
 		"../vendor/tinyfiles",
 		"../vendor/stb",
-		"../vendor/dr_wav",
-		"../vendor/debug_draw",
-		"../vendor/DirectXTex",
+		"../vendor/dr_libs",
+		"../vendor/debug-draw",
+		"../vendor/DirectXTex/DDSTextureLoader",
 	}
 
 	links
@@ -36,6 +36,7 @@ project "DisruptEditor"
 
 		"tinyxml2",
 		"lz4",
+		"DDSTextureLoader",
 
 		-- imgui
 		"imgui",

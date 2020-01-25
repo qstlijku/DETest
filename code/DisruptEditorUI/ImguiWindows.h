@@ -1,6 +1,13 @@
 #pragma once
 
 namespace UI {
+	class Window {
+	public:
+		virtual ~Window() = 0;
+
+		virtual void draw() = 0;
+	};
+
 	void displayTopMenu();
 	void displayTempWindows();
 	void displayWindows();

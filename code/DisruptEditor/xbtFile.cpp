@@ -15,7 +15,7 @@ bool xbtFile::open(IBinaryArchive& reader) {
 	std::vector<uint8_t> data(SDL_RWsize(fp) - ddsOffset);
 	SDL_RWread(fp, data.data(), 1, data.size());
 
-	HRESULT hr = DirectX::CreateDDSTextureFromMemory(RenderInterface::instance().g_pd3dDevice, data.data(), data.size(), &pTexture, &pResource);
+	HRESULT hr = DirectX::CreateDDSTextureFromMemory(RenderInterface::instance().g_pd3dDevice.Get(), data.data(), data.size(), &pTexture, &pResource);
 	SDL_assert_release(hr == S_OK);
 
 	return true;

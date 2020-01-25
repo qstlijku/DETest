@@ -72,10 +72,12 @@ void renderProgressBar() {
 	if (world.loadingProgress >= 1.f)
 		return;
 
+	ImGuiIO &io = ImGui::GetIO();
+
 	if (world.readyToRender)
 		ImGui::SetNextWindowPos(ImVec2(15, 25), ImGuiCond_Always);
 	else
-		ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize(ImVec2(400, 78), ImGuiCond_Always);
 	ImGui::Begin("Loading Disrupt Editor", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
@@ -84,7 +86,7 @@ void renderProgressBar() {
 		"I brought this on Clara. Brought her into my mess...",
 		"And then go forward and back, then put one foot forward",
 		"You wouldn't download a car",
-		"Kweh!"
+		"Kweh!",
 	};
 	static int num = time(NULL) % (sizeof(messages) / sizeof(messages[0]));
 	ImGui::Text(messages[num]);
@@ -246,71 +248,24 @@ int main(int argc, char **argv) {
 	Uint32 ticks = SDL_GetTicks();
 	bool windowOpen = true;
 	while (windowOpen) {
-		float delta = (SDL_GetTicks() - ticks) / 1000.f;
-		ticks = SDL_GetTicks();
-		if (delta > 0.5f)
-			delta = 0.5f;
-
-		RenderInterface &renderInterface = RenderInterface::instance();
-
-		glm::ivec2 windowSize;
-		SDL_GetWindowSize(window, &windowSize.x, &windowSize.y);
-		renderInterface.sceneCB.windowSize = windowSize;
-		renderInterface.sceneCB.View = glm::lookAtLH(camera.location, camera.lookingAt, camera.up);
-		renderInterface.sceneCB.Projection = glm::perspective(settings.fov, (float)windowSize.x / windowSize.y, settings.near_plane, settings.far_plane);
-		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
-		RenderInterface::instance().newFrame();
-
-		Frustum frustum(RenderInterface::instance().sceneCB.ViewProjection);
-
-		world.mutex.lock();
-
-		if (world.readyToRender) {
-			UI::displayTopMenu();
-			UI::displayTempWindows();
-			UI::displayWindows();
-
-			if (settings.drawTerrain && world.pd3dCommandList) {
-				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.pd3dCommandList, TRUE);
-			}
-
-			for (auto& it : world.wlus) {
-				if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;
-
-				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 15.f * 15.f && !frustum.IsBoxVisible(it.second->aabb)) continue;
-				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 150.f * 150.f) continue;
-
-				//dd::aabb(&it.second->aabb.minp.x, &it.second->aabb.minp.y, red);
-
-				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it.second->plist, TRUE);
-			}
-		}
-
-		renderProgressBar();
-
-		dd::xzSquareGrid(-50, 50, 0, 1, blue);
-
-		world.mutex.unlock();
-
-		if (!ImGui::IsAnyWindowHovered())
-			camera.update(delta);
-
-		RenderInterface::instance().endFrame();
-
+		//Event Handling
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
 			switch (event.type) {
 			case SDL_WINDOWEVENT: {
-				switch(event.window.event) {
+				switch (event.window.event) {
 				case SDL_WINDOWEVENT_CLOSE:
 					windowOpen = false;
 					saveSettings();
 					exit(0);
-				case SDL_WINDOWEVENT_RESIZED:
+				case SDL_WINDOWEVENT_SIZE_CHANGED: {
 					settings.windowSize = glm::ivec2(event.window.data1, event.window.data2);
 					saveSettings();
+					RenderInterface::instance().onResize();
+					world.onResize();
 					break;
+				}
 				case SDL_WINDOWEVENT_MAXIMIZED:
 					settings.maximized = true;
 					saveSettings();
@@ -336,6 +291,56 @@ int main(int argc, char **argv) {
 			}
 			}
 		}
+
+		//Drawing
+		float delta = (SDL_GetTicks() - ticks) / 1000.f;
+		ticks = SDL_GetTicks();
+		if (delta > 0.5f)
+			delta = 0.5f;
+
+		RenderInterface &renderInterface = RenderInterface::instance();
+		renderInterface.sceneCB.View = glm::lookAtLH(camera.location, camera.lookingAt, camera.up);
+		renderInterface.sceneCB.Projection = glm::perspective(settings.fov, (float)settings.windowSize.x / settings.windowSize.y, settings.near_plane, settings.far_plane);
+		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
+		RenderInterface::instance().newFrame();
+
+		Frustum frustum(RenderInterface::instance().sceneCB.ViewProjection);
+
+		world.mutex.lock();
+
+		if (world.readyToRender) {
+			UI::displayTopMenu();
+			UI::displayTempWindows();
+			UI::displayWindows();
+
+			if (settings.drawTerrain) {
+				if(world.terrainCommandList)
+					RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.terrainCommandList, TRUE);
+			}
+
+			for (auto& it : world.wlus) {
+				if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;
+
+				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 15.f * 15.f && !frustum.IsBoxVisible(it.second->aabb)) continue;
+				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 150.f * 150.f) continue;
+
+				//dd::aabb(&it.second->aabb.minp.x, &it.second->aabb.minp.y, red);
+
+				if(it.second->plist)
+					RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it.second->plist, TRUE);
+			}
+		}
+
+		renderProgressBar();
+
+		dd::xzSquareGrid(-50, 50, 0, 1, blue);
+
+		world.mutex.unlock();
+
+		if (!ImGui::IsAnyWindowHovered())
+			camera.update(delta);
+
+		RenderInterface::instance().endFrame();
 	}
 
 	ImGui::DestroyContext();

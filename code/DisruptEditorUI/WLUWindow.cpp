@@ -105,7 +105,7 @@ void UI::displayWLU() {
 							auto &model = loadXBG((char*)XBG->buffer.data());
 							renderInterface.model.use();
 
-							glm::mat4 modelMatrix = glm::translate(glm::mat4(), pos);
+							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
 							modelMatrix = glm::rotate(modelMatrix, angles.x, glm::vec3(1, 0, 0));
 							modelMatrix = glm::rotate(modelMatrix, angles.y, glm::vec3(0, 1, 0));
 							modelMatrix = glm::rotate(modelMatrix, angles.z, glm::vec3(0, 0, 1));

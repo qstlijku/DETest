@@ -32,11 +32,10 @@ project "DisruptEditorUI"
 		"../vendor/glm",
 		"../vendor/imgui",
 		"../vendor/ImGuizmo",
-		"../vendor/tinyfiles",
 		"../vendor/portable-file-dialogs",
 		"../vendor/stb",
-		"../vendor/dr_wav",
-		"../vendor/debug_draw",
+		"../vendor/dr_libs",
+		"../vendor/debug-draw",
 
 		"C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/include",
 	}
@@ -52,6 +51,7 @@ project "DisruptEditorUI"
 
 		"tinyxml2",
 		"lz4",
+		"DDSTextureLoader",
 
 		-- imgui
 		"imgui",

@@ -16,6 +16,8 @@
 #include <unordered_map>
 #include <SDL_log.h>
 
+static std::recursive_mutex mutex;
+
 static std::unordered_map<CPathID, std::shared_ptr<xbgFile>> xbgs;
 static std::unordered_map<CPathID, std::shared_ptr<materialFile>> materials;
 static std::unordered_map<CPathID, std::shared_ptr<xbtFile>> textures;
@@ -24,6 +26,8 @@ static std::unordered_map<CPathID, std::shared_ptr<batchFile>> batches;
 static std::unordered_map<CPathID, std::shared_ptr<buildingBatchFile>> buildingBatches;
 
 static xbgMipFile loadXBGMIP(const std::string& path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	SDL_RWops* fp = FH::openFile(path.c_str());
 	xbgMipFile model;
 	if (fp) {
@@ -35,6 +39,8 @@ static xbgMipFile loadXBGMIP(const std::string& path) {
 }
 
 std::shared_ptr<xbgFile> loadXBG(CPathID hash) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	std::shared_ptr<xbgFile> model = xbgs[hash];
 	if (!model) {
 		model = xbgs[hash] = std::make_shared<xbgFile>();
@@ -61,6 +67,8 @@ std::shared_ptr<xbgFile> loadXBG(CPathID hash) {
 }
 
 std::shared_ptr<materialFile> loadMaterial(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	std::shared_ptr<materialFile> model = materials[path];
 	if (!model) {
 		model = materials[path] = std::make_shared<materialFile>();
@@ -76,6 +84,8 @@ std::shared_ptr<materialFile> loadMaterial(CPathID path) {
 }
 
 std::shared_ptr<xbtFile> loadTexture(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	std::shared_ptr<xbtFile> model = textures[path];
 	if (!model) {
 		model = textures[path] = std::make_shared<xbtFile>();
@@ -91,6 +101,8 @@ std::shared_ptr<xbtFile> loadTexture(CPathID path) {
 }
 
 std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	std::shared_ptr<SplineLoftHiRes> model = hiResSplineLofts[path];
 	if (!model) {
 		model = hiResSplineLofts[path] = std::make_shared<SplineLoftHiRes>();
@@ -106,6 +118,8 @@ std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path) {
 }
 
 std::shared_ptr<batchFile> loadbatchFile(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	std::shared_ptr<batchFile> model = batches[path];
 	if (!model) {
 		model = batches[path] = std::make_shared<batchFile>();
@@ -121,6 +135,8 @@ std::shared_ptr<batchFile> loadbatchFile(CPathID path) {
 }
 
 std::shared_ptr<buildingBatchFile> loadBuildingBatchFile(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
 	std::shared_ptr<buildingBatchFile> model = buildingBatches[path];
 	if (!model) {
 		model = buildingBatches[path] = std::make_shared<buildingBatchFile>();
