@@ -214,7 +214,14 @@ int main(int argc, char **argv) {
 			}
 
 			for (auto& it : world.wlus) {
-				if (it.first.find(!settings.displayNear ? "_near" : "_far") != std::string::npos) continue;
+				if (it.first.find("_near") != std::string::npos) {
+					if (!settings.displayNear) 
+						continue;
+				}
+				if (it.first.find("_far") != std::string::npos) {
+					if (settings.displayNear)
+						continue;
+				}
 
 				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 15.f * 15.f && !frustum.IsBoxVisible(it.second->aabb)) continue;
 				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 150.f * 150.f) continue;
@@ -224,6 +231,9 @@ int main(int argc, char **argv) {
 				if(it.second->plist)
 					RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it.second->plist, TRUE);
 			}
+
+			if (world.buildingCommandList)
+				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.buildingCommandList, TRUE);
 		}
 
 		renderProgressBar();

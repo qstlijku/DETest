@@ -16,6 +16,7 @@
 #include <glm\gtx\quaternion.hpp>
 #include <buildingBatchFile.h>
 #include <realTreeFile.h>
+#include <unordered_set>
 
 World world;
 
@@ -133,6 +134,8 @@ void World::regenWLUCommandList() {
 	ID3D11DeviceContext* pDeferredContext = NULL;
 	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
 	assert(hr == S_OK);
+
+	std::unordered_set<CPathID> buildingResources;
 
 	//Start Drawing WLUs
 	int i = 0;
@@ -266,20 +269,7 @@ void World::regenWLUCommandList() {
 
 				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
 				for (auto& it : building.buildingResources) {
-					std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
-
-					for(auto &buildingData : buildingBatch->buildingData) {
-						for (auto& facade : buildingData.facades) {
-							buildingBatchFile::SGfxModelInfo& gfx = buildingBatch->facadeGfxModels.models[facade.unk6];
-							std::shared_ptr<xbgFile> model = loadXBG(gfx.geomResource.file);
-
-							for (int i = 0; i < facade.data.data.size(); ++i) {
-								facade.data.getMatrix(i, RenderInterface::instance().objectCB.Model);
-
-								model->draw(pDeferredContext);
-							}
-						}
-					}
+					buildingResources.emplace(it);
 				}
 				/*if (building.lowGeom.id != -1) {
 					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
@@ -321,6 +311,34 @@ void World::regenWLUCommandList() {
 
 		world.loadingProgress = (i++ + world.sectors.size() + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
+
+	if (buildingCommandList)
+		buildingCommandList->Release();
+
+	RenderInterface::instance().setupState(pDeferredContext);
+
+	pDeferredContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
+	pDeferredContext->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
+
+	for (auto& it : buildingResources) {
+		std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
+
+		for (auto& buildingData : buildingBatch->buildingData) {
+			for (auto& facade : buildingData.facades) {
+				buildingBatchFile::SGfxModelInfo& gfx = buildingBatch->facadeGfxModels.models[facade.unk6];
+				std::shared_ptr<xbgFile> model = loadXBG(gfx.geomResource.file);
+
+				for (int i = 0; i < facade.data.data.size(); ++i) {
+					facade.data.getMatrix(i, RenderInterface::instance().objectCB.Model);
+
+					model->draw(pDeferredContext);
+				}
+			}
+		}
+	}
+
+	hr = pDeferredContext->FinishCommandList(FALSE, &buildingCommandList);
+	assert(hr == S_OK);
 
 	pDeferredContext->Release();
 }

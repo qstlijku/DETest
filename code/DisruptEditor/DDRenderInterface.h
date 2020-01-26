@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include <d3d11.h>
 #include <wrl.h>
+#include <vector>
 
 class VertexBuffer {
 public:
@@ -127,6 +128,13 @@ public:
 	ID3D11SamplerState* tex0;
 
 	void onWindowResized();
+
+	struct DDStr {
+		std::string str;
+		glm::vec3 pos;
+	};
+	std::vector<DDStr> ddstrs;
+	void pushDebugStr(const char* str, const glm::vec3& pos);
 
 	static RenderInterface& instance();
 };

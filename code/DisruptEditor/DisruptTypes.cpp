@@ -4,6 +4,7 @@
 #include "SDL.h"
 #include "FileHandler.h"
 #include "IBinaryArchive.h"
+#include <glm\ext\matrix_transform.hpp>
 
 void CResourceContainer::read(IBinaryArchive& fp) {
 	fp.serialize(type);
@@ -715,7 +716,7 @@ void ClusterData::read(IBinaryArchive& fp) {
 
 static double CONCAT44(uint32_t a, uint32_t b) {
 	uint64_t c = a;
-	c = c << (4 * 8);
+	c <<= (4 * 8);
 	c |= b;
 	return *(double*)&c;
 }
@@ -727,45 +728,18 @@ void ClusterData::getMatrix(int index, glm::mat4& mat) {
 	float* matrix = &mat[0][0];
 	const Data& entry = data[index];
 
-	double dVar35 = 0.0;
-	double dVar36 = 1.0;
-
 	if ((format & CompressedMatrix) == 0 && format & PositionRotZTransform) {
-		float fVar29 = atan2f((float)((double)CONCAT44(0x43300000, entry.rot ^ 0x80000000) - 4.503601774854144E15) / 32767.f,
-			(float)((double)CONCAT44(0x43300000, entry.z ^ 0x80000000) - 4.503601774854144E15) / 32767.f);
-		double dVar24 = (double)fVar29;
-		float fVar32 = entry.pos.y;
-		float fVar18 = entry.pos.z;
-		double dVar34 = entry.pos.x;
-		fVar29 = cosf(fVar29);
-		double dVar17 = (double)fVar29;
-		fVar29 = sinf((float)dVar24);
-		double dVar31 = (double)(float)(dVar35 * dVar17);
-		dVar24 = (double)(float)(dVar35 * (double)fVar29);
-		fVar29 = (float)(dVar36 * (double)fVar29);
-		matrix[0xc] = (float)dVar34;
-		matrix[1] = fVar29;
-		matrix[0] = (float)(dVar36 * dVar17);
-		matrix[5] = (float)(dVar24 * dVar35 + (double)(float)(dVar36 * dVar17));
-		matrix[4] = (float)(dVar31 * dVar35 - (double)fVar29);
-		matrix[8] = (float)(dVar31 * dVar36 + dVar24);
-		matrix[9] = (float)(dVar24 * dVar36 - dVar31);
-		matrix[6] = (float)(dVar36 * dVar35);
-		matrix[10] = (float)(dVar36 * dVar36);
-		matrix[2] = (float)(double)((uint64_t)dVar35 & 0x7fffffffffffffff | ~(uint64_t)dVar35 & 0x8000000000000000);
-		matrix[0xd] = fVar32;
-		matrix[3] = (float)dVar35;
-		matrix[0xe] = fVar18;
-		matrix[0xb] = (float)dVar35;
-		matrix[0xf] = (float)dVar36;
-		matrix[7] = (float)dVar35;
+		float Rot = (CONCAT44(0x43300000, entry.rot ^ 0x80000000) - 4.503601774854144E15) / 32767.f;
+		float Z =   (CONCAT44(0x43300000, entry.z   ^ 0x80000000) - 4.503601774854144E15) / 32767.f;
+		mat = glm::translate(glm::mat4(1), entry.pos);
+		mat = glm::rotate(mat, atan2f(Rot, Z), glm::vec3(0, 0, 1));
 		return;
 	}
 
-	if ((format & CompressedMatrix) == 0) {
+	/*if ((format & CompressedMatrix) == 0) {
 		mat = glm::mat4(1);
 		return;
-	}
+	}*/
 
 	mat = glm::mat4(1);
 }

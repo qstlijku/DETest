@@ -41,6 +41,8 @@ public:
 	void drawTerrain(ID3D11DeviceContext* context);
 	void regenTerrainCommandList();
 	ID3D11CommandList* terrainCommandList = NULL;
+
+	ID3D11CommandList* buildingCommandList = NULL;
 };
 
 extern World world;

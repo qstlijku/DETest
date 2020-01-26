@@ -410,8 +410,8 @@ struct ClusterData {
 		uint16_t matrix[4][4];
 
 		glm::vec3 pos;
-		uint16_t rot;
-		uint16_t z;
+		int16_t rot;
+		int16_t z;
 
 		uint16_t facade[2];
 

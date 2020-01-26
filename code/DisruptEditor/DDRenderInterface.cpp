@@ -99,6 +99,11 @@ void RenderInterface::newFrame() {
 }
 
 void RenderInterface::endFrame() {
+	for (auto& it : ddstrs) {
+		if (glm::distance(it.pos, camera.location) < settings.textDrawDistance)
+			dd::projectedText(it.str.c_str(), &it.pos.x, white, &sceneCB.ViewProjection[0][0], 0, 0, sceneCB.windowSize.x, sceneCB.windowSize.y, 0.5f);
+	}
+
 	dd::flush(0);
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -442,6 +447,12 @@ void RenderInterface::destroyGlyphTexture(dd::GlyphTextureHandle glyphTex) {
 	pTexture->pTexture->Release();
 	pTexture->pResource->Release();
 	delete pTexture;
+}
+
+void RenderInterface::pushDebugStr(const char* str, const glm::vec3& pos) {
+	auto &it = ddstrs.emplace_back();
+	it.str = str;
+	it.pos = pos;
 }
 
 RenderInterface& RenderInterface::instance() {
