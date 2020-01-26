@@ -297,10 +297,6 @@ void UI::displayFileBrowser() {
 
 		} else if (type == "CBatchResource") {
 			std::shared_ptr<batchFile> batch = loadbatchFile(currentFile.c_str());
-			if (ImGui::Button("XML")) {
-				std::string xml = serializeToXML(*batch);
-				SDL_SetClipboardText(xml.c_str());
-			}
 		} else if (type == "CSkeletonResource" || type == "lib" || type == "obj") {
 			if (ImGui::Button("XML")) {
 				SDL_RWops* fp = FH::openFile(currentFile.c_str());

@@ -15,9 +15,7 @@ void buildingBatchFile::open(IBinaryArchive& reader) {
 void buildingBatchFile::FacadeGfxModels::read(IBinaryArchive& fp) {
 	fp.serializeNdVectorExternal(models, CStringID("SGfxModelInfo").id, unk1);
 
-	CStringID CSceneGraphicObjectClusterHelper("CSceneGraphicObjectClusterHelper");
-	fp.serialize(CSceneGraphicObjectClusterHelper);
-	SDL_assert_release(CSceneGraphicObjectClusterHelper == CStringID("CSceneGraphicObjectClusterHelper"));
+	fp.serializeConstant<CStringID>("CSceneGraphicObjectClusterHelper");
 
 	fp.serializeNdVector_pod(unk2);
 }
@@ -37,6 +35,7 @@ void buildingBatchFile::CStaticFacadeCluster::read(IBinaryArchive& fp) {
 	fp.serialize(unk4);
 	fp.serialize(unk5);
 	fp.serialize(unk6);
+	fp.serialize(data.format);
 	fp.serialize(data);
 }
 

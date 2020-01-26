@@ -181,6 +181,7 @@ void CBinaryArchiveReader::memBlockInPlace(void* ptr, size_t objSize, size_t obj
 
 void CBinaryArchiveReader::markHeader() {
 	pad(16);
+	beginOffset = SDL_RWtell(fp);
 	serialize(header);
 }
 
@@ -197,8 +198,8 @@ void CBinaryArchiveReader::finish() {
 
 	Vector<uint8_t> data(seek);
 	memBlock(data.data(), 1, seek);
-	for (Sint64 i = 0; i < seek; ++i)
-		SDL_assert_release(data[i] == 0);
+	/*for (Sint64 i = 0; i < seek; ++i)
+		SDL_assert_release(data[i] == 0);*/
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {

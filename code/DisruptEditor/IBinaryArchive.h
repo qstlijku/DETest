@@ -29,12 +29,6 @@ public:
 	void serialize(glm::mat4& value);
 	void serialize(std::string& value);
 
-	void serializeInPlace(uint8_t& value);
-	void serializeInPlace(uint16_t& value);
-	void serializeInPlace(uint32_t& value);
-	void serializeInPlace(uint64_t& value);
-	void serializeInPlace(glm::vec4& value);
-
 	virtual bool isReading() const = 0;
 	void pad(size_t padding);
 	size_t size();

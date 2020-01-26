@@ -47,8 +47,6 @@ void materialFile::bind(ID3D11DeviceContext* context) {
 }
 
 bool materialFile::open(IBinaryArchive &fp) {
-	fp.beginOffset = 0x20;
-
 	fp.serialize(magic);
 	SDL_assert_release(magic == 5062996);
 	fp.serialize(version);

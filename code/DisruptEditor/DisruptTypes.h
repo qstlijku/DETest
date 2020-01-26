@@ -229,8 +229,10 @@ struct CSceneLight { //2461405956
 	void registerMembers(MemberStructure& ms);
 };
 
-struct CBatchedInstanceID {
-	uint32_t id;
+typedef uint32_t CBatchedInstanceID;
+
+struct CBatchedInstanceIDInPlace {
+	Vector<CBatchedInstanceID> data;
 
 	void read(IBinaryArchive& fp);
 	void registerMembers(MemberStructure& ms);
@@ -389,7 +391,7 @@ struct CSceneBuilding {
 struct ClusterData {
 	enum DataFormat {
 		CompressedMatrix = 1,
-		SwapPositionRotZTransform = 2,
+		PositionRotZTransform = 2,
 		FacadeInfo = 4,
 		U32 = 8,
 		NOP1 = 16,
@@ -412,6 +414,8 @@ struct ClusterData {
 		uint32_t unk2;
 	};
 	std::vector<Data> data;
+
+	void getMatrix(int index, glm::mat4& matrix);
 
 	static uint32_t ComputeStride(uint16_t value);
 

@@ -13,18 +13,16 @@ class IBinaryArchive;
 
 class batchFile {
 public:
-#pragma pack(push, 1)
 	struct batchHeader {
 		uint32_t magic;
 		uint32_t unk1; //32, checks
-		uint32_t type; //0 for compound, 1 for phys
+		uint32_t type; //0 for compound, 1 for phys, 2 for building
 		uint32_t size;
 		uint32_t unk3;
 		uint32_t unk4;//0
 		uint32_t unk5;//0, Game Checks
 		uint32_t unk6;//0
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure &ms);
 	};
 
 	//Component MultiBatch Classes
@@ -42,27 +40,30 @@ public:
 		CGeometryResource xbg;
 		//Data before this comment is assumed to be 28 bytes
 		CMaterialSlotsMap materialSlots;
-		uint16_t stride;
 		Vector<CProjectedDecalInfo> decals;
 		bool unk12;
-		CBatchedInstanceID batchedInstanceID;
-		uint32_t unkc1;
+
 		uint32_t unkc2;
+
+		CBatchedInstanceIDInPlace batchedInstanceID;
 		uint32_t unkc3;
 		uint32_t unkc4;
 		uint32_t unkc5;
 
+		ClusterData data;
 		Vector<SInstanceRange> ranges;
 
 		void read(IBinaryArchive &fp);
-		void registerMembers(MemberStructure &ms);
 	};
 
 	struct CSoundPointBatchProcessor {
 		bool unk1;
 		//References library SoundPoint
 		uint32_t libraryObject;
+
 		uint16_t unk3;
+		std::vector<float> inPlaceData;
+
 		uint32_t unk4;
 		uint32_t unk5;
 
@@ -72,7 +73,6 @@ public:
 		uint32_t unk7;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CBlackoutEffectBatchProcessor {
@@ -80,42 +80,38 @@ public:
 			glm::vec3 pos;
 			glm::vec3 angle;
 			void read(IBinaryArchive& fp);
-			void registerMembers(MemberStructure& ms);
 		};
 		glm::vec2 unk1;
 		glm::vec2 unk2;
 		uint32_t unk3;
 		Vector<SEffectPosAndAngle> posAndAngles;
 		bool hasBatchInstanceIDs;
-		CBatchedInstanceID batchedInstanceID;
+		CBatchedInstanceIDInPlace batchedInstanceID;
 		uint32_t BlackoutEffectRef;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CParticlesBatchProcessor {
 		CParticlesSystemParamResource paramFile;
 		bool hasBatchInstanceIDs;
 		uint32_t unk2;
-		CBatchedInstanceID batchedInstanceID;
+		CBatchedInstanceIDInPlace batchedInstanceID;
 		uint32_t unk3;
 		Vector<CParticlesSystemHdl> hdls;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CDynamicLightBatchProcessor {
 		CDynamicLightObject lightObject;
 		bool hasBatchInstanceIDs;
-		CBatchedInstanceID batchedInstanceID;
+		CBatchedInstanceIDInPlace batchedInstanceID;
 
 		uint32_t unk1;
 		Vector<CSceneLight> sceneLight;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CLightEffectBatchProcessor {
@@ -128,7 +124,6 @@ public:
 		Vector<CSceneLightEffectInstance> instances;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CSecurityCameraBatchProcessor {
@@ -150,7 +145,6 @@ public:
 		Vector<CSecurityCameraObjectBatched> objects;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CRealTreeBatchProcessor {
@@ -167,7 +161,6 @@ public:
 		Vector<SInstanceRange> ranges;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CTrafficLightBatchProcessor {
@@ -188,7 +181,6 @@ public:
 		Vector<CTrafficLightObjectBatched> trafficLights;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CDynamicMediaBatchProcessor {
@@ -216,7 +208,6 @@ public:
 		CStringID unk13;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CBollardBatchProcessor {//Stubbed, Unused by game
@@ -224,7 +215,6 @@ public:
 		uint32_t unk2;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct IBatchProcessor {
@@ -244,21 +234,17 @@ public:
 
 			//Stubbed
 			CBollardBatchProcessor> data;
-
-		void registerMembers(MemberStructure &ms);
 	};
 
 	struct CBatchModelProcessorsAndResources {
 		CArchetypeResource arche;
 		Vector<IBatchProcessor> processors;
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure &ms);
 	};
 
 	struct CComponentMultiBatchProcessor {
 		Vector<CBatchModelProcessorsAndResources> batchProcessors;
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure &ms);
 	};
 
 	//
@@ -288,7 +274,6 @@ public:
 		float unk9;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	//template <typename T>
@@ -303,7 +288,6 @@ public:
 		EDecalCollisionType decalCollisionType;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct SRoadObjectQuadtreeElement {
@@ -313,13 +297,11 @@ public:
 		uint8_t unk2;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	template<typename T>
 	struct CQuadtreeCollidableBatchProcessor {
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 
 		uint32_t unk0;
 		bool notHas;
@@ -335,7 +317,6 @@ public:
 		std::array< std::variant<CQuadtreeCollidableBatchProcessor<SDeepEllipse>, CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement> > , 3> quadTrees;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct SDebrisSpawnerBatchInstance {
@@ -343,7 +324,6 @@ public:
 		glm::mat4 offset;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CDebrisSpawnerMultiBatchProcessor {
@@ -356,17 +336,14 @@ public:
 		glm::vec3 unk3;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 
 	struct CVegetationMultiBatchProcessor {
 		bool has;
 
 		void read(IBinaryArchive& fp);
-		void registerMembers(MemberStructure& ms);
 	};
 	
-#pragma pack(pop)
 	batchHeader head;
 	std::string srcFilename;
 	Vector<CResourceContainer> resources;
@@ -379,7 +356,6 @@ public:
 	CPathID batchResource;
 
 	bool open(IBinaryArchive& reader);
-	void registerMembers(MemberStructure &ms);
 };
 
 template<typename T>
@@ -401,14 +377,4 @@ inline void batchFile::CQuadtreeCollidableBatchProcessor<T>::read(IBinaryArchive
 	//Construct Quadtree
 	for (uint32_t i = 0; i < count; ++i)
 		tree[i].read(fp);
-}
-
-template<typename T>
-inline void batchFile::CQuadtreeCollidableBatchProcessor<T>::registerMembers(MemberStructure & ms) {
-	REGISTER_MEMBER(unk0);
-	REGISTER_MEMBER(notHas);
-	REGISTER_MEMBER(unk1);
-	REGISTER_MEMBER(unk2);
-	REGISTER_MEMBER(decalCollisionType);
-	REGISTER_MEMBER(tree);
 }

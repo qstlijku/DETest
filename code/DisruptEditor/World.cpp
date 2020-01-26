@@ -230,8 +230,8 @@ void World::regenWLUCommandList() {
 			}
 
 			//Draw Batch
-#if 0
-			if (entityPtr->get<CStringID>("hidEntityClass") == CStringID("CBatchMeshEntity")) {
+#if 1
+			if (entityPtr->getAttrValue<CStringID>("hidEntityClass") == CStringID("CBatchMeshEntity")) {
 				Attribute* ExportPath = entityPtr->getAttribute("ExportPath");
 				std::string compound = (char*)ExportPath->buffer.data();
 				compound = compound.substr(0, compound.size() - strlen(".batch"));

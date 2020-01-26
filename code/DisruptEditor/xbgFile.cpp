@@ -25,6 +25,8 @@ You may not use this file without permission
 #include <unordered_map>
 #include <glm\gtc\matrix_transform.hpp>
 
+#define SDL_Log
+
 static void serializeMat4(IBinaryArchive& fp, glm::mat4 &vec) {
 	fp.pad(16);
 	fp.serialize(vec);
