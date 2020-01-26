@@ -243,10 +243,12 @@ void batchFile::CSoundPointBatchProcessor::read(IBinaryArchive& fp) {
 	//CNomadDb::GenRecoverLibraryObject(const(0x2E69D575, unk2))
 	//0x2E69D575 = SoundPoint is CStringID
 
-	unk3 = inPlaceData.size();
+	uint16_t unk3 = inPlaceData.size();
 	fp.serialize(unk3);
 	inPlaceData.resize(unk3);
-	fp.memBlockInPlace(inPlaceData.data(), sizeof(float), unk3);
+	batchedInstanceID.resize(unk3);
+	fp.memBlockInPlace(inPlaceData.data(), sizeof(inPlaceData[0]), unk3);
+	fp.memBlockInPlace(batchedInstanceID.data(), sizeof(batchedInstanceID[0]), unk3);
 
 	fp.serializeConstant<CStringID>("ndSoundHandle");
 
@@ -354,6 +356,8 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 	fp.serialize(resource);
 
+	data.format = 2;
+
 	uint32_t rangeCount = ranges.size();
 	fp.serialize(rangeCount);
 	ranges.resize(rangeCount);
@@ -361,17 +365,13 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 	if (rangeCount) {
 		fp.serialize(unk4);
 
-		CStringID clusterType("CSceneRealTreeClusterHelper");
-		fp.serialize(clusterType);
-		SDL_assert_release(clusterType == CStringID("CSceneRealTreeClusterHelper"));
+		fp.serializeConstant<CStringID>("CSceneRealTreeClusterHelper");
 
 		fp.serialize(unk5);
-		fp.serialize(unk6);//same as rangeCount?
-		SDL_assert_release(rangeCount == unk6);
+		fp.serialize(data);
+		SDL_assert_release(data.data.size() == rangeCount);
 
-		uint32_t a = 0x1C89E6B5;
-		fp.serialize(a);
-		SDL_assert_release(a == 0x1C89E6B5);
+		fp.serializeConstant<CStringID>(0x1C89E6B5);
 
 		fp.serialize(unk7);
 		fp.serialize(unk8);
@@ -442,19 +442,15 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 	//CQuadtreeCollidableBatchProcessor::SRoadObjectQuadtreeElement
 
 	for (int i = 0; i < 3; ++i) {
-		uint32_t count2 = 0;
-		fp.serialize(count2);
-		assert_file_crash(count2 == 0);
+		fp.serializeConstant<uint32_t>(0);
 
-		CStringID type;
-		fp.serialize(type.id);
-		std::string typeName = type.getReverseName();
+		fp.serialize(type);
 
 		auto& var = quadTrees[i];
-		if (typeName == "CQuadtreeCollidableBatchProcessorSDeepEllipse") {
+		if (type == "CQuadtreeCollidableBatchProcessorSDeepEllipse") {
 			var = CQuadtreeCollidableBatchProcessor<SDeepEllipse>();
 			std::get<CQuadtreeCollidableBatchProcessor<SDeepEllipse>>(var).read(fp);
-		} else if(typeName == "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement") {
+		} else if(type == "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement") {
 			var = CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>();
 			std::get<CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>>(var).read(fp);
 		} else {
@@ -562,6 +558,10 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CBollardBatchProcessor::read(IBinaryArchive& fp) {
-	fp.serialize(unk1);
-	fp.serialize(unk2);
+	uint32_t count = (uint32_t)mats.size();
+	fp.serialize(count);
+	mats.resize(count);
+	fp.memBlockInPlace(mats.data(), sizeof(glm::mat4), count);
+
+	fp.serialize(batchedInstanceID);
 }

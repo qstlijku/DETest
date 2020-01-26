@@ -56,13 +56,21 @@ public:
 		void read(IBinaryArchive &fp);
 	};
 
+	//TODO: May be wrong
 	struct CSoundPointBatchProcessor {
 		bool unk1;
 		//References library SoundPoint
 		uint32_t libraryObject;
 
-		uint16_t unk3;
-		std::vector<float> inPlaceData;
+		struct SBatchedSoundPointTransform {
+			float unk1;
+			float unk2;
+			float unk3;
+			float unk4;
+			float unk5;
+		};
+		std::vector<SBatchedSoundPointTransform> inPlaceData;
+		std::vector<CBatchedInstanceID> batchedInstanceID;
 
 		uint32_t unk4;
 		uint32_t unk5;
@@ -150,14 +158,16 @@ public:
 	struct CRealTreeBatchProcessor {
 		bool unk1;
 		uint32_t unk2;
-		CResourceContainer resource;
+		CResourceContainer resource;//CRealtreeResource
 
 		//If unk3
 		uint32_t unk4;
 		uint32_t unk5;
-		uint32_t unk6;
+
 		uint32_t unk7;
 		uint32_t unk8;
+
+		ClusterData data;
 		Vector<SInstanceRange> ranges;
 
 		void read(IBinaryArchive& fp);
@@ -210,9 +220,9 @@ public:
 		void read(IBinaryArchive& fp);
 	};
 
-	struct CBollardBatchProcessor {//Stubbed, Unused by game
-		uint32_t unk1;
-		uint32_t unk2;
+	struct CBollardBatchProcessor {
+		std::vector<glm::mat4> mats;
+		CBatchedInstanceIDInPlace batchedInstanceID;
 
 		void read(IBinaryArchive& fp);
 	};
@@ -231,8 +241,6 @@ public:
 			CRealTreeBatchProcessor,
 			CTrafficLightBatchProcessor,
 			CDynamicMediaBatchProcessor,
-
-			//Stubbed
 			CBollardBatchProcessor> data;
 	};
 
@@ -314,6 +322,7 @@ public:
 
 	struct CQuadtreeCollidableMultiBatchProcessor {
 		bool has;
+		CStringID type;
 		std::array< std::variant<CQuadtreeCollidableBatchProcessor<SDeepEllipse>, CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement> > , 3> quadTrees;
 
 		void read(IBinaryArchive& fp);
