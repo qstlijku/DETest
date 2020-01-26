@@ -8,12 +8,12 @@ void buildingBatchFile::open(IBinaryArchive& reader) {
 	reader.serialize(compoundParent);
 	reader.serializeNdVector(resources);
 	reader.serialize(facadeGfxModels);
-	reader.serializeNdVectorExternal(buildingData, CStringID("CHiResBuildingData").id, unk2);
+	reader.serializeNdVectorExternal2(buildingData, "CHiResBuildingData");
 	reader.finish();
 }
 
 void buildingBatchFile::FacadeGfxModels::read(IBinaryArchive& fp) {
-	fp.serializeNdVectorExternal(models, CStringID("SGfxModelInfo").id, unk1);
+	fp.serializeNdVectorExternal2(models, "SGfxModelInfo");
 
 	fp.serializeConstant<CStringID>("CSceneGraphicObjectClusterHelper");
 
@@ -41,5 +41,5 @@ void buildingBatchFile::CStaticFacadeCluster::read(IBinaryArchive& fp) {
 
 void buildingBatchFile::CHiResBuildingData::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
-	fp.serializeNdVectorExternal(facades, CStringID("CStaticFacadeCluster").id, unk2);
+	fp.serializeNdVectorExternal2(facades, "CStaticFacadeCluster");
 }

@@ -26,7 +26,7 @@ bool batchFile::open(IBinaryArchive &reader) {
 		//assert_file_crash(strstr(filename, "_compound.cbatch"));
 
 		reader.markHeader();
-		reader.markInPlaceOffset(reader.header.unk2 + sizeof(IBinaryArchive::Header));
+		reader.markInPlaceOffset(reader.header.unk2);
 
 		//assert_file_crash(compound.unk3 == 0);
 

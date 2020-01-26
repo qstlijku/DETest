@@ -762,7 +762,12 @@ void ClusterData::getMatrix(int index, glm::mat4& mat) {
 		return;
 	}
 
+	if ((format & CompressedMatrix) == 0) {
+		mat = glm::mat4(1);
+		return;
+	}
 
+	mat = glm::mat4(1);
 }
 
 uint32_t ClusterData::ComputeStride(uint16_t format) {
@@ -789,4 +794,9 @@ uint32_t ClusterData::ComputeStride(uint16_t format) {
 		uVar1 = uVar1 + 4;
 	}
 	return uVar1;
+}
+
+void CResourceContainerSwap::read(IBinaryArchive& fp) {
+	fp.serialize(file);
+	fp.serialize(type);
 }

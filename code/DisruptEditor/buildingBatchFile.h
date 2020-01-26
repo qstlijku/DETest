@@ -42,8 +42,10 @@ public:
 	batchFile::batchHeader head;
 	uint32_t unk1;
 	CPathID compoundParent;
-	std::vector<CResourceContainer> resources;
+	std::vector<CResourceContainerSwap> resources;
+
 	FacadeGfxModels facadeGfxModels;
+
 	uint32_t unk2;
 	std::vector<CHiResBuildingData> buildingData;
 

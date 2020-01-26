@@ -86,7 +86,7 @@ static void setLoadingStatus(const char* str, float progress = 0.f) {
 }
 
 glm::mat4 convertRotation(const glm::vec3 &a) {
-	return glm::eulerAngleYXZ(a.x, a.y, a.z);
+	return glm::eulerAngleYXZ(a.y, a.x, a.z);
 }
 
 void World::loaderThread() {
@@ -239,25 +239,21 @@ void World::regenWLUCommandList() {
 				compound += "_Compound.cbatch";
 
 				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
-				auto& component = batch->componentMBP;
+				/*auto& component = batch->componentMBP;
 				for (auto& it : component.batchProcessors) {
 					for (auto& it : it.processors) {
-						/*{
+						{
 							auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
 							if (!batch) continue;
 
 							std::shared_ptr<xbgFile> model = loadXBG(batch->xbg.file);
-							for (auto& it : batch->ranges) {
-								glm::mat4 modelMatrix = glm::translate(glm::mat4(1), it.unk3);
+							for (int i = 0; i < batch->data.data.size(); ++i) {
+								batch->data.getMatrix(i, RenderInterface::instance().objectCB.Model);
 
-								glm::vec3& angles = it.unk9;
-								modelMatrix *= convertRotation(angles);
-
-								RenderInterface::instance().objectCB.Model = modelMatrix;
-
-								model->draw(pDeferredContext);
+								//model->draw(pDeferredContext);
 							}
-						}*/
+						}
+
 						{
 							auto batch = std::get_if<batchFile::CRealTreeBatchProcessor>(&it.data);
 							if (!batch) continue;
@@ -266,13 +262,24 @@ void World::regenWLUCommandList() {
 
 						}
 					}
-				}
+				}*/
 
 				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
 				for (auto& it : building.buildingResources) {
-					//std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
+					std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
 
+					for(auto &buildingData : buildingBatch->buildingData) {
+						for (auto& facade : buildingData.facades) {
+							buildingBatchFile::SGfxModelInfo& gfx = buildingBatch->facadeGfxModels.models[facade.unk6];
+							std::shared_ptr<xbgFile> model = loadXBG(gfx.geomResource.file);
 
+							for (int i = 0; i < facade.data.data.size(); ++i) {
+								facade.data.getMatrix(i, RenderInterface::instance().objectCB.Model);
+
+								model->draw(pDeferredContext);
+							}
+						}
+					}
 				}
 				/*if (building.lowGeom.id != -1) {
 					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);

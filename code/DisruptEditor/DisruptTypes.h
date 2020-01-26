@@ -16,6 +16,12 @@ struct CResourceContainer {
 	void registerMembers(MemberStructure &ms);
 };
 
+struct CResourceContainerSwap {
+	CPathID file;
+	CStringID type;
+	void read(IBinaryArchive& fp);
+};
+
 struct CGeometryResource {
 	CPathID file;
 	CStringID type;

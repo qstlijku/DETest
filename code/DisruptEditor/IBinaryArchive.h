@@ -1,11 +1,12 @@
 #pragma once
 
+class IBinaryArchive;
+
 #include <SDL_rwops.h>
 #include "glm/glm.hpp"
 #include <string>
 #include "Vector.h"
-
-class IBinaryArchive;
+#include "CStringID.h"
 
 class IBinaryArchive {
 public:
@@ -29,6 +30,8 @@ public:
 	void serialize(glm::mat4& value);
 	void serialize(std::string& value);
 
+	void PreAllocateSizeOfType(CStringID type, uint32_t count);
+
 	virtual bool isReading() const = 0;
 	void pad(size_t padding);
 	size_t size();
@@ -37,7 +40,7 @@ public:
 	virtual void memBlockInPlace(void* ptr, size_t objSize, size_t objCount) = 0;
 
 	template<typename T>
-	void serializeConstant(T value);
+	void serializeConstant(const T &value);
 
 	template<typename T>
 	void serializeNdVector(Vector<T>& vec);
@@ -47,6 +50,9 @@ public:
 
 	template<typename T>
 	void serializeNdVectorExternal(Vector<T>& vec, uint32_t typeId, uint32_t& unk);
+
+	template<typename T>
+	void serializeNdVectorExternal2(Vector<T>& vec, CStringID typeId);
 
 	template<typename T>
 	void serialize(T &value);
@@ -68,7 +74,7 @@ public:
 		uint32_t unk2 = 0;//head2 = *(uint *)&param_1->dataSize + pad to 16;
 		uint32_t unk3 = 0;//head3 = *(uint*)&param_1->InPlaceDataSize;
 		uint32_t unk4 = 0;//head4
-		uint32_t unk5 = 0;//head5 = *(uint *)&param_1->dataSize;
+		uint32_t unk5 = 0;//head5 = *(uint *)&param_1->dataSize; without PreAllocations
 		uint32_t unk6 = 0;//head6
 		uint32_t unk7 = 0;//head7 = head6 * 0x10 + head5;
 		uint32_t unk8 = 0;//head8
@@ -91,6 +97,7 @@ public:
 	~CBinaryArchiveReader() {}
 
 	Sint64 inPlaceOffset = -1;
+	Sint64 inPlaceRead = 0;
 
 	bool isReading() const;
 	void memBlock(void* ptr, size_t objSize, size_t objCount);
@@ -117,7 +124,7 @@ public:
 };
 
 template<typename T>
-inline void IBinaryArchive::serializeConstant(T value) {
+inline void IBinaryArchive::serializeConstant(const T &value) {
 	T v = value;
 	serialize(v);
 	SDL_assert_release(v == value);
@@ -162,6 +169,21 @@ inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, uint32_t t
 	vec.resize(counter);
 	for (uint32_t i = 0; i < counter; ++i)
 		vec[i].read(*this);
+}
+
+template<typename T>
+inline void IBinaryArchive::serializeNdVectorExternal2(Vector<T>& vec, CStringID typeId) {
+	//PreAllocateSizeOfType behavior
+	uint32_t counter = (uint32_t)vec.size();;
+	serialize(counter);
+	vec.resize(counter);
+
+	if (counter) {
+		PreAllocateSizeOfType(typeId, counter);
+
+		for (uint32_t i = 0; i < counter; ++i)
+			vec[i].read(*this);
+	}
 }
 
 template<typename T>

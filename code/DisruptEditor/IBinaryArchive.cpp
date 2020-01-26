@@ -121,6 +121,19 @@ void IBinaryArchive::serialize(std::string& value) {
 	}
 }
 
+void IBinaryArchive::PreAllocateSizeOfType(CStringID type, uint32_t count) {
+	serializeConstant(type);
+
+	if (isReading()) {
+		uint32_t temp = 0;
+		serialize(temp);
+	} else {
+		SDL_assert_release(false);
+	}
+
+	serializeConstant(count);
+}
+
 void IBinaryArchive::pad(size_t padding) {
 	size_t seek = getPadSize(padding);
 
@@ -177,6 +190,8 @@ void CBinaryArchiveReader::memBlockInPlace(void* ptr, size_t objSize, size_t obj
 	SDL_RWread(fp, ptr, objSize, objCount);
 	inPlaceOffset += objSize * objCount;
 	SDL_RWseek(fp, curOffset, RW_SEEK_SET);
+
+	inPlaceRead += objSize * objCount;
 }
 
 void CBinaryArchiveReader::markHeader() {
@@ -191,15 +206,7 @@ void CBinaryArchiveReader::markInPlaceOffset(size_t offset) {
 
 void CBinaryArchiveReader::finish() {
 	SDL_Log("end read at %u", SDL_RWtell(fp));
-
-	size_t padding = 16;
-	size_t size = SDL_RWtell(fp) - beginOffset;
-	size_t seek = (padding - (size % padding)) % padding;
-
-	Vector<uint8_t> data(seek);
-	memBlock(data.data(), 1, seek);
-	/*for (Sint64 i = 0; i < seek; ++i)
-		SDL_assert_release(data[i] == 0);*/
+	SDL_assert_release(header.unk3 == inPlaceRead);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {
