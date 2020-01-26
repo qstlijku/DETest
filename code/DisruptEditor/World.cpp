@@ -15,6 +15,7 @@
 #include <SplineLoft.h>
 #include <glm\gtx\quaternion.hpp>
 #include <buildingBatchFile.h>
+#include <realTreeFile.h>
 
 World world;
 
@@ -238,25 +239,34 @@ void World::regenWLUCommandList() {
 				compound += "_Compound.cbatch";
 
 				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
-				/*auto& component = batch->componentMBP;
+				auto& component = batch->componentMBP;
 				for (auto& it : component.batchProcessors) {
 					for (auto& it : it.processors) {
-						auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
-						if (!batch) continue;
+						/*{
+							auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
+							if (!batch) continue;
 
-						std::shared_ptr<xbgFile> model = loadXBG(batch->xbg.file);
-						for (auto& it : batch->ranges) {
-							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), it.unk3);
+							std::shared_ptr<xbgFile> model = loadXBG(batch->xbg.file);
+							for (auto& it : batch->ranges) {
+								glm::mat4 modelMatrix = glm::translate(glm::mat4(1), it.unk3);
 
-							glm::vec3& angles = it.unk9;
-							modelMatrix *= convertRotation(angles);
+								glm::vec3& angles = it.unk9;
+								modelMatrix *= convertRotation(angles);
 
-							RenderInterface::instance().objectCB.Model = modelMatrix;
+								RenderInterface::instance().objectCB.Model = modelMatrix;
 
-							model->draw(pDeferredContext);
+								model->draw(pDeferredContext);
+							}
+						}*/
+						{
+							auto batch = std::get_if<batchFile::CRealTreeBatchProcessor>(&it.data);
+							if (!batch) continue;
+
+							std::shared_ptr<realTreeFile> model = loadRealTree(batch->resource.file);
+
 						}
 					}
-				}*/
+				}
 
 				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
 				for (auto& it : building.buildingResources) {

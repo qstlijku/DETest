@@ -9,6 +9,7 @@ class xbtFile;
 class SplineLoftHiRes;
 class batchFile;
 class buildingBatchFile;
+class realTreeFile;
 
 std::shared_ptr<xbgFile> loadXBG(CPathID path);
 
@@ -21,3 +22,5 @@ std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path);
 std::shared_ptr<batchFile> loadbatchFile(CPathID path);
 
 std::shared_ptr<buildingBatchFile> loadBuildingBatchFile(CPathID path);
+
+std::shared_ptr<realTreeFile> loadRealTree(CPathID path);

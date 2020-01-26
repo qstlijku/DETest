@@ -294,9 +294,6 @@ void UI::displayFileBrowser() {
 					ImGui::PopID();
 				}
 			}
-
-		} else if (type == "CBatchResource") {
-			std::shared_ptr<batchFile> batch = loadbatchFile(currentFile.c_str());
 		} else if (type == "CSkeletonResource" || type == "lib" || type == "obj") {
 			if (ImGui::Button("XML")) {
 				SDL_RWops* fp = FH::openFile(currentFile.c_str());

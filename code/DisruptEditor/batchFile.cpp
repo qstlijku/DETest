@@ -104,13 +104,6 @@ void serializeAny(IBinaryArchive& fp, std::variant<U...>& ptr) {
 	std::get<T>(ptr).read(fp);
 }
 
-template <typename T, typename ... U>
-void serializeAny(MemberStructure& ms, std::variant<U...>& ptr) {
-	if (!std::holds_alternative<T>(ptr))
-		ptr.emplace<T>();
-	ms.registerMember(NULL, std::get<T>(ptr));
-}
-
 void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 	// void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=CSmartResourcePtr<CArchetypeResource>]
 	arche.read(fp);
@@ -448,11 +441,9 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 
 		auto& var = quadTrees[i];
 		if (type == "CQuadtreeCollidableBatchProcessorSDeepEllipse") {
-			var = CQuadtreeCollidableBatchProcessor<SDeepEllipse>();
-			std::get<CQuadtreeCollidableBatchProcessor<SDeepEllipse>>(var).read(fp);
+			serializeAny<CQuadtreeCollidableBatchProcessor<SDeepEllipse>>(fp, var);
 		} else if(type == "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement") {
-			var = CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>();
-			std::get<CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>>(var).read(fp);
+			serializeAny<CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>>(fp, var);
 		} else {
 			assert_file_crash(false);
 		}
@@ -484,9 +475,7 @@ void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
 	fp.serialize(counter);
 	batchInstances.resize(counter);
 	if (counter) {
-		CStringID SDebrisSpawnerBatchInstanceType("SDebrisSpawnerBatchInstance");
-		fp.serialize(SDebrisSpawnerBatchInstanceType);
-		assert_file_crash(SDebrisSpawnerBatchInstanceType == CStringID("SDebrisSpawnerBatchInstance"));
+		fp.serializeConstant<CStringID>("SDebrisSpawnerBatchInstance");
 
 		fp.serialize(unk1);
 		
