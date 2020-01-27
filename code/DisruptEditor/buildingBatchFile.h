@@ -14,9 +14,7 @@ public:
 	};
 
 	struct FacadeGfxModels {
-		uint32_t unk1;
 		std::vector<SGfxModelInfo> models;
-		std::vector<uint8_t> unk2;
 		void read(IBinaryArchive& fp);
 	};
 
@@ -46,7 +44,6 @@ public:
 
 	FacadeGfxModels facadeGfxModels;
 
-	uint32_t unk2;
 	std::vector<CHiResBuildingData> buildingData;
 
 	void open(IBinaryArchive& reader);

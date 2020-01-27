@@ -15,9 +15,7 @@ void buildingBatchFile::open(IBinaryArchive& reader) {
 void buildingBatchFile::FacadeGfxModels::read(IBinaryArchive& fp) {
 	fp.serializeNdVectorExternal2(models, "SGfxModelInfo");
 
-	fp.serializeConstant<CStringID>("CSceneGraphicObjectClusterHelper");
-
-	fp.serializeNdVector_pod(unk2);
+	fp.PreAllocateSizeOfType("CSceneGraphicObjectClusterHelper", models.size());
 }
 
 void buildingBatchFile::SGfxModelInfo::read(IBinaryArchive& fp) {

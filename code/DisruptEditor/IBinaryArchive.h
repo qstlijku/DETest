@@ -83,6 +83,16 @@ public:
 	};
 	IBinaryArchive::Header header;
 
+	struct Unk {
+		CStringID type;
+		uint32_t numInstances = 0;
+		uint32_t unk3;
+		uint32_t unk4;
+		void read(IBinaryArchive& fp);
+	};
+	std::vector<Unk> head6;
+	std::vector<Unk> head8;
+
 	uint32_t beginOffset = 0;
 
 protected:

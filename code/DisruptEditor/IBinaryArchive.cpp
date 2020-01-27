@@ -124,13 +124,30 @@ void IBinaryArchive::serialize(std::string& value) {
 void IBinaryArchive::PreAllocateSizeOfType(CStringID type, uint32_t count) {
 	serializeConstant(type);
 
-	if (isReading()) {
-		uint32_t temp = 0;
-		serialize(temp);
-	} else {
-		SDL_assert_release(false);
+	uint32_t index = 0;
+
+	if (!isReading()) {
+		bool found = false;
+		for (auto& it : head8) {
+			if (it.type == type) {
+				found = true;
+				it.numInstances += count;
+				break;
+			}
+			++index;
+		}
+
+		if (!found) {
+			auto& it = head8.emplace_back();
+			it.type = type;
+			it.numInstances = count;
+
+			//TODO
+			SDL_assert_release(false);
+		}
 	}
 
+	serialize(index);
 	serializeConstant(count);
 }
 
@@ -167,6 +184,13 @@ void IBinaryArchive::Header::read(IBinaryArchive& fp) {
 	fp.serialize(unk7);
 	fp.serialize(unk8);
 	fp.serialize(unk9);
+}
+
+void IBinaryArchive::Unk::read(IBinaryArchive& fp) {
+	fp.serialize(type);
+	fp.serialize(numInstances);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
 }
 
 CBinaryArchiveReader::CBinaryArchiveReader(SDL_RWops* _fp) {
@@ -207,6 +231,15 @@ void CBinaryArchiveReader::markInPlaceOffset(size_t offset) {
 void CBinaryArchiveReader::finish() {
 	SDL_Log("end read at %u", SDL_RWtell(fp));
 	SDL_assert_release(header.unk3 == inPlaceRead);
+
+	//Read You know
+	head6.resize(header.unk6);
+	for (auto it : head6)
+		serialize(it);
+
+	head8.resize(header.unk8);
+	for (auto it : head8)
+		serialize(it);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {
@@ -241,6 +274,14 @@ void CBinaryArchiveWriter::markInPlaceOffset(size_t offset) {
 
 void CBinaryArchiveWriter::finish() {
 	if (headerOffset >= 0) {
+		header.unk5 = SDL_RWtell(fp) - beginOffset;
+
+		for (auto it : head6)
+			serialize(it);
+
+		for (auto it : head8)
+			serialize(it);
+
 		//Calculate End Padding
 		size_t padding = 16;
 		size_t size = SDL_RWtell(fp) - beginOffset;
@@ -250,7 +291,6 @@ void CBinaryArchiveWriter::finish() {
 		header.unk2 = header.unk1 + seek;
 		header.unk3 = inPlaceData.size();
 		//Unk4 is calculated
-		header.unk5 = header.unk1;
 		//Unk6 is calculated
 		header.unk7 = header.unk6 * 0x10 + header.unk5;
 		//Unk8 is calculated
