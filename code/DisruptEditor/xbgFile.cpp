@@ -157,7 +157,7 @@ void xbgFile::SceneGeometryParams::read(IBinaryArchive &fp) {
 	fp.serialize(unk13);
 	//fp.serialize(unk14);
 
-	fp.serializeNdVector_pod(lods);
+	fp.serializeNdVector(lods);
 
 	fp.serialize(unk15);
 	fp.serialize(unk16);
@@ -246,7 +246,7 @@ void xbgFile::BonePalettes::registerMembers(MemberStructure & ms) {
 }
 
 void xbgFile::BonePalettes::BonesPallet::read(IBinaryArchive & fp) {
-	fp.serializeNdVector_pod(unk1);
+	fp.serializeNdVector(unk1);
 }
 
 void xbgFile::BonePalettes::BonesPallet::registerMembers(MemberStructure & ms) {
@@ -833,11 +833,11 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	
 	//CBufferRenderResource::Create(Device3D::EBufferType 0, const IRenderResourceCommandTrackerDecoratorFactory & (addi r4, r27, unk_107D7CDA@l), unsigned long, unsigned long 1, const void *, bool 0, bool 0, unsigned long 0, bool, bool)
 	fp.pad(4);
-	fp.serializeNdVector_pod(vertexData);
+	fp.serializeNdVector(vertexData);
 	
 	//CBufferRenderResource::Create(Device3D::EBufferType 1, const IRenderResourceCommandTrackerDecoratorFactory &, unsigned long, unsigned long, const void *, bool, bool, unsigned long, bool, bool)
 	fp.pad(4);
-	fp.serializeNdVector_pod(indexData);
+	fp.serializeNdVector(indexData);
 
 	//Device3D::CBuffer::Create(Device3D::EBufferType, Device3D::EBufferUsage, unsigned long elementSize, unsigned long elementCount, const void * ptr, bool)
 }

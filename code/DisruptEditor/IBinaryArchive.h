@@ -46,13 +46,10 @@ public:
 	void serializeNdVector(Vector<T>& vec);
 
 	template<typename T>
-	void serializeNdVector_pod(Vector<T>& vec);
+	void serializeNdVectorExternal_TOREMOVE(Vector<T>& vec, uint32_t typeId, uint32_t& unk);
 
 	template<typename T>
-	void serializeNdVectorExternal(Vector<T>& vec, uint32_t typeId, uint32_t& unk);
-
-	template<typename T>
-	void serializeNdVectorExternal2(Vector<T>& vec, CStringID typeId);
+	void serializeNdVectorExternal(Vector<T>& vec, CStringID typeId);
 
 	template<typename T>
 	void serialize(T &value);
@@ -149,13 +146,8 @@ inline void IBinaryArchive::serializeNdVector(Vector<T>& vec) {
 		serialize(vec[i]);
 }
 
-template<typename T>
-inline void IBinaryArchive::serializeNdVector_pod(Vector<T>& vec) {
-	serializeNdVector(vec);
-}
-
 template<>
-inline void IBinaryArchive::serializeNdVector_pod(Vector<uint8_t>& vec) {
+inline void IBinaryArchive::serializeNdVector(Vector<uint8_t>& vec) {
 	uint32_t count = (uint32_t) vec.size();
 	serialize(count);
 	vec.resize(count);
@@ -163,7 +155,7 @@ inline void IBinaryArchive::serializeNdVector_pod(Vector<uint8_t>& vec) {
 }
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, uint32_t typeId, uint32_t &unk) {
+inline void IBinaryArchive::serializeNdVectorExternal_TOREMOVE(Vector<T>& vec, uint32_t typeId, uint32_t &unk) {
 	//PreAllocateSizeOfType behavior
 	uint32_t counter = (uint32_t)vec.size(), counter2 = (uint32_t)vec.size();
 	serialize(counter);
@@ -182,9 +174,9 @@ inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, uint32_t t
 }
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVectorExternal2(Vector<T>& vec, CStringID typeId) {
+inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, CStringID typeId) {
 	//PreAllocateSizeOfType behavior
-	uint32_t counter = (uint32_t)vec.size();;
+	uint32_t counter = (uint32_t)vec.size();
 	serialize(counter);
 	vec.resize(counter);
 

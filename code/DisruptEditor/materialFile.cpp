@@ -131,7 +131,7 @@ void materialFile::SInitSettings::registerMembers(MemberStructure & ms) {
 
 void materialFile::CGradient::read(IBinaryArchive & fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<ndVec_tpl<float, (int)4>, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
-	fp.serializeNdVector_pod(vecs);
+	fp.serializeNdVector(vecs);
 
 	fp.serialize(id.id);
 	fp.serialize(unk1);

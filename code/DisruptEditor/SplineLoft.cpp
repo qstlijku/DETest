@@ -12,12 +12,12 @@ void SplineLoftHiRes::open(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	
 	fp.serializeNdVector(vertexData);
-	fp.serializeNdVector_pod(indexData);
+	fp.serializeNdVector(indexData);
 	createBuffers();
 
 	fp.markHeader();
 
-	/*fp.serializeNdVectorExternal(networkRegionResources, CStringID("CSplineNetworkRegionResourceEntry").id, unk2);
+	/*fp.serializeNdVectorExternal_TOREMOVE(networkRegionResources, CStringID("CSplineNetworkRegionResourceEntry").id, unk2);
 
 	fp.serialize(lowRes);*/
 }
@@ -98,7 +98,7 @@ void CSceneSplineLoftRegion::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
-	fp.serializeNdVectorExternal(splines, CStringID("CSpline").id, splineUnk);
+	fp.serializeNdVectorExternal_TOREMOVE(splines, CStringID("CSpline").id, splineUnk);
 	fp.serialize(unk4);
 }
 
@@ -114,7 +114,7 @@ void CSplineNetworkRegionResourceEntry::read(IBinaryArchive& fp) {
 	fp.serializeNdVector(primitiveDesc);
 	fp.serializeNdVector(drawCalls);
 	fp.serializeNdVector(unk2);
-	fp.serializeNdVector_pod(unk3);
+	fp.serializeNdVector(unk3);
 }
 
 void CSpline::read(IBinaryArchive& fp) {

@@ -663,7 +663,7 @@ void EmitterSpec::read(IBinaryArchive & fp) {
 	fp.serialize(m_pWetVolume);
 	fp.serialize(m_pLPFCutoffFrequency);
 	fp.serialize(m_emitterAudibilityCone);
-	fp.serializeNdVector_pod(m_effectIds);
+	fp.serializeNdVector(m_effectIds);
 	fp.serialize(m_activeSpeakers);
 	StreamValidationPoint(fp);
 }
@@ -792,10 +792,10 @@ void ParameterValue::read(IBinaryArchive & fp) {
 		fp.serialize(valueSndFloat);
 		break;
 	case 3:
-		fp.serializeNdVector_pod(valueListSndS32);
+		fp.serializeNdVector(valueListSndS32);
 		break;
 	case 4:
-		fp.serializeNdVector_pod(valueListSndFloat);
+		fp.serializeNdVector(valueListSndFloat);
 		break;
 	case 0:
 		//None
@@ -875,7 +875,7 @@ std::vector<short> MultiTrackResourceDescriptor::decode(int layer) {
 	fp.serialize(totalBlocks);
 
 	Vector<uint8_t> infoTable;
-	fp.serializeNdVector_pod(infoTable);
+	fp.serializeNdVector(infoTable);
 	//TODO: Figure this out
 	SDL_RWseek(fp.fp, 64 - numLayers * 4, RW_SEEK_CUR);
 
@@ -1020,7 +1020,7 @@ void ProjectDesc::read(IBinaryArchive & fp) {
 	fp.serialize(minStreamingPrefetchBufferLength);
 	fp.serialize(stObstructionPreset);
 	fp.serializeNdVector(stOcclusionPresetList);
-	fp.serializeNdVector_pod(stMTTChannelList);
+	fp.serializeNdVector(stMTTChannelList);
 	fp.serializeNdVector(stSoundTextureList);
 	fp.serializeNdVector(MultiLayerParameters);
 	fp.memBlock(cTitleGuid.data(), 1, sizeof(cTitleGuid));
@@ -1117,7 +1117,7 @@ void BusDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(id);
 	fp.serialize(busType);
 	fp.serialize(parentBusId);
-	fp.serializeNdVector_pod(effectIds);
+	fp.serializeNdVector(effectIds);
 	fp.serialize(preEffectVolume);
 	fp.serialize(connectedVoicesVolume);
 	fp.serialize(postEffectChannelVolumes);
@@ -1130,7 +1130,7 @@ void BusDescriptor::read(IBinaryArchive & fp) {
 
 void BusTreeDescriptor::read(IBinaryArchive & fp) {
 	fp.serialize(id);
-	fp.serializeNdVector_pod(busIdList);
+	fp.serializeNdVector(busIdList);
 }
 
 void VolumeHelper::read(IBinaryArchive & fp) {
@@ -1169,7 +1169,7 @@ void RTVariableDescriptor::read(IBinaryArchive & fp) {
 }
 
 void RTPCDescriptor::read(IBinaryArchive & fp) {
-	fp.serializeNdVector_pod(m_varIdList);
+	fp.serializeNdVector(m_varIdList);
 	fp.serializeNdVector(m_graphList);
 	fp.serializeNdVector(m_parameterList);
 	fp.serialize(m_rtpcId);

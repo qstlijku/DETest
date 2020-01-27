@@ -267,7 +267,7 @@ void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBlackoutEffectBatchProcessor::SEffectPosAndAngle, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-	fp.serializeNdVectorExternal(posAndAngles, 495023964, unk3);
+	fp.serializeNdVectorExternal_TOREMOVE(posAndAngles, 495023964, unk3);
 
 	fp.serialize(hasBatchInstanceIDs);
 	if (hasBatchInstanceIDs) {
@@ -296,7 +296,7 @@ void batchFile::CParticlesBatchProcessor::read(IBinaryArchive& fp) {
 	}
 
 
-	fp.serializeNdVectorExternal(hdls, 0x16BB23DD, unk3);
+	fp.serializeNdVectorExternal_TOREMOVE(hdls, 0x16BB23DD, unk3);
 
 }
 
@@ -308,7 +308,7 @@ void batchFile::CDynamicLightBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(batchedInstanceID);
 	}
 
-	fp.serializeNdVectorExternal(sceneLight, 0xFB4B8BEB, unk1);
+	fp.serializeNdVectorExternal_TOREMOVE(sceneLight, 0xFB4B8BEB, unk1);
 }
 
 void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
@@ -321,7 +321,7 @@ void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
 
 
 	//CSceneLightEffectInstance = 0xEB07AAAC
-	fp.serializeNdVectorExternal(instances, 0xEB07AAAC, unk2);
+	fp.serializeNdVectorExternal_TOREMOVE(instances, 0xEB07AAAC, unk2);
 }
 
 void batchFile::CSecurityCameraBatchProcessor::read(IBinaryArchive& fp) {
@@ -340,7 +340,7 @@ void batchFile::CSecurityCameraBatchProcessor::read(IBinaryArchive& fp) {
 		arche.read(fp);
 		info.read(fp);
 		fp.serialize(unk8);
-		fp.serializeNdVectorExternal(objects, 0x91B64372, unk9);
+		fp.serializeNdVectorExternal_TOREMOVE(objects, 0x91B64372, unk9);
 	}
 }
 
@@ -517,7 +517,7 @@ void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk7);
 		fp.serialize(unk8);
 		fp.serialize(unk9);
-		fp.serializeNdVectorExternal(trafficLights, 0x60E4849E, unk10);
+		fp.serializeNdVectorExternal_TOREMOVE(trafficLights, 0x60E4849E, unk10);
 	}
 }
 
@@ -536,7 +536,7 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk9);
 		fp.serialize(unk10);
 		fp.serialize(unk11);
-		fp.serializeNdVectorExternal(mediaObjects, 0x5193828E, mediaObjects_unk);
+		fp.serializeNdVectorExternal_TOREMOVE(mediaObjects, 0x5193828E, mediaObjects_unk);
 		fp.serialize(what);
 		if(what == 0)
 			fp.serialize(SDynamicIngredientPresetRef);

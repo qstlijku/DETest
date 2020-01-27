@@ -208,12 +208,12 @@ struct CCityLifeBaseGroupData {
 	void read(IBinaryArchive& fp) {
 		fp.serialize(objData);
 		fp.serialize(LayerCount);
-		fp.serializeNdVector_pod(Weights);
+		fp.serializeNdVector(Weights);
 		fp.serialize(bSynchronizeTriggeredBhv);
 		fp.serialize(bIsShowcase);
 		fp.serialize(bHasEmergentEventLayer);
 		fp.serialize(iEmergentEventLayerMask);
-		fp.serializeNdVector_pod(EmergentEventSettingsKeys);
+		fp.serializeNdVector(EmergentEventSettingsKeys);
 	}
 };
 
@@ -240,11 +240,11 @@ struct CCityLifeGroupData {
 
 	void read(IBinaryArchive& fp) {
 		fp.serialize(groupData);
-		fp.serializeNdVector_pod(Contexts);
-		fp.serializeNdVector_pod(AnimTemplates);
+		fp.serializeNdVector(Contexts);
+		fp.serializeNdVector(AnimTemplates);
 		fp.serialize(bIsManagedByEntity);
 		fp.serialize(unk1);
-		fp.serializeNdVector_pod(PlatformConfigs);
+		fp.serializeNdVector(PlatformConfigs);
 		fp.serialize(SpawningMandatory);
 	}
 };
@@ -269,7 +269,7 @@ struct CVigilanteData {
 		fp.serialize(VigilanteType);
 		fp.serialize(VigilanteGroupName);
 		fp.serializeNdVector(LayerTypes);
-		fp.serializeNdVector_pod(VigilanteBoxPath);
+		fp.serializeNdVector(VigilanteBoxPath);
 		fp.serialize(vectorPreventSpawningBoxSize);
 		fp.serialize(fDistToReactionClose);
 		fp.serialize(fDistToReactionFar);
@@ -626,7 +626,7 @@ struct CCityLifeObjectDataDictionary {
 		elements.resize(elementCount);
 
 		fp.serialize(unk2);
-		fp.serializeNdVector_pod(unk3);
+		fp.serializeNdVector(unk3);
 
 		fp.serialize(count);
 		//Counts down from count

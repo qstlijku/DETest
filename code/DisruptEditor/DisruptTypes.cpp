@@ -318,7 +318,7 @@ void CSceneLightClipPlane::registerMembers(MemberStructure& ms) {
 }
 
 void CSceneLight::read(IBinaryArchive& fp) {
-	fp.serializeNdVectorExternal(clipPlanes, 2461405956, u1);
+	fp.serializeNdVectorExternal_TOREMOVE(clipPlanes, 2461405956, u1);
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
@@ -512,7 +512,7 @@ void SSecurityCameraBatchArchetypeInformation::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 	fp.serialize(unk3);
 	fp.serialize(unk4);
-	fp.serializeNdVector_pod(unk5);
+	fp.serializeNdVector(unk5);
 }
 
 void SSecurityCameraBatchArchetypeInformation::registerMembers(MemberStructure& ms) {

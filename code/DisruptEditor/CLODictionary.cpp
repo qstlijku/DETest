@@ -240,7 +240,7 @@ void CCityLifeDataAndStateHandler::read(IBinaryArchive& fp) {
 void SCityLifeObjectInstanceDataArrays::read(IBinaryArchive& fp) {
 	fp.serializeNdVector(unk1);
 	fp.serializeNdVector(unk2);
-	fp.serializeNdVector_pod(unk3);
+	fp.serializeNdVector(unk3);
 }
 
 void SCityLifeObjectId::read(IBinaryArchive& fp) {
