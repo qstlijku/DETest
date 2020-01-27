@@ -1,25 +1,23 @@
 #include "SplineLoft.h"
 
 void SplineLoftHiRes::open(IBinaryArchive& fp) {
-	uint32_t magic = 1397508178;
-	fp.serialize(magic);
-	SDL_assert_release(magic == 1397508178);
+	fp.serializeConstant<uint32_t>(1397508178);
 
-	uint32_t version = 7;
-	fp.serialize(version);
-	SDL_assert_release(version == 7);
+	fp.serializeConstant<uint32_t>(7);
 
-	fp.serialize(unk1);
+	fp.serialize(unk1);//Unused
 	
 	fp.serializeNdVector(vertexData);
 	fp.serializeNdVector(indexData);
 	createBuffers();
 
 	fp.markHeader();
+	fp.markInPlaceOffset(fp.header.unk2);
 
-	/*fp.serializeNdVectorExternal_TOREMOVE(networkRegionResources, CStringID("CSplineNetworkRegionResourceEntry").id, unk2);
+	fp.serializeNdVectorExternal(networkRegionResources, "CSplineNetworkRegionResourceEntry");
 
-	fp.serialize(lowRes);*/
+	fp.serialize(lowRes);
+	fp.finish();
 }
 
 void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
@@ -98,23 +96,47 @@ void CSceneSplineLoftRegion::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
-	fp.serializeNdVectorExternal_TOREMOVE(splines, CStringID("CSpline").id, splineUnk);
+	fp.serializeNdVectorExternal(splines, "CSpline");
+
 	fp.serialize(unk4);
+	fp.PreAllocateSizeOfType(0xA1A47E4E, unk4);//Something Like CSceneObjectHandle<CSceneMaterial> *
+
+	fp.serialize(unk5);
+	fp.PreAllocateSizeOfType("CSplineLoftElementDBInfo", unk5);
+
+	static_assert(sizeof(SSplineRangeCoords) == (1 << 4));
+	fp.serializeNdVectorInPlace(rangeCoords);
+
+	static_assert(sizeof(CRangeOffsets) == 0x24);
+	fp.serializeNdVectorInPlace(rangeOffsets);
+
+	fp.serializeNdVectorExternal(morphing, "CSplineLoftMorphing");
+
+	static_assert(sizeof(CSplineLoftMeshDesc) == 0x8);
+	fp.serializeNdVectorInPlace(meshDescs);
+
+	static_assert(sizeof(CSplineLoftMeshLODGFXDesc) == 2);
+	fp.serializeNdVectorInPlace(meshLODGFXDescs);
+
+	fp.serializeNdVectorInPlace(unk6);
+
+	fp.serializeNdVectorInPlace(unk7);
+
+	static_assert(sizeof(CSplineLoftPrimitiveDrawCallDesc) == 4);
+	fp.serializeNdVectorInPlace(primitiveDrawCallDesc);
+
+	static_assert(sizeof(CSplineLoftPrimitiveDrawCallGFXBuffers) == 0x10);
+	fp.serializeNdVectorInPlace(primitiveDrawCallGFXBufDesc);
 }
 
 void CSplineNetworkRegionResourceEntry::read(IBinaryArchive& fp) {
-	fp.serialize(unk1);
-	if (!unk1) return;
-
-	CStringID CSceneSplineLoftRegion("CSceneSplineLoftRegion");
-	fp.serialize(CSceneSplineLoftRegion);
-	SDL_assert_release(CSceneSplineLoftRegion == CStringID("CSceneSplineLoftRegion"));
+	fp.PreAllocateSizeOfType("CSceneSplineLoftRegion", 1);
 
 	fp.serialize(loftReigon);
-	fp.serializeNdVector(primitiveDesc);
-	fp.serializeNdVector(drawCalls);
+	fp.serializeNdVectorExternal(primitiveDesc, "CSplineLoftPrimitiveDesc");
+	fp.serializeNdVectorExternal(drawCalls, "SSplineLoftDrawCall");
 	fp.serializeNdVector(unk2);
-	fp.serializeNdVector(unk3);
+	fp.serializeNdVectorInPlace(unk3);
 }
 
 void CSpline::read(IBinaryArchive& fp) {
@@ -122,7 +144,8 @@ void CSpline::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
 	fp.serialize(unk3);
-	fp.serializeNdVector(controlPoints);
+
+	fp.serializeNdVectorInPlace(controlPoints);
 }
 
 void CSplineControlPoint::read(IBinaryArchive& fp) {
@@ -135,7 +158,44 @@ void CSplineControlPoint::read(IBinaryArchive& fp) {
 }
 
 void CSplineLoftPrimitiveDesc::read(IBinaryArchive& fp) {
+	fp.PreAllocateSizeOfType("CSceneSplineLoftPrimitive", 1);
+
+	fp.PreAllocateSizeOfType("CSceneSplineLoftPrimitive", 1);
+
+	fp.PreAllocateSizeOfType("CSceneSplineLoftPrimitive", 1);
+
+	fp.serialize(primitive);
+
+	//TODO: SerializeBasicTypeInPlace(0,0x50,1,0x10,1);
+	fp.memBlockInPlace(unk2.data(), sizeof(unk2[0]), unk2.size());
 }
 
 void SSplineLoftDrawCall::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+
+	//TODO: SerializeInPlace__tm__3_Uc
+	//TODO: SerializeInPlace__tm__3_Us
+}
+
+void CSplineLoftMorphing::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serializeNdVectorExternal(knots, "CKnot");
+}
+
+void CKnot::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(type);
+}
+
+void CSceneSplineLoftPrimitive::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
 }

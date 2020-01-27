@@ -729,8 +729,8 @@ void ClusterData::getMatrix(int index, glm::mat4& mat) {
 	const Data& entry = data[index];
 
 	if ((format & CompressedMatrix) == 0 && format & PositionRotZTransform) {
-		float Rot = (CONCAT44(0x43300000, entry.rot ^ 0x80000000) - 4.503601774854144E15) / 32767.f;
-		float Z =   (CONCAT44(0x43300000, entry.z   ^ 0x80000000) - 4.503601774854144E15) / 32767.f;
+		float Rot = entry.rot / 32767.f;
+		float Z =   entry.z   / 32767.f;
 		mat = glm::translate(glm::mat4(1), entry.pos);
 		mat = glm::rotate(mat, atan2f(Rot, Z), glm::vec3(0, 0, 1));
 		return;

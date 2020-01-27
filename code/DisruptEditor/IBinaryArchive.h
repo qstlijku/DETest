@@ -5,6 +5,7 @@ class IBinaryArchive;
 #include <SDL_rwops.h>
 #include "glm/glm.hpp"
 #include <string>
+#include <memory>
 #include "Vector.h"
 #include "CStringID.h"
 
@@ -31,6 +32,7 @@ public:
 	void serialize(std::string& value);
 
 	void PreAllocateSizeOfType(CStringID type, uint32_t count);
+	void PreAllocatePointers(uint32_t count);
 
 	virtual bool isReading() const = 0;
 	void pad(size_t padding);
@@ -50,6 +52,12 @@ public:
 
 	template<typename T>
 	void serializeNdVectorExternal(Vector<T>& vec, CStringID typeId);
+
+	template<typename T>
+	void serializeNdVectorExternal(Vector<std::unique_ptr<T>>& vec, CStringID typeId);
+
+	template<typename T>
+	void serializeNdVectorInPlace(Vector<T>& vec);
 
 	template<typename T>
 	void serialize(T &value);
@@ -186,6 +194,52 @@ inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, CStringID 
 		for (uint32_t i = 0; i < counter; ++i)
 			vec[i].read(*this);
 	}
+}
+
+template<typename T>
+inline void IBinaryArchive::serializeNdVectorExternal(Vector<std::unique_ptr<T>>& vec, CStringID typeId) {
+	//PreAllocateSizeOfType behavior
+	uint32_t counter = (uint32_t)vec.size();
+	serialize(counter);
+	vec.resize(counter);
+
+	if (counter) {
+		PreAllocatePointers(counter);
+
+		uint32_t unk1 = 0;//I think this is the count of set pointers
+		for (uint32_t i = 0; i < counter; ++i)
+			unk1 += vec[i] ? 1 : 0;
+		serialize(unk1);
+
+		if(unk1)
+			PreAllocateSizeOfType(typeId, unk1);
+
+		for (uint32_t i = 0; i < counter; ++i) {
+			bool has = vec[i].get();
+			serialize(has);
+
+			if (isReading()) {
+				if (has) {
+					vec[i] = std::make_unique<T>();
+					vec[i]->read(*this);
+				} else {
+					vec[i].reset();
+				}
+			} else {
+				if(has)
+					vec[i]->read(*this);
+			}
+
+		}
+	}
+}
+
+template<typename T>
+inline void IBinaryArchive::serializeNdVectorInPlace(Vector<T>& vec) {
+	uint32_t count = vec.size();
+	serialize(count);
+	vec.resize(count);
+	memBlockInPlace(vec.data(), sizeof(T), count);
 }
 
 template<typename T>
