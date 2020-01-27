@@ -162,7 +162,7 @@ void CSplineLoftPrimitiveDesc::read(IBinaryArchive& fp) {
 
 	fp.PreAllocateSizeOfType("CSceneSplineLoftPrimitive", 1);
 
-	fp.PreAllocateSizeOfType("CSceneSplineLoftPrimitive", 1);
+	//fp.PreAllocateSizeOfType("CSceneSplineLoftPrimitive", 1);
 
 	fp.serialize(primitive);
 
