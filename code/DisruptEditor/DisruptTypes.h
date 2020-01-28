@@ -388,8 +388,6 @@ struct CSceneBuilding {
 	bool unk11;
 	float unk12;
 
-	uint32_t cunk1 = 1;
-
 	//CSceneBuildingBatchData
 	Vector<glm::vec2> batchData;
 

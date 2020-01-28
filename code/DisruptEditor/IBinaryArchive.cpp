@@ -162,6 +162,20 @@ void IBinaryArchive::PreAllocateDynamicType(CStringID type) {
 	a *= 0x10;
 }
 
+void IBinaryArchive::PreAllocateMemory(uint32_t unk1, uint32_t unk2) {
+	serializeConstant(unk1);
+	serializeConstant(unk2);
+}
+
+void IBinaryArchive::PauseInPlace() {
+	numPausedInPlace++;
+}
+
+void IBinaryArchive::ResumeInPlace() {
+	numPausedInPlace--;
+	SDL_assert_release(numPausedInPlace >= 0);
+}
+
 void IBinaryArchive::pad(size_t padding) {
 	size_t seek = getPadSize(padding);
 
@@ -219,14 +233,18 @@ void CBinaryArchiveReader::memBlock(void* ptr, size_t objSize, size_t objCount) 
 }
 
 void CBinaryArchiveReader::memBlockInPlace(void* ptr, size_t objSize, size_t objCount) {
-	SDL_assert_release(inPlaceOffset >= 0);
-	Sint64 curOffset = SDL_RWtell(fp);
-	SDL_RWseek(fp, inPlaceOffset, RW_SEEK_SET);
-	SDL_RWread(fp, ptr, objSize, objCount);
-	inPlaceOffset += objSize * objCount;
-	SDL_RWseek(fp, curOffset, RW_SEEK_SET);
+	if (numPausedInPlace) {
+		memBlock(ptr, objSize, objCount);
+	} else {
+		SDL_assert_release(inPlaceOffset >= 0);
+		Sint64 curOffset = SDL_RWtell(fp);
+		SDL_RWseek(fp, inPlaceOffset, RW_SEEK_SET);
+		SDL_RWread(fp, ptr, objSize, objCount);
+		inPlaceOffset += objSize * objCount;
+		SDL_RWseek(fp, curOffset, RW_SEEK_SET);
 
-	inPlaceRead += objSize * objCount;
+		inPlaceRead += objSize * objCount;
+	}
 }
 
 void CBinaryArchiveReader::markHeader() {
@@ -271,7 +289,11 @@ void CBinaryArchiveWriter::memBlock(void* ptr, size_t objSize, size_t objCount) 
 }
 
 void CBinaryArchiveWriter::memBlockInPlace(void* ptr, size_t objSize, size_t objCount) {
-	inPlaceData.insert(inPlaceData.end(), (uint8_t*)ptr, (uint8_t*)ptr + (objSize * objCount));
+	if (numPausedInPlace) {
+		memBlock(ptr, objSize, objCount);
+	} else {
+		inPlaceData.insert(inPlaceData.end(), (uint8_t*)ptr, (uint8_t*)ptr + (objSize * objCount));
+	}
 }
 
 void CBinaryArchiveWriter::markHeader() {

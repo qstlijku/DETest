@@ -237,7 +237,6 @@ public:
 
 		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes, also a cbatch file
 
-		uint32_t unk2;
 		Vector<CSceneBuilding> buildings;
 
 		glm::vec3 unk3;
@@ -245,8 +244,6 @@ public:
 		CBuildingMaterialPaletteResource palette;
 		CMaterialResource material;
 		CPathID roofGeom;
-
-		uint32_t cunk1, cunk2;
 
 		uint32_t unk4;
 		uint32_t unk5;
@@ -310,7 +307,6 @@ public:
 
 	struct CDebrisSpawnerMultiBatchProcessor {
 		Vector<SDebrisSpawnerBatchInstance> batchInstances;
-		uint32_t unk1;
 
 		glm::vec3 unk2;
 		glm::vec3 unk3;

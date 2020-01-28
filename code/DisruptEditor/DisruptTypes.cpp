@@ -585,24 +585,9 @@ void CSceneBuilding::read(IBinaryArchive& fp) {
 	fp.serialize(count);
 	batchData.resize(count);
 
-	CStringID CSceneBuildingBatchDataType("CSceneBuildingBatchData");
-	fp.serialize(CSceneBuildingBatchDataType);
-	SDL_assert_release(CSceneBuildingBatchDataType == CStringID("CSceneBuildingBatchData"));
+	fp.PreAllocateSizeOfType("CSceneBuildingBatchData", 1);
 
-	fp.serialize(cunk1);
-	//SDL_assert_release(cunk1 == 1);
-
-	uint32_t cunk2 = 1;
-	fp.serialize(cunk2);
-	SDL_assert_release(cunk2 == 1);
-
-	uint32_t cunk3 = count * 8 + 4;
-	fp.serialize(cunk3);
-	SDL_assert_release(cunk3 == count * 8 + 4);
-
-	uint32_t cunk4 = 4;
-	fp.serialize(cunk4);
-	SDL_assert_release(cunk4 == 4);
+	fp.PreAllocateMemory((count << 3) + 4, 4);
 
 	for (uint32_t i = 0; i < count; ++i)
 		fp.serialize(batchData[i]);
@@ -621,7 +606,6 @@ void CSceneBuilding::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(unk10);
 	REGISTER_MEMBER(unk11);
 	REGISTER_MEMBER(unk12);
-	REGISTER_MEMBER(cunk1);
 	REGISTER_MEMBER(batchData);
 }
 

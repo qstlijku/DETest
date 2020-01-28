@@ -382,48 +382,40 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
+	fp.PauseInPlace();
+
 	fp.serialize(unk1);
 
 	uint32_t count = buildings.size();
 	fp.serialize(count);
-	if (count == 0) return;
+	if (count) {
+		fp.serializeNdVector(buildingResources);
 
-	fp.serializeNdVector(buildingResources);
+		fp.PreAllocatePointers(count);
+		fp.PreAllocateSizeOfType("CBuilding", count);
 
-	CStringID buildingType("CBuilding");
-	fp.serialize(buildingType);
-	assert_file_crash(buildingType == CStringID("CBuilding"));
+		buildings.resize(count);
+		for (uint32_t i = 0; i < count; ++i) {
+			buildings[i].read(fp);
+		}
 
-	fp.serialize(unk2);
+		fp.serialize(unk3);
+		fp.serialize(lowGeom);
+		fp.serialize(palette);
+		fp.serialize(material);
+		fp.serialize(roofGeom);
 
-	uint32_t count2 = count;
-	fp.serialize(count2);
-	assert_file_crash(count2 == count);
+		fp.PreAllocateSizeOfType(0xA0E2DE5C, count);
 
-	buildings.resize(count);
-	for (uint32_t i = 0; i < count; ++i) {
-		buildings[i].read(fp);
+		fp.serialize(unk4);
+		fp.serialize(unk5);
+		fp.serialize(unk6);
+		fp.serialize(unk7);
+		fp.serialize(unk8);
+		fp.serialize(unk9);
 	}
 
-	fp.serialize(unk3);
-	fp.serialize(lowGeom);
-	fp.serialize(palette);
-	fp.serialize(material);
-	fp.serialize(roofGeom);
-
-	CStringID UnkType(0xA0E2DE5C);
-	fp.serialize(UnkType);
-	assert_file_crash(UnkType == CStringID(0xA0E2DE5C));
-
-	fp.serialize(cunk1);
-	fp.serialize(cunk2);
-
-	fp.serialize(unk4);
-	fp.serialize(unk5);
-	fp.serialize(unk6);
-	fp.serialize(unk7);
-	fp.serialize(unk8);
-	fp.serialize(unk9);
+	fp.ResumeInPlace();
 }
 
 void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp) {
@@ -467,21 +459,7 @@ void batchFile::SRoadObjectQuadtreeElement::read(IBinaryArchive & fp) {
 
 void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<SDebrisSpawnerBatchInstance, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-	uint32_t counter = batchInstances.size();
-	fp.serialize(counter);
-	batchInstances.resize(counter);
-	if (counter) {
-		fp.serializeConstant<CStringID>("SDebrisSpawnerBatchInstance");
-
-		fp.serialize(unk1);
-		
-		uint32_t counter2 = counter;
-		fp.serialize(counter2);
-		assert_file_crash(counter2 == counter);
-
-		for (uint32_t i = 0; i < counter; ++i)
-			batchInstances[i].read(fp);
-	}
+	fp.serializeNdVectorExternal(batchInstances, "SDebrisSpawnerBatchInstance");
 
 	fp.serialize(unk2);
 	fp.serialize(unk3);

@@ -36,6 +36,10 @@ public:
 	void PreAllocateDynamicType(CStringID type);
 	void PreAllocateMemory(uint32_t unk1, uint32_t unk2);
 
+	void PauseInPlace();
+	void ResumeInPlace();
+	int numPausedInPlace = 0;
+
 	virtual bool isReading() const = 0;
 	void pad(size_t padding);
 	size_t size();
