@@ -81,7 +81,6 @@ public:
 		};
 		glm::vec2 unk1;
 		glm::vec2 unk2;
-		uint32_t unk3;
 		Vector<SEffectPosAndAngle> posAndAngles;
 		bool hasBatchInstanceIDs;
 		CBatchedInstanceIDInPlace batchedInstanceID;
@@ -95,7 +94,6 @@ public:
 		bool hasBatchInstanceIDs;
 		uint32_t unk2;
 		CBatchedInstanceIDInPlace batchedInstanceID;
-		uint32_t unk3;
 		Vector<CParticlesSystemHdl> hdls;
 
 		void read(IBinaryArchive& fp);
@@ -106,7 +104,6 @@ public:
 		bool hasBatchInstanceIDs;
 		CBatchedInstanceIDInPlace batchedInstanceID;
 
-		uint32_t unk1;
 		Vector<CSceneLight> sceneLight;
 
 		void read(IBinaryArchive& fp);
@@ -118,7 +115,8 @@ public:
 		bool hasBatchInstanceIDs;
 		Vector<CBatchedInstanceID> batchedInstanceID;
 
-		uint32_t unk2;
+		//bool unk2;
+
 		Vector<CSceneLightEffectInstance> instances;
 
 		void read(IBinaryArchive& fp);
@@ -138,9 +136,7 @@ public:
 		uint32_t unk7;
 		CArchetypeResource arche;
 		SSecurityCameraBatchArchetypeInformation info;
-		uint32_t unk8;
-		uint32_t unk9;
-		Vector<CSecurityCameraObjectBatched> objects;
+		Vector<std::unique_ptr<CSecurityCameraObjectBatched>> objects;
 
 		void read(IBinaryArchive& fp);
 	};
@@ -150,13 +146,7 @@ public:
 		uint32_t unk2;
 		CRealtreeResource resource;//CRealtreeResource
 
-		//If unk3
-		uint32_t unk4;
-		uint32_t unk5;
-
-		uint32_t unk7;
-		uint32_t unk8;
-
+		//data size and ranges can be different
 		ClusterData data;
 		Vector<SInstanceRange> ranges;
 
@@ -176,9 +166,7 @@ public:
 		//If unk6
 		uint32_t unk7;
 		uint32_t unk8;
-		uint32_t unk9;
-		uint32_t unk10;
-		Vector<CTrafficLightObjectBatched> trafficLights;
+		Vector<std::unique_ptr<CTrafficLightObjectBatched>> trafficLights;
 
 		void read(IBinaryArchive& fp);
 	};
@@ -198,11 +186,8 @@ public:
 		//If unk8
 		uint32_t unk9;
 		uint32_t unk10;
-		uint32_t unk11;
-		uint32_t mediaObjects_unk;
-		Vector<CBatchedDynamicMediaSystemObject> mediaObjects;
-		uint32_t what;
-		uint32_t SDynamicIngredientPresetRef;
+		Vector<std::unique_ptr<CBatchedDynamicMediaSystemObject>> mediaObjects;
+		SDynamicIngredientPreset ingredientPreset;
 		uint32_t EBroadcastChannel;
 		bool unk12;
 		CStringID unk13;

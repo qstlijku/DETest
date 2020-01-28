@@ -53,7 +53,7 @@ public:
 	void serializeNdVectorExternal_TOREMOVE(Vector<T>& vec, uint32_t typeId, uint32_t& unk);
 
 	template<typename T>
-	void serializeNdVectorExternal(Vector<T>& vec, CStringID typeId);
+	void serializeNdVectorExternal(Vector<T>& vec, CStringID typeId, bool alwaysPreAllocate = false);
 
 	template<typename T>
 	void serializeNdVectorExternal(Vector<std::unique_ptr<T>>& vec, CStringID typeId);
@@ -184,18 +184,17 @@ inline void IBinaryArchive::serializeNdVectorExternal_TOREMOVE(Vector<T>& vec, u
 }
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, CStringID typeId) {
+inline void IBinaryArchive::serializeNdVectorExternal(Vector<T>& vec, CStringID typeId, bool alwaysPreAllocate) {
 	//PreAllocateSizeOfType behavior
 	uint32_t counter = (uint32_t)vec.size();
 	serialize(counter);
 	vec.resize(counter);
 
-	if (counter) {
+	if (counter || alwaysPreAllocate)
 		PreAllocateSizeOfType(typeId, counter);
 
-		for (uint32_t i = 0; i < counter; ++i)
-			vec[i].read(*this);
-	}
+	for (uint32_t i = 0; i < counter; ++i)
+		vec[i].read(*this);
 }
 
 template<typename T>
@@ -210,7 +209,7 @@ inline void IBinaryArchive::serializeNdVectorExternal(Vector<std::unique_ptr<T>>
 
 		uint32_t unk1 = 0;//I think this is the count of set pointers
 		for (uint32_t i = 0; i < counter; ++i)
-			unk1 += vec[i] ? 1 : 0;
+			unk1 += vec[i].get() ? 1 : 0;
 		serialize(unk1);
 
 		if(unk1)

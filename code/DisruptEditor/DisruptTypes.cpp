@@ -524,16 +524,12 @@ void SSecurityCameraBatchArchetypeInformation::registerMembers(MemberStructure& 
 }
 
 void CSecurityCameraObjectBatched::read(IBinaryArchive& fp) {
-	fp.serialize(has);
-	if (has) {
-		fp.serialize(unk1);
-		fp.serialize(unk2);
-		fp.serialize(instance);
-	}
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(instance);
 }
 
 void CSecurityCameraObjectBatched::registerMembers(MemberStructure& ms) {
-	REGISTER_MEMBER(has);
 	REGISTER_MEMBER(unk1);
 	REGISTER_MEMBER(unk2);
 	REGISTER_MEMBER(instance);
@@ -551,29 +547,21 @@ void CRealtreeResource::registerMembers(MemberStructure& ms) {
 }
 
 void CTrafficLightObjectBatched::read(IBinaryArchive& fp) {
-	fp.serialize(has);
-	if (has) {
-		fp.serialize(offset);
-		fp.serialize(instance);
-	}
+	fp.serialize(offset);
+	fp.serialize(instance);
 }
 
 void CTrafficLightObjectBatched::registerMembers(MemberStructure& ms) {
-	REGISTER_MEMBER(has);
 	REGISTER_MEMBER(offset);
 	REGISTER_MEMBER(instance);
 }
 
 void CBatchedDynamicMediaSystemObject::read(IBinaryArchive& fp) {
-	fp.serialize(has);
-	if (has) {
-		fp.serialize(offset);
-		fp.serialize(instance);
-	}
+	fp.serialize(offset);
+	fp.serialize(instance);
 }
 
 void CBatchedDynamicMediaSystemObject::registerMembers(MemberStructure& ms) {
-	REGISTER_MEMBER(has);
 	REGISTER_MEMBER(offset);
 	REGISTER_MEMBER(instance);
 }
@@ -773,4 +761,10 @@ uint32_t ClusterData::ComputeStride(uint16_t format) {
 void CResourceContainerSwap::read(IBinaryArchive& fp) {
 	fp.serialize(file);
 	fp.serialize(type);
+}
+
+void SDynamicIngredientPreset::read(IBinaryArchive& fp) {
+	fp.serialize(what);
+	if (what == 0)
+		fp.serialize(SDynamicIngredientPresetRef);
 }

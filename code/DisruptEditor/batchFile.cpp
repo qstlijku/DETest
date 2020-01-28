@@ -282,7 +282,7 @@ void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBlackoutEffectBatchProcessor::SEffectPosAndAngle, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-	fp.serializeNdVectorExternal_TOREMOVE(posAndAngles, 495023964, unk3);
+	fp.serializeNdVectorExternal(posAndAngles, 495023964);
 
 	fp.serialize(hasBatchInstanceIDs);
 	if (hasBatchInstanceIDs) {
@@ -310,8 +310,7 @@ void batchFile::CParticlesBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(batchedInstanceID);
 	}
 
-
-	fp.serializeNdVectorExternal_TOREMOVE(hdls, 0x16BB23DD, unk3);
+	fp.serializeNdVectorExternal(hdls, 0x16BB23DD);
 
 }
 
@@ -323,7 +322,7 @@ void batchFile::CDynamicLightBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(batchedInstanceID);
 	}
 
-	fp.serializeNdVectorExternal_TOREMOVE(sceneLight, 0xFB4B8BEB, unk1);
+	fp.serializeNdVectorExternal(sceneLight, 0xFB4B8BEB);
 }
 
 void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
@@ -334,9 +333,10 @@ void batchFile::CLightEffectBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serializeNdVector(batchedInstanceID);
 	}
 
+	//fp.serialize(unk2);
 
 	//CSceneLightEffectInstance = 0xEB07AAAC
-	fp.serializeNdVectorExternal_TOREMOVE(instances, 0xEB07AAAC, unk2);
+	fp.serializeNdVectorExternal(instances, 0xEB07AAAC, true);
 }
 
 void batchFile::CSecurityCameraBatchProcessor::read(IBinaryArchive& fp) {
@@ -354,8 +354,7 @@ void batchFile::CSecurityCameraBatchProcessor::read(IBinaryArchive& fp) {
 		fp.serialize(unk7);
 		arche.read(fp);
 		info.read(fp);
-		fp.serialize(unk8);
-		fp.serializeNdVectorExternal_TOREMOVE(objects, 0x91B64372, unk9);
+		fp.serializeNdVectorExternal(objects, 0x91B64372);
 	}
 }
 
@@ -371,18 +370,11 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 	ranges.resize(rangeCount);
 
 	if (rangeCount) {
-		fp.serialize(unk4);
-
-		fp.serializeConstant<CStringID>("CSceneRealTreeClusterHelper");
-
-		fp.serialize(unk5);
 		fp.serialize(data);
-		SDL_assert_release(data.data.size() == rangeCount);
 
-		fp.serializeConstant<CStringID>(0x1C89E6B5);
-
-		fp.serialize(unk7);
-		fp.serialize(unk8);
+		fp.PreAllocateSizeOfType("CSceneRealTreeClusterHelper", rangeCount);
+		
+		fp.PreAllocateSizeOfType(0x1C89E6B5, data.data.size()); //CSceneRealTreeClusterHelperSInstanceData
 
 		for (uint32_t j = 0; j < rangeCount; ++j)
 			ranges[j].read(fp);
@@ -517,8 +509,7 @@ void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {
 	if (unk6) {
 		fp.serialize(unk7);
 		fp.serialize(unk8);
-		fp.serialize(unk9);
-		fp.serializeNdVectorExternal_TOREMOVE(trafficLights, 0x60E4849E, unk10);
+		fp.serializeNdVectorExternal(trafficLights, 0x60E4849E);
 	}
 }
 
@@ -536,11 +527,8 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 	if (unk8) {
 		fp.serialize(unk9);
 		fp.serialize(unk10);
-		fp.serialize(unk11);
-		fp.serializeNdVectorExternal_TOREMOVE(mediaObjects, 0x5193828E, mediaObjects_unk);
-		fp.serialize(what);
-		if(what == 0)
-			fp.serialize(SDynamicIngredientPresetRef);
+		fp.serializeNdVectorExternal(mediaObjects, 0x5193828E);
+		fp.serialize(ingredientPreset);
 		fp.serialize(EBroadcastChannel);
 		fp.serialize(unk12);
 		fp.serialize(unk13);

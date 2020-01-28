@@ -343,7 +343,6 @@ struct SSecurityCameraBatchArchetypeInformation {
 };
 
 struct CSecurityCameraObjectBatched {
-	bool has;
 	glm::mat4 unk1;
 	uint64_t unk2;
 	CBatchedInstanceID instance;
@@ -353,7 +352,6 @@ struct CSecurityCameraObjectBatched {
 };
 
 struct CTrafficLightObjectBatched {
-	bool has;
 	glm::mat4 offset;
 	CBatchedInstanceID instance;
 
@@ -362,12 +360,17 @@ struct CTrafficLightObjectBatched {
 };
 
 struct CBatchedDynamicMediaSystemObject {
-	bool has;
 	glm::mat4 offset;
 	CBatchedInstanceID instance;
 
 	void read(IBinaryArchive& fp);
 	void registerMembers(MemberStructure& ms);
+};
+
+struct SDynamicIngredientPreset {
+	uint32_t what;
+	uint32_t SDynamicIngredientPresetRef;
+	void read(IBinaryArchive& fp);
 };
 
 struct CSceneBuilding {
