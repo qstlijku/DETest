@@ -9,6 +9,7 @@
 #include "FileHandler.h"
 #include "Serialization.h"
 #include "IBinaryArchive.h"
+#include "NBCF.h"
 
 //Game stores ptr in 0x20 of r3, size in 0x24
 void crashFileHandler() {
@@ -37,11 +38,25 @@ bool batchFile::open(IBinaryArchive &reader) {
 
 		reader.serialize(physicsFile);
 
-		componentMBP.read(reader);
-		buildingMBP.read(reader);
-		quadtreeCollidableMBP.read(reader);
-		debrisSpawnerMBP.read(reader);
-		vegetationMBP.read(reader);
+		reader.serialize(hasProcessor[0]);
+		if(hasProcessor[0])
+			componentMBP.read(reader);
+
+		reader.serialize(hasProcessor[1]);
+		if (hasProcessor[1])
+			buildingMBP.read(reader);
+
+		reader.serialize(hasProcessor[2]);
+		if (hasProcessor[2])
+			quadtreeCollidableMBP.read(reader);
+
+		reader.serialize(hasProcessor[3]);
+		if (hasProcessor[3])
+			debrisSpawnerMBP.read(reader);
+
+		reader.serialize(hasProcessor[4]);
+		if (hasProcessor[4])
+			vegetationMBP.read(reader);
 
 		reader.serialize(batchResource);
 
@@ -74,23 +89,21 @@ bool batchFile::open(IBinaryArchive &reader) {
 
 void batchFile::CComponentMultiBatchProcessor::read(IBinaryArchive& fp) {
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CBatchModelProcessorsAndResources *, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-
-	bool unk1 = true;
-	fp.serialize(unk1);
-	assert_file_crash(unk1);//If this is zero it looks like we should just skip the rest of this code, however none of the files contain 0 so I won't bother
-
 	uint32_t batchCount = batchProcessors.size();
 	fp.serialize(batchCount);
 	batchProcessors.resize(batchCount);
+
+	fp.PreAllocatePointers(batchCount);
 
 	//void SerializeArray<T1>(IBinaryArchive &, T1 *, unsigned long) [with T1=CBatchModelProcessorsAndResources *]
 	for (uint32_t i = 0; i < batchCount; ++i) {
 		CBatchModelProcessorsAndResources &batch = batchProcessors[i];
 
-		fp.serializeConstant<uint32_t>(0);
+		fp.serializeConstant<uint32_t>(0);//This can be handled if it's not
 
 		fp.serializeConstant(CStringID("CBatchModelProcessorsAndResources"));
 
+		//PreAllocateDynamicType(TypeAbove);
 		fp.serializeConstant<uint32_t>(0);
 
 		batch.read(fp);
@@ -110,20 +123,22 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 	//CResourceManager::GetResource((CPathID const &,CStringID const &))
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<IBatchProcessor *, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
-	//unk1 = SDL_ReadLE32(fp);
-	//assert_file_crash(unk1 == 1);
 	
 	uint32_t batchProcessorCount = processors.size();
 	fp.serialize(batchProcessorCount);
 	processors.resize(batchProcessorCount);
 
+	fp.PreAllocatePointers(batchProcessorCount);
+
 	//void SerializeArray<T1>(IBinaryArchive &, T1 *, unsigned long) [with T1=IBatchProcessor *]
 	for (uint32_t i = 0; i < batchProcessorCount; ++i) {
 		IBatchProcessor &batch = processors[i];
 
-		fp.serializeConstant<uint32_t>(0);
+		fp.serializeConstant<uint32_t>(0);//This can be handled
 
 		fp.serialize(batch.batchProcessor);
+
+		//TODO: PreAllocateDynamicType
 		fp.serialize(batch.batchProcessorUnk1);
 
 		if (batch.batchProcessor == "CGraphicBatchProcessor")
@@ -190,10 +205,8 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 	ranges.resize(rangeCount);
 
 	if (rangeCount) {
-		//CClusterHelper
-		fp.serializeConstant<CStringID>("CClusterHelper");
-
-		fp.serialize(unkc2);
+		fp.PreAllocatePointers(rangeCount);
+		fp.PreAllocateSizeOfType("CClusterHelper", rangeCount);
 
 		fp.serialize(data);
 		SDL_assert(data.data.size() == rangeCount);
@@ -204,7 +217,6 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 
 		fp.serialize(unkc3);
 		fp.serialize(unkc4);
-		fp.serialize(unkc5);
 
 		for (uint32_t j = 0; j < rangeCount; ++j)
 			ranges[j].read(fp);
@@ -230,36 +242,39 @@ void batchFile::batchHeader::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CSoundPointBatchProcessor::read(IBinaryArchive& fp) {
-	fp.serialize(unk1);
+	fp.serialize(isBreakable);
 	fp.serialize(libraryObject);
 
 	//CNomadDb::GenRecoverLibraryObject(const(0x2E69D575, unk2))
 	//0x2E69D575 = SoundPoint is CStringID
+	//Node *soundPointObj = NomadDB::GetLibraryObject(libraryObject);
+	//int iNumMaxPlaying = soundPointObj->getAttrValue<int32_t>("iNumMaxPlaying");
 
-	uint16_t unk3 = inPlaceData.size();
-	fp.serialize(unk3);
-	inPlaceData.resize(unk3);
-	batchedInstanceID.resize(unk3);
-	fp.memBlockInPlace(inPlaceData.data(), sizeof(inPlaceData[0]), unk3);
-	fp.memBlockInPlace(batchedInstanceID.data(), sizeof(batchedInstanceID[0]), unk3);
+	uint16_t count = inPlaceData.size();
+	fp.serialize(count);
+	inPlaceData.resize(count);
+	fp.memBlockInPlace(inPlaceData.data(), sizeof(inPlaceData[0]), count);
 
-	fp.serializeConstant<CStringID>("ndSoundHandle");
-
-	fp.serialize(unk4);
-	fp.serialize(unk5);
-
-	//Could be SBatchedSoundPoint or 0xDF63D1E
-	fp.serialize(type);
-	if (type == "SBatchedSoundPoint") {//SBatchedSoundPoint
-		fp.serialize(unk6);
-		fp.serialize(unk7);
-	} else if (type == 0xDF63D1E) {//SBatchedSoundPointBreakable
-		fp.serialize(unk6);
-		fp.serialize(unk7);
-	} else {
-		assert_file_crash(false);
+	if (isBreakable) {
+		batchedInstanceID.resize(count);
+		fp.memBlockInPlace(batchedInstanceID.data(), sizeof(batchedInstanceID[0]), count);
 	}
 
+	//fp.PreAllocateSizeOfType("ndSoundHandle", (iNumMaxPlaying >> 0xe) * unk3);
+	//TODO: replace
+	fp.serializeConstant<CStringID>("ndSoundHandle");
+	uint32_t unk11 = 0;
+	fp.serialize(unk11);
+	fp.serialize(unk11);
+	//SDL_Log("Sound %08x: %u %u %u %u", libraryObject.libID.id, unk11, count, isBreakable, iNumMaxPlaying);
+	
+	fp.PreAllocatePointers(count);
+
+	//Could be SBatchedSoundPoint or 0xDF63D1E
+	if(isBreakable)
+		fp.PreAllocateSizeOfType(0xDF63D1E, count);//SBatchedSoundPointBreakable
+	else
+		fp.PreAllocateSizeOfType("SBatchedSoundPoint", count);
 }
 
 void batchFile::CBlackoutEffectBatchProcessor::read(IBinaryArchive& fp) {
@@ -375,9 +390,6 @@ void batchFile::CRealTreeBatchProcessor::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
-	fp.serialize(has);
-	if (!has) return;
-
 	fp.serialize(unk1);
 
 	uint32_t count = buildings.size();
@@ -423,10 +435,6 @@ void batchFile::CBuildingMultiBatchProcessor::read(IBinaryArchive& fp) {
 }
 
 void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp) {
-	fp.serialize(has);
-	if (!has) 
-		return;
-
 	//void SerializeMember<T1>(IBinaryArchive&, T1&)[with T1 = IQuadtreeCollidableBatchProcessor * [3]]
 	//Serializes array of size 3
 
@@ -466,10 +474,6 @@ void batchFile::SRoadObjectQuadtreeElement::read(IBinaryArchive & fp) {
 }
 
 void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
-	fp.serialize(has);
-	if (!has)
-		return;
-
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<SDebrisSpawnerBatchInstance, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 	uint32_t counter = batchInstances.size();
 	fp.serialize(counter);
@@ -499,9 +503,6 @@ void batchFile::SDebrisSpawnerBatchInstance::read(IBinaryArchive & fp) {
 }
 
 void batchFile::CVegetationMultiBatchProcessor::read(IBinaryArchive & fp) {
-	fp.serialize(has);
-	if (!has)
-		return;
 }
 
 void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {

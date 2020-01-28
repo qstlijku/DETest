@@ -41,17 +41,17 @@ void CEnticerData::read(IBinaryArchive& fp) {
 	TestSerialize(fp);
 	fp.serialize(entdescDescription);
 	
-	if (entdescDescription.unk1 == 0 || entdescDescription.EnticerDescriptionRef.libID == 0) {
+	if (entdescDescription.unk1 == 0 || entdescDescription.EnticerDescriptionRef.libID.id == 0) {
 		TestSerialize(fp);
 		fp.serialize(entactAction);
 	}
 	TestSerialize(fp);
 
-	if (!singleObjectData.unk4 && (entdescDescription.unk1 == 0 || entdescDescription.EnticerDescriptionRef.libID == 0)) {
+	if (!singleObjectData.unk4 && (entdescDescription.unk1 == 0 || entdescDescription.EnticerDescriptionRef.libID.id == 0)) {
 		//Might be wrong
 		if (entactAction.unk1 == 0)
 			return;
-		if (entactAction.EnticerDescriptionRef.libID == 0)
+		if (entactAction.EnticerDescriptionRef.libID.id == 0)
 			return;
 	}
 

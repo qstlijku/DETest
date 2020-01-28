@@ -155,6 +155,13 @@ void IBinaryArchive::PreAllocatePointers(uint32_t count) {
 	//I think this does nothing
 }
 
+void IBinaryArchive::PreAllocateDynamicType(CStringID type) {
+	//Reads something...not sure
+	uint32_t a = 0;
+	serialize(a);
+	a *= 0x10;
+}
+
 void IBinaryArchive::pad(size_t padding) {
 	size_t seek = getPadSize(padding);
 

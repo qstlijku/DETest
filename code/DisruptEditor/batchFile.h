@@ -6,6 +6,7 @@
 #include "Pair.h"
 #include "IBinaryArchive.h"
 #include <variant>
+#include <NomadDB.h>
 
 struct SDL_RWops;
 class MemberStructure;
@@ -43,12 +44,9 @@ public:
 		Vector<CProjectedDecalInfo> decals;
 		bool unk12;
 
-		uint32_t unkc2;
-
 		CBatchedInstanceIDInPlace batchedInstanceID;
 		uint32_t unkc3;
 		uint32_t unkc4;
-		uint32_t unkc5;
 
 		ClusterData data;
 		Vector<SInstanceRange> ranges;
@@ -58,9 +56,9 @@ public:
 
 	//TODO: May be wrong
 	struct CSoundPointBatchProcessor {
-		bool unk1;
+		bool isBreakable;
 		//References library SoundPoint
-		uint32_t libraryObject;
+		NomadDBRef libraryObject = "SoundPoint";
 
 		struct SBatchedSoundPointTransform {
 			float unk1;
@@ -71,14 +69,6 @@ public:
 		};
 		std::vector<SBatchedSoundPointTransform> inPlaceData;
 		std::vector<CBatchedInstanceID> batchedInstanceID;
-
-		uint32_t unk4;
-		uint32_t unk5;
-
-		CStringID type;
-
-		uint32_t unk6;
-		uint32_t unk7;
 
 		void read(IBinaryArchive& fp);
 	};
@@ -258,7 +248,6 @@ public:
 	//
 
 	struct CBuildingMultiBatchProcessor {
-		bool has;
 		bool unk1;
 
 		Vector<CPathID> buildingResources;//CBuildingBatchResourceHiRes, also a cbatch file
@@ -321,7 +310,6 @@ public:
 	};
 
 	struct CQuadtreeCollidableMultiBatchProcessor {
-		bool has;
 		CStringID type;
 		std::array< std::variant<CQuadtreeCollidableBatchProcessor<SDeepEllipse>, CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement> > , 3> quadTrees;
 
@@ -336,8 +324,6 @@ public:
 	};
 
 	struct CDebrisSpawnerMultiBatchProcessor {
-		bool has;
-
 		Vector<SDebrisSpawnerBatchInstance> batchInstances;
 		uint32_t unk1;
 
@@ -348,8 +334,6 @@ public:
 	};
 
 	struct CVegetationMultiBatchProcessor {
-		bool has;
-
 		void read(IBinaryArchive& fp);
 	};
 	
@@ -357,12 +341,15 @@ public:
 	std::string srcFilename;
 	Vector<CResourceContainer> resources;
 	CPathID physicsFile;
+
+	bool hasProcessor[5];
 	CComponentMultiBatchProcessor componentMBP;
 	CBuildingMultiBatchProcessor buildingMBP;
 	CQuadtreeCollidableMultiBatchProcessor quadtreeCollidableMBP;
 	CDebrisSpawnerMultiBatchProcessor debrisSpawnerMBP;
 	CVegetationMultiBatchProcessor vegetationMBP;
-	CPathID batchResource;
+
+	CPathID batchResource;//Path to this
 
 	bool open(IBinaryArchive& reader);
 };

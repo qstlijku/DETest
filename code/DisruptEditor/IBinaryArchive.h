@@ -33,6 +33,8 @@ public:
 
 	void PreAllocateSizeOfType(CStringID type, uint32_t count);
 	void PreAllocatePointers(uint32_t count);
+	void PreAllocateDynamicType(CStringID type);
+	void PreAllocateMemory(uint32_t unk1, uint32_t unk2);
 
 	virtual bool isReading() const = 0;
 	void pad(size_t padding);
