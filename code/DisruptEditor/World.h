@@ -7,6 +7,7 @@
 #include "wluFile.h"
 #include "CSector.h"
 #include "batchFile.h"
+#include "WorldRenderer.h"
 
 class World {
 public:
@@ -41,8 +42,6 @@ public:
 	void drawTerrain(ID3D11DeviceContext* context);
 	void regenTerrainCommandList();
 	ID3D11CommandList* terrainCommandList = NULL;
-
-	ID3D11CommandList* buildingCommandList = NULL;
 };
 
 extern World world;

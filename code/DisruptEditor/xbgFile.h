@@ -67,8 +67,8 @@ public:
 
 		glm::vec3 unk7;
 		float unk8;
-		glm::vec3 unk9;
-		glm::vec3 unk10;
+		glm::vec3 unk9;//bBoxMin
+		glm::vec3 unk10;//bBoxMax
 
 		//Game doesn't read this?
 		uint32_t unk11;
@@ -501,5 +501,6 @@ public:
 
 	void registerMembers(MemberStructure &ms);
 	void draw(ID3D11DeviceContext* context, int lodNum = 0);
+	void draw(ID3D11DeviceContext* context, const std::vector<glm::mat4> &mats, int lodNum = 0);
 };
 

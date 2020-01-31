@@ -135,17 +135,12 @@ void World::regenWLUCommandList() {
 	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
 	assert(hr == S_OK);
 
-	std::unordered_set<CPathID> buildingResources;
-
 	//Start Drawing WLUs
 	int i = 0;
-	for (auto& it : world.wlus) {
-		RenderInterface::instance().setupState(pDeferredContext);
+	for (auto& wlu : world.wlus) {
+		wlu.second->gBucket = WorldRenderer::createBucket();
 
-		pDeferredContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
-		pDeferredContext->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
-
-		Node* Entities = it.second->root.findFirstChild("Entities");
+		Node* Entities = wlu.second->root.findFirstChild("Entities");
 		for (Node& entityRef : Entities->children) {
 			Node* entityPtr = &entityRef;
 			Node* archeType = entityPtr;
@@ -157,17 +152,6 @@ void World::regenWLUCommandList() {
 					SDL_Log("Could not find %s\n", ArchetypeGuid->buffer.data());
 					archeType = entityPtr;
 				}
-			}
-
-			//Add to AABB
-			{
-				glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
-				it.second->aabb.minp.x = glm::min(it.second->aabb.minp.x, pos.x);
-				it.second->aabb.minp.y = glm::min(it.second->aabb.minp.y, pos.y);
-				it.second->aabb.minp.z = glm::min(it.second->aabb.minp.z, pos.z);
-				it.second->aabb.maxp.x = glm::max(it.second->aabb.maxp.x, pos.x);
-				it.second->aabb.maxp.y = glm::max(it.second->aabb.maxp.y, pos.y);
-				it.second->aabb.maxp.z = glm::max(it.second->aabb.maxp.z, pos.z);
 			}
 
 			Node* Components = entityPtr->findFirstChild("Components");
@@ -189,16 +173,13 @@ void World::regenWLUCommandList() {
 						memcpy(&path, fileModel->buffer.data(), sizeof(CPathID));
 
 						if (path.id != 0xffffffff) {
-							auto model = loadXBG(path);
-
 							glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
 							glm::vec3 angles = entityPtr->getAttrValue<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
 							modelMatrix *= convertRotation(angles);
-							RenderInterface::instance().objectCB.Model = modelMatrix;
-
-							model->draw(pDeferredContext);
+							
+							wlu.second->gBucket->add(path, modelMatrix);
 						}
 					}
 				}
@@ -218,16 +199,13 @@ void World::regenWLUCommandList() {
 						memcpy(&path, fileModel->buffer.data(), sizeof(CPathID));
 
 						if (path.id != 0xffffffff) {
-							auto model = loadXBG(path);
-
 							glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
 							glm::vec3 angles = entityPtr->getAttrValue<glm::vec3>("hidAngles");
 
 							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
 							modelMatrix *= convertRotation(angles);
-							RenderInterface::instance().objectCB.Model = modelMatrix;
 
-							model->draw(pDeferredContext);
+							wlu.second->gBucket->add(path, modelMatrix);
 						}
 					}
 				}
@@ -242,18 +220,18 @@ void World::regenWLUCommandList() {
 				compound += "_Compound.cbatch";
 
 				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
-				/*auto& component = batch->componentMBP;
+				auto& component = batch->componentMBP;
 				for (auto& it : component.batchProcessors) {
 					for (auto& it : it.processors) {
 						{
 							auto batch = std::get_if<batchFile::CGraphicBatchProcessor>(&it.data);
 							if (!batch) continue;
 
-							std::shared_ptr<xbgFile> model = loadXBG(batch->xbg.file);
 							for (int i = 0; i < batch->data.data.size(); ++i) {
-								batch->data.getMatrix(i, RenderInterface::instance().objectCB.Model);
+								glm::mat4 mat;
+								batch->data.getMatrix(i, mat);
 
-								//model->draw(pDeferredContext);
+								wlu.second->gBucket->add(batch->xbg.file, mat);
 							}
 						}
 
@@ -265,11 +243,24 @@ void World::regenWLUCommandList() {
 
 						}
 					}
-				}*/
+				}
 
 				batchFile::CBuildingMultiBatchProcessor& building = batch->buildingMBP;
 				for (auto& it : building.buildingResources) {
-					buildingResources.emplace(it);
+					std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
+
+					for (auto& buildingData : buildingBatch->buildingData) {
+						for (auto& facade : buildingData.facades) {
+							buildingBatchFile::SGfxModelInfo& gfx = buildingBatch->facadeGfxModels.models[facade.unk6];
+
+							for (int i = 0; i < facade.data.data.size(); ++i) {
+								glm::mat4 mat;
+								facade.data.getMatrix(i, mat);
+
+								wlu.second->gBucket->add(gfx.geomResource.file, mat);
+							}
+						}
+					}
 				}
 				/*if (building.lowGeom.id != -1) {
 					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
@@ -297,48 +288,14 @@ void World::regenWLUCommandList() {
 					CPathID path;
 					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
 
-					std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
-					loft->draw(pDeferredContext);
+					//std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
+					//loft->draw(pDeferredContext);
 				}
 			}
 		}
-
-		if (it.second->plist)
-			it.second->plist->Release();
-
-		hr = pDeferredContext->FinishCommandList(FALSE, &it.second->plist);
-		assert(hr == S_OK);
 
 		world.loadingProgress = (i++ + world.sectors.size() + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
-
-	if (buildingCommandList)
-		buildingCommandList->Release();
-
-	RenderInterface::instance().setupState(pDeferredContext);
-
-	pDeferredContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
-	pDeferredContext->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
-
-	for (auto& it : buildingResources) {
-		std::shared_ptr<buildingBatchFile> buildingBatch = loadBuildingBatchFile(it);
-
-		for (auto& buildingData : buildingBatch->buildingData) {
-			for (auto& facade : buildingData.facades) {
-				buildingBatchFile::SGfxModelInfo& gfx = buildingBatch->facadeGfxModels.models[facade.unk6];
-				std::shared_ptr<xbgFile> model = loadXBG(gfx.geomResource.file);
-
-				for (int i = 0; i < facade.data.data.size(); ++i) {
-					facade.data.getMatrix(i, RenderInterface::instance().objectCB.Model);
-
-					model->draw(pDeferredContext);
-				}
-			}
-		}
-	}
-
-	hr = pDeferredContext->FinishCommandList(FALSE, &buildingCommandList);
-	assert(hr == S_OK);
 
 	pDeferredContext->Release();
 }

@@ -209,7 +209,7 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 		fp.PreAllocateSizeOfType("CClusterHelper", rangeCount);
 
 		fp.serialize(data);
-		SDL_assert(data.data.size() == rangeCount);
+		//SDL_assert_release(data.data.size() == rangeCount);
 
 		if (hasBatchInstanceID) {
 			fp.serialize(batchedInstanceID);

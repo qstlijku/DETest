@@ -258,7 +258,6 @@ void CBinaryArchiveReader::markInPlaceOffset(size_t offset) {
 }
 
 void CBinaryArchiveReader::finish() {
-	SDL_Log("end read at %u", SDL_RWtell(fp));
 	SDL_assert_release(header.unk3 == inPlaceRead);
 
 	//Read You know

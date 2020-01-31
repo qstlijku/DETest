@@ -408,7 +408,7 @@ struct ClusterData {
 	uint16_t format = 0;
 
 	struct Data {
-		uint16_t matrix[4][4];
+		uint16_t matrix[16];
 
 		glm::vec3 pos;
 		int16_t rot;

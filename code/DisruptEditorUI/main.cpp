@@ -40,7 +40,7 @@
 #include "WaterMeshes.h"
 #include "CLODictionary.h"
 #include <filesystem>
-
+#include "WorldRenderer.h"
 #include <Windows.h>
 #include <Shellapi.h>
 #include <DbgHelp.h>
@@ -173,8 +173,6 @@ int main(int argc, char **argv) {
 		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
 		RenderInterface::instance().newFrame();
 
-		Frustum frustum(RenderInterface::instance().sceneCB.ViewProjection);
-
 		world.mutex.lock();
 
 		if (world.readyToRender) {
@@ -213,27 +211,42 @@ int main(int argc, char **argv) {
 				}
 			}
 
-			for (auto& it : world.wlus) {
-				if (it.first.find("_near") != std::string::npos) {
-					if (!settings.displayNear) 
-						continue;
+			//WorldRenderer::draw(RenderInterface::instance().g_pd3dDeviceContext.Get());
+
+			/*for (auto& it : world.wlus) {
+				bool isNear = it.first.find("_near") != std::string::npos;
+				bool isFar = it.first.find("_far") != std::string::npos;
+
+				if (!isNear) continue;
+			}*/
+
+			Frustum frustum(RenderInterface::instance().sceneCB.ViewProjection);
+			glm::vec2 camPos2D(RenderInterface::instance().camera.location);
+
+			/*for (int32_t x = 0; x < world.GridMapSectorsCount.x; ++x) {
+				for (int32_t y = 0; y < world.GridMapSectorsCount.y; ++y) {
+					int32_t offset = (y * world.GridMapSectorsCount.x) + x;
+					char filename[80];
+					snprintf(filename, sizeof(filename), "wlu_data_near%u", offset);
+
+					glm::vec3 bbMin((x * world.GridMapSectorsGranularity) - world.GridsWorldOffset.x, (y * world.GridMapSectorsGranularity) - world.GridsWorldOffset.y, 0);
+					glm::vec3 bbMax(bbMin + glm::vec3(world.GridMapSectorsGranularity, world.GridMapSectorsGranularity, 512));
+
+					auto it = world.wlus.find(filename);
+
+					glm::vec2 sectorPos(bbMin);
+
+					float distance = glm::distance(sectorPos, camPos2D);
+
+					if (it != world.wlus.end() && distance < settings.textDrawDistance) {
+						WorldRenderer::drawBucket(it->second->gBucket);
+						dd::aabb(&bbMin.x, &bbMax.x, red);
+					}
+
 				}
-				if (it.first.find("_far") != std::string::npos) {
-					if (settings.displayNear)
-						continue;
-				}
+			}*/
 
-				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 15.f * 15.f && !frustum.IsBoxVisible(it.second->aabb)) continue;
-				//if (glm::distance2(it.second->aabb.maxp - it.second->aabb.minp, RenderInterface::instance().camera.location) > 150.f * 150.f) continue;
-
-				//dd::aabb(&it.second->aabb.minp.x, &it.second->aabb.minp.y, red);
-
-				if(it.second->plist)
-					RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(it.second->plist, TRUE);
-			}
-
-			if (world.buildingCommandList)
-				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.buildingCommandList, TRUE);
+			WorldRenderer::draw(renderInterface.g_pd3dDeviceContext.Get());
 		}
 
 		renderProgressBar();

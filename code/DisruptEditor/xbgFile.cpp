@@ -989,3 +989,68 @@ void xbgFile::draw(ID3D11DeviceContext* context, int lodNum) {
 		context->DrawIndexed(mesh.drawCall.primitiveCount, 0, 0);
 	}
 }
+
+void xbgFile::draw(ID3D11DeviceContext* context, const std::vector<glm::mat4>& mats, int lodNum) {
+	if (lodNum >= lods.size())
+		return;
+
+	auto& lod = lods[lodNum];
+	for (auto& mesh : lod.meshes) {
+		RenderInterface::instance().objectCB.Offset = glm::vec4(geomParams.unk1, geomParams.unk2, geomParams.unk4, geomParams.unk5);
+		/*
+		<unk1>0</unk1><!--mesh.x compression?-->
+		<unk2>0.16827907</unk2><!--mesh.y compression?-->
+		<unk3>273.27335</unk3><!--mesh.z compression?-->
+		<unk4>-1.5</unk4><!--UV.xy compression?-->
+		<unk5>0.0001678518</unk5><!--UV.zw compression?-->
+		*/
+		context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
+
+		D3D_PRIMITIVE_TOPOLOGY pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		switch (mesh.primitiveType) {
+		case 0:
+			pType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			break;
+		case 7:
+			pType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+			break;
+		default:
+			SDL_assert_release(false && "Unhandled Primitive Type");
+		}
+		context->IASetPrimitiveTopology(pType);
+
+		loadMaterial(materialResources.materials[mesh.matID].file.c_str())->bind(context);
+
+		UINT offset = mesh.drawCall.unk1;
+		UINT stride = mesh.vertexStride;
+		context->IASetVertexBuffers(0, 1, &buffers[lodNum].vertex->pVertexBuffer, &stride, &offset);
+		context->IASetIndexBuffer(buffers[lodNum].index->pIndexBuffer, DXGI_FORMAT_R16_UINT, mesh.drawCall.unk4 * 2);
+		SDL_assert_release(buffers[lodNum].index->size % sizeof(short) == 0);
+
+		static std::unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3D11InputLayout> > layouts;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>& layout = layouts[mesh.vertexFormat];
+		if (!layout.Get()) {
+			const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+			{
+				//DXGI_FORMAT_R32G32B32_SINT
+			  { "POSITION", 0, DXGI_FORMAT_R16G16B16A16_SINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			  { "TEXCOORD", 0, DXGI_FORMAT_R16G16B16A16_SINT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			};
+			HRESULT ret = RenderInterface::instance().g_pd3dDevice->CreateInputLayout(
+				vertexDesc,
+				ARRAYSIZE(vertexDesc),
+				RenderInterface::instance().model.vShaderBlob->GetBufferPointer(),
+				RenderInterface::instance().model.vShaderBlob->GetBufferSize(),
+				&layout);
+			SDL_assert_release(ret == S_OK);
+		}
+		context->IASetInputLayout(layout.Get());
+
+		// Draw the triangles
+		for (auto& mat : mats) {
+			RenderInterface::instance().objectCB.Model = mat;
+			context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
+			context->DrawIndexed(mesh.drawCall.primitiveCount, 0, 0);
+		}
+	}
+}

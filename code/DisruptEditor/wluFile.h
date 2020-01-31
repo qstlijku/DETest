@@ -8,6 +8,7 @@
 #include <d3d11.h>
 #include "DDRenderInterface.h"
 #include <CLODictionary.h>
+#include <WorldRenderer.h>
 
 class IBinaryArchive;
 
@@ -54,9 +55,7 @@ public:
 	void handleHeaders(IBinaryArchive &fp, size_t size);
 	Node* selectedEntity = NULL;
 
-	AABB aabb;
-
 	//Drawing
-	ID3D11CommandList* plist = NULL;
+	std::shared_ptr<WorldRenderer::Bucket> gBucket;
 };
 
