@@ -103,7 +103,7 @@ void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(near_plane);
 	REGISTER_MEMBER(far_plane);
 	REGISTER_MEMBER(fov);
-	REGISTER_MEMBER(textDrawDistance);
+	REGISTER_MEMBER(drawDistance);
 	REGISTER_MEMBER(displayComponents);
 	REGISTER_MEMBER(displayNear);
 	REGISTER_MEMBER(drawTerrain);

@@ -29,7 +29,7 @@ struct Settings {
 	float near_plane = 0.25f;
 	float far_plane = 6500.f;
 	float fov = 3.14159f / 3.f;
-	float textDrawDistance = 5.f;
+	float drawDistance = 500.f;
 	std::map<std::string, bool> displayComponents;
 	bool displayNear = true;
 	bool drawTerrain = true;

@@ -100,7 +100,7 @@ void RenderInterface::newFrame() {
 
 void RenderInterface::endFrame() {
 	for (auto& it : ddstrs) {
-		if (glm::distance(it.pos, camera.location) < settings.textDrawDistance)
+		if (glm::distance(it.pos, camera.location) < settings.drawDistance)
 			dd::projectedText(it.str.c_str(), &it.pos.x, white, &sceneCB.ViewProjection[0][0], 0, 0, sceneCB.windowSize.x, sceneCB.windowSize.y, 0.5f);
 	}
 

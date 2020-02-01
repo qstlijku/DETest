@@ -59,12 +59,14 @@ namespace WorldRenderer {
 
         glm::vec2 camPos2D(RenderInterface::instance().camera.location);
         camPos2D = glm::round(camPos2D / (float)spatialHashScale);
-        int range = settings.textDrawDistance / spatialHashScale;
+        int range = settings.drawDistance / spatialHashScale;
         for (int x = -range; x < range; ++x) {
             for (int y = -range; y < range; ++y) {
                 glm::ivec2 pos(glm::ivec2(camPos2D) + glm::ivec2(x, y));
-                auto& it = spatialHash[std::pair<int, int>(pos.x, pos.y)];
-                for (auto& inst : it) {
+                auto& it = spatialHash.find(std::pair<int, int>(pos.x, pos.y));
+                if (it == spatialHash.end())
+                    continue;
+                for (auto& inst : it->second) {
                     geomEntires[inst.xbgFile].positions.push_back(inst.mat);
                 }
             }

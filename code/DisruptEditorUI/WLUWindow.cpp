@@ -167,7 +167,7 @@ void UI::displayWLU() {
 						}
 					}
 
-					if (glm::distance(pos, renderInterface.camera.location) < settings.textDrawDistance)
+					if (glm::distance(pos, renderInterface.camera.location) < settings.drawDistance)
 						dd::projectedText((char*)hidName->buffer.data(), &pos.x, white, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
 					if (needsCross)
 						dd::cross(&pos.x, 0.25f);
