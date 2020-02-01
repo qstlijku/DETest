@@ -186,7 +186,7 @@ void FH::Init() {
 	AddDatFat(settings.gameDir + "data_win64/worlds/windy_city/windy_city.fat");
 	AddDatFat(settings.gameDir + "data_win64/worlds/windy_city/windy_city_" + settings.soundLang + ".fat");
 
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
+	/*AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
 	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
 
 	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_pill_people/dlc_pill_people.fat");
@@ -195,7 +195,7 @@ void FH::Init() {
 	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_solo/dlc_solo_" + settings.soundLang + ".fat");
 
 	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
+	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");*/
 #endif
 }
 

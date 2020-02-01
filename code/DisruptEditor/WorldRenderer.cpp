@@ -23,6 +23,9 @@ namespace WorldRenderer {
 	}
 
 	void Bucket::add(CPathID xbg, const glm::mat4& mat) {
+        //Preload the xbg
+        loadXBG(xbg);
+
         glm::vec2 pos(mat[3]);
         pos = glm::round(pos / (float)spatialHashScale);
 

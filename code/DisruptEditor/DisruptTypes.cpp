@@ -664,7 +664,7 @@ void ClusterData::read(IBinaryArchive& fp) {
 				memcpy(data[i].matrix, ptr, 32);
 				ptr += 32;
 			}
-			if ((2 & format) != 0) {//SwapPositionRotZTransform, float3 ushort2
+			if ((2 & format) != 0) {//SwapPositionRotZTransform, float3 short2
 				memcpy(&data[i].pos, ptr, 16);
 				ptr += 16;
 			}
@@ -682,13 +682,6 @@ void ClusterData::read(IBinaryArchive& fp) {
 			}
 		}
 	}
-}
-
-static double CONCAT44(uint32_t a, uint32_t b) {
-	uint64_t c = a;
-	c <<= (4 * 8);
-	c |= b;
-	return *(double*)&c;
 }
 
 void ClusterData::getMatrix(int index, glm::mat4& mat) {
@@ -713,28 +706,28 @@ void ClusterData::getMatrix(int index, glm::mat4& mat) {
 	}
 
 	mat = glm::mat4(1);
-	uint16_t* dataPtr = entry.matrix;
+	int16_t* dataPtr = entry.matrix;
 
-	double dVar7 = 3.05185E-5;
-	//*matrix = (float)((double)CONCAT44((uint32_t)(dataPtr[0]) << 16, 0x3f800000) * dVar7);
-	//matrix[1] = (float)((double)CONCAT44((uint32_t)(dataPtr[4]) << 16, 0x3f800000) * dVar7);
-	//matrix[2] = (float)((double)CONCAT44((uint32_t)(dataPtr[8]) << 16, 0x3f800000) * dVar7);
-	//matrix[3] = 0.f;
-	//matrix[4] = (float)((double)CONCAT44((uint32_t)(dataPtr[1]) << 16, 0x3f800000) * dVar7);
-	//matrix[5] = (float)((double)CONCAT44((uint32_t)(dataPtr[5]) << 16, 0x3f800000) * dVar7);
-	//matrix[6] = (float)((double)CONCAT44((uint32_t)(dataPtr[9]) << 16, 0x3f800000) * dVar7);
-	//matrix[7] = 0.f;
-	//matrix[8] = (float)((double)CONCAT44((uint32_t)(dataPtr[2]) << 16, 0x3f800000) * dVar7);
-	//matrix[9] = (float)((double)CONCAT44((uint32_t)(dataPtr[6]) << 16, 0x3f800000) * dVar7);
-	//matrix[10] = (float)((double)CONCAT44((uint32_t)(dataPtr[10]) << 16, 0x3f800000) * dVar7);
-	//matrix[0xb] = 0.f;
+	float dVar7 = 1.f / 32767.f;
+	*matrix = dataPtr[0] * dVar7;
+	matrix[1] = dataPtr[4] * dVar7;
+	matrix[2] = dataPtr[8] * dVar7;
+	matrix[3] = 0.f;
+	matrix[4] = dataPtr[1] * dVar7;
+	matrix[5] = dataPtr[5] * dVar7;
+	matrix[6] = dataPtr[9] * dVar7;
+	matrix[7] = 0.f;
+	matrix[8] = dataPtr[2] * dVar7;
+	matrix[9] = dataPtr[6] * dVar7;
+	matrix[10] = dataPtr[10] * dVar7;
+	matrix[0xb] = 0.f;
 	
-	matrix[0xc] = (float)((double)CONCAT44((uint32_t)(dataPtr[3]) << 16, 0x3f800000) * dVar7 + dataPtr[0xc]);
-	matrix[0xd] = (float)((double)CONCAT44((uint32_t)(dataPtr[7]) << 16, 0x3f800000) * dVar7 + dataPtr[0xd]);
-	matrix[0xe] = (float)((double)CONCAT44((uint32_t)(dataPtr[0xb]) << 16, 0x3f800000) * dVar7 + dataPtr[0xe]);
+	matrix[0xc] = dataPtr[3] * dVar7 + dataPtr[0xc];
+	matrix[0xd] = dataPtr[7] * dVar7 + dataPtr[0xd];
+	matrix[0xe] = dataPtr[0xb] * dVar7 + dataPtr[0xe];
 
-	//matrix[0xf] = 1.0f;
-	/*float fVar13 = (dataPtr[0xf] / 32767.f) * 32.f + 32.f;
+	matrix[0xf] = 1.0f;
+	float fVar13 = (dataPtr[0xf] / 32767.f) * 32.f + 32.f;
 	matrix[4] = matrix[4] * fVar13;
 	matrix[5] = matrix[5] * fVar13;
 	*matrix = *matrix * fVar13;
@@ -746,12 +739,12 @@ void ClusterData::getMatrix(int index, glm::mat4& mat) {
 	matrix[8] = matrix[8] * fVar13;
 	matrix[9] = matrix[9] * fVar13;
 	matrix[2] = matrix[2] * fVar13;
-	matrix[3] = matrix[3];*/
+	matrix[3] = matrix[3];
 }
 
 uint32_t ClusterData::ComputeStride(uint16_t format) {
 	uint32_t uVar1 = 0;
-	if ((1 & format) != 0) {//SwapCompressedMatrix, 16 ushorts
+	if ((1 & format) != 0) {//SwapCompressedMatrix, 16 shorts
 		uVar1 = 32;
 	}
 	if ((2 & format) != 0) {//SwapPositionRotZTransform, float3 ushort2

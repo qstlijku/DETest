@@ -277,7 +277,6 @@ void CBinaryArchiveReader::finish() {
 			SDL_assert_release(it == 0);
 	}
 
-
 	//Read You know
 	head6.resize(header.unk6);
 	for (auto it : head6)
@@ -286,6 +285,8 @@ void CBinaryArchiveReader::finish() {
 	head8.resize(header.unk8);
 	for (auto it : head8)
 		serialize(it);
+
+	SDL_assert_release(header.unk1 == SDL_RWtell(fp) - beginOffset);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {
