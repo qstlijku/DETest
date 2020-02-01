@@ -126,7 +126,7 @@ struct CSceneSplineLoftPrimitive {
 class CSplineLoftPrimitiveDesc {
 public:
 	CSceneSplineLoftPrimitive primitive;
-	std::array<uint8_t, 0x50 * 0x10> unk2;
+	std::array<uint8_t, 0x50> unk2;
 
 	void read(IBinaryArchive& fp);
 };

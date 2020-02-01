@@ -341,9 +341,7 @@ void CSceneLight::registerMembers(MemberStructure& ms) {
 void CBatchedInstanceIDInPlace::read(IBinaryArchive& fp) {
 	uint32_t size = (uint32_t)data.size();
 	fp.serialize(size);
-	data.resize(size);
-
-	fp.memBlockInPlace(data.data(), sizeof(data[0]), size);
+	fp.serializeInPlace(data, size, 4);
 }
 
 void CBatchedInstanceIDInPlace::registerMembers(MemberStructure& ms) {
@@ -656,7 +654,7 @@ void ClusterData::read(IBinaryArchive& fp) {
 		}
 	}
 
-	fp.memBlockInPlace(byteData.data(), 1, byteData.size());
+	fp.serializeInPlace(byteData, byteSize, 1);
 
 	//Convert to You know what
 	{

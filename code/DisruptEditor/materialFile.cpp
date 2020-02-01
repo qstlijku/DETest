@@ -76,7 +76,6 @@ bool materialFile::open(IBinaryArchive &fp) {
 	if (fp.isReading()) {
 		gradients.clear();
 		if (fp.tell() != fp.size()) {
-			SDL_Log("Read Gradients");
 			fp.serializeNdVector(gradients);
 		}
 	} else {

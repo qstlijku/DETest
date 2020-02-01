@@ -166,8 +166,8 @@ void CSplineLoftPrimitiveDesc::read(IBinaryArchive& fp) {
 
 	fp.serialize(primitive);
 
-	//TODO: SerializeBasicTypeInPlace(0,0x50,1,0x10,1);
-	fp.memBlockInPlace(unk2.data(), sizeof(unk2[0]), unk2.size());
+	//TODO: SerializeBasicTypeInPlace(ptr: 0, objCount: 0x50, objSize: 1, padding: 0x10, DoInPlace: 1);
+	fp.memBlockInPlace(unk2.data(), 1, unk2.size());
 }
 
 void SSplineLoftDrawCall::read(IBinaryArchive& fp) {

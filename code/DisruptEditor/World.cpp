@@ -236,6 +236,26 @@ void World::regenWLUCommandList() {
 						}
 
 						{
+							auto batch = std::get_if<batchFile::CSecurityCameraBatchProcessor>(&it.data);
+							if (!batch) continue;
+
+							for (auto &it : batch->objects) {
+								if(it)
+									wlu.second->gBucket->add(batch->xbg.file, it->unk1);
+							}
+						}
+
+						{
+							auto batch = std::get_if<batchFile::CTrafficLightBatchProcessor>(&it.data);
+							if (!batch) continue;
+
+							for (auto& it : batch->trafficLights) {
+								if (it)
+									wlu.second->gBucket->add(batch->geom.file, it->offset);
+							}
+						}
+
+						{
 							auto batch = std::get_if<batchFile::CRealTreeBatchProcessor>(&it.data);
 							if (!batch) continue;
 

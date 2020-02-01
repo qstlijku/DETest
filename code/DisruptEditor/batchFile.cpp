@@ -209,7 +209,7 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 		fp.PreAllocateSizeOfType("CClusterHelper", rangeCount);
 
 		fp.serialize(data);
-		//SDL_assert_release(data.data.size() == rangeCount);
+		SDL_assert_release(data.data.size() == rangeCount);
 
 		if (hasBatchInstanceID) {
 			fp.serialize(batchedInstanceID);
@@ -252,12 +252,10 @@ void batchFile::CSoundPointBatchProcessor::read(IBinaryArchive& fp) {
 
 	uint16_t count = inPlaceData.size();
 	fp.serialize(count);
-	inPlaceData.resize(count);
-	fp.memBlockInPlace(inPlaceData.data(), sizeof(inPlaceData[0]), count);
+	fp.serializeInPlace(inPlaceData, count, 4);
 
 	if (isBreakable) {
-		batchedInstanceID.resize(count);
-		fp.memBlockInPlace(batchedInstanceID.data(), sizeof(batchedInstanceID[0]), count);
+		fp.serializeInPlace(batchedInstanceID, count, 4);
 	}
 
 	//fp.PreAllocateSizeOfType("ndSoundHandle", (iNumMaxPlaying >> 0xe) * unk3);
@@ -516,8 +514,7 @@ void batchFile::CDynamicMediaBatchProcessor::read(IBinaryArchive& fp) {
 void batchFile::CBollardBatchProcessor::read(IBinaryArchive& fp) {
 	uint32_t count = (uint32_t)mats.size();
 	fp.serialize(count);
-	mats.resize(count);
-	fp.memBlockInPlace(mats.data(), sizeof(glm::mat4), count);
+	fp.serializeInPlace(mats, count, 0x10);
 
 	fp.serialize(batchedInstanceID);
 }

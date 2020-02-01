@@ -185,6 +185,16 @@ void IBinaryArchive::pad(size_t padding) {
 		SDL_assert_release(data[i] == 0);
 }
 
+void IBinaryArchive::padInPlace(size_t padding) {
+	size_t next = inPlaceRead + padding - 1 & ~(padding - 1);
+	size_t seek = next - inPlaceRead;
+
+	uint8_t data[64] = { 0 };
+	memBlockInPlace(data, 1, seek);
+	for (Sint64 i = 0; i < seek; ++i)
+		SDL_assert_release(data[i] == 0);
+}
+
 size_t IBinaryArchive::size() {
 	return SDL_RWsize(fp);
 }
@@ -259,6 +269,14 @@ void CBinaryArchiveReader::markInPlaceOffset(size_t offset) {
 
 void CBinaryArchiveReader::finish() {
 	SDL_assert_release(header.unk3 == inPlaceRead);
+	if (header.unk3 != inPlaceRead) {
+		SDL_Log("Missed inPlace by %i", header.unk3 - inPlaceRead);
+		std::vector<uint8_t> extra(header.unk3 - inPlaceRead);
+		memBlockInPlace(extra.data(), 1, extra.size());
+		for (auto it : extra)
+			SDL_assert_release(it == 0);
+	}
+
 
 	//Read You know
 	head6.resize(header.unk6);
@@ -292,6 +310,7 @@ void CBinaryArchiveWriter::memBlockInPlace(void* ptr, size_t objSize, size_t obj
 		memBlock(ptr, objSize, objCount);
 	} else {
 		inPlaceData.insert(inPlaceData.end(), (uint8_t*)ptr, (uint8_t*)ptr + (objSize * objCount));
+		inPlaceRead += objSize * objCount;
 	}
 }
 

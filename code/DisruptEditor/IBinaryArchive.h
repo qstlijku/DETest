@@ -31,6 +31,9 @@ public:
 	void serialize(glm::mat4& value);
 	void serialize(std::string& value);
 
+	template<typename T>
+	void serializeInPlace(std::vector<T> &data, uint32_t count, uint32_t padding = sizeof(T));
+
 	void PreAllocateSizeOfType(CStringID type, uint32_t count);
 	void PreAllocatePointers(uint32_t count);
 	void PreAllocateDynamicType(CStringID type);
@@ -42,6 +45,7 @@ public:
 
 	virtual bool isReading() const = 0;
 	void pad(size_t padding);
+	void padInPlace(size_t padding);
 	size_t size();
 	size_t tell();
 	virtual void memBlock(void* ptr, size_t objSize, size_t objCount) = 0;
@@ -105,6 +109,7 @@ public:
 	std::vector<Unk> head8;
 
 	uint32_t beginOffset = 0;
+	Sint64 inPlaceRead = 0;
 
 protected:
 	Sint64 offset = 0;//Usefull for debugging
@@ -118,7 +123,6 @@ public:
 	~CBinaryArchiveReader() {}
 
 	Sint64 inPlaceOffset = -1;
-	Sint64 inPlaceRead = 0;
 
 	bool isReading() const;
 	void memBlock(void* ptr, size_t objSize, size_t objCount);
@@ -143,6 +147,17 @@ public:
 	void markInPlaceOffset(size_t offset);
 	void finish();
 };
+
+template<typename T>
+inline void IBinaryArchive::serializeInPlace(std::vector<T>& data, uint32_t count, uint32_t padding) {
+	//Align to Padding
+	padInPlace(padding);
+
+	data.resize(count);
+	memBlockInPlace(data.data(), sizeof(T), count);
+
+	SDL_assert(!bigEndian);
+}
 
 template<typename T>
 inline void IBinaryArchive::serializeConstant(const T &value) {
