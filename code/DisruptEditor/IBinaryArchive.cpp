@@ -1,6 +1,7 @@
 #include "IBinaryArchive.h"
 #include "FileHandler.h"
 #include <SDL_log.h>
+#include "Common.h"
 
 template <typename T>
 static void serializePOD(IBinaryArchive &fp, T &value) {
@@ -230,6 +231,7 @@ void IBinaryArchive::Unk::read(IBinaryArchive& fp) {
 
 CBinaryArchiveReader::CBinaryArchiveReader(SDL_RWops* _fp) {
 	fp = _fp;
+	bigEndian = settings.bigEndian;
 }
 
 bool CBinaryArchiveReader::isReading() const {
@@ -277,6 +279,8 @@ void CBinaryArchiveReader::finish() {
 			SDL_assert_release(it == 0);
 	}
 
+	SDL_assert_release(header.unk5 == SDL_RWtell(fp) - beginOffset);
+
 	//Read You know
 	head6.resize(header.unk6);
 	for (auto it : head6)
@@ -285,12 +289,11 @@ void CBinaryArchiveReader::finish() {
 	head8.resize(header.unk8);
 	for (auto it : head8)
 		serialize(it);
-
-	SDL_assert_release(header.unk1 == SDL_RWtell(fp) - beginOffset);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {
 	fp = _fp;
+	bigEndian = settings.bigEndian;
 }
 
 CBinaryArchiveWriter::~CBinaryArchiveWriter() {

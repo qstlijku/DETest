@@ -5,6 +5,7 @@
 #include "stb_image_write.h"
 #include "Version.h"
 #include <SDL_syswm.h>
+#include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_dx11.h>
 #include <ImGuizmo.h>

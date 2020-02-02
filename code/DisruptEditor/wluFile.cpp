@@ -22,15 +22,20 @@ bool wluFile::open(SDL_RWops* fp) {
 	if (!fp)
 		return false;
 
-	uint32_t magic = SDL_ReadLE32(fp);
-	SDL_RWseek(fp, 0, RW_SEEK_SET);
-	bool ret;
 	CBinaryArchiveReader reader(fp);
-	if (magic == 1111577413) {
+	reader.padding = reader.PADDING_NONE;
+
+	reader.serialize(wluhead.magic);
+	reader.serialize(wluhead.size);
+	reader.serialize(wluhead.unknown1);
+	reader.serialize(wluhead.unknown2);
+
+	bool ret;
+	if (wluhead.magic == 1111577413) {
 		//WD1 File
 		ret = openWD1(reader);
 		isWD2 = false;
-	} else if (magic == 4129362901) {
+	} else if (wluhead.magic == 4129362901) {
 		//WD2 File
 		ret = openWD2(reader);
 		isWD2 = true;
@@ -55,9 +60,6 @@ bool wluFile::open(SDL_RWops* fp) {
 }
 
 bool wluFile::openWD1(IBinaryArchive &fp) {
-	fp.memBlock(&wluhead, sizeof(wluhead), 1);
-
-	SDL_assert_release(wluhead.magic == 1111577413);
 	SDL_assert_release(wluhead.unknown1 == 3 || wluhead.unknown1 == 0 || wluhead.unknown1 == 1 || wluhead.unknown1 == 2);
 	SDL_assert_release(wluhead.unknown2 == 0);
 
@@ -109,8 +111,6 @@ bool wluFile::openWD1(IBinaryArchive &fp) {
 }
 
 bool wluFile::openWD2(IBinaryArchive &fp) {
-	fp.memBlock(&wluhead, sizeof(wluhead), 1);
-
 	SDL_assert_release(wluhead.magic == 4129362901);
 	SDL_assert_release(wluhead.unknown2 == 0);
 

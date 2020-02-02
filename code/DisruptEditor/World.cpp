@@ -17,12 +17,13 @@
 #include <buildingBatchFile.h>
 #include <realTreeFile.h>
 #include <unordered_set>
+#include <Common.h>
 
 World world;
 
 void World::loadWLUAsync() {
 	int i = 0;
-	Vector<FileInfo> files = FH::getFileList("worlds/" WORLDNAME "/generated/wlu", WLUEXT);
+	Vector<FileInfo> files = FH::getFileList("worlds/" + settings.worldName + "/generated/wlu", settings.wluExtension);
 	for (FileInfo& file : files) {
 		std::shared_ptr<wluFile> wlu = std::make_shared<wluFile>();
 		wlu->shortName = file.name;
@@ -65,7 +66,7 @@ void World::loadSectors() {
 			sector.sectorID = offset;
 
 			char filename[80];
-			snprintf(filename, sizeof(filename), "worlds/" WORLDNAME "/generated/sdat/sd%u.sdat", offset);
+			snprintf(filename, sizeof(filename), "worlds/%s/generated/sdat/sd%u.sdat", settings.worldName.c_str(), offset);
 			SDL_RWops* fp = FH::openFile(filename);
 			SDL_assert_release(fp);
 			if (fp) {
@@ -100,14 +101,14 @@ void World::loaderThread() {
 	setLoadingStatus("Setting Up Database");
 	DB::instance();
 
-	world.gameXML = loadRml(FH::openFile("worlds\\" WORLDNAME "\\generated\\" WORLDNAME ".game.xml"));
+	world.gameXML = loadRml("worlds\\" + settings.worldName + "\\generated\\" + settings.worldName + ".game.xml");
 
 	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
-	std::future<void> particlesF = std::async([]() { loadRml(FH::openFile("worlds/" WORLDNAME "/generated/" WORLDNAME "_deploadnewparticles.rml")); });
+	std::future<void> particlesF = std::async([]() { loadRml("worlds/" + settings.worldName + "/generated/" + settings.worldName + "_deploadnewparticles.rml"); });
 	std::future<void> loadWLUF = std::async(world.loadWLUAsync);
 	std::future<void> loadSectorF = std::async(world.loadSectors);
 
-	world.spawnPointList = loadXml(FH::openFile("worlds/" WORLDNAME "/generated/spawnpointlist.xml"));
+	world.spawnPointList = loadXmlOrRML("worlds/" + settings.worldName + "/generated/spawnpointlist.xml");
 
 	loadEntityLibraryF.get();
 	particlesF.get();
@@ -308,8 +309,7 @@ void World::regenWLUCommandList() {
 					CPathID path;
 					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
 
-					//std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
-					//loft->draw(pDeferredContext);
+					std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
 				}
 			}
 		}

@@ -76,12 +76,7 @@ workspace "DisruptEditor"
 
     defines {
         "WD1",
-        "WORLDNAME=\"windy_city\"",
-        "WLUEXT=\"xml.data.fcb\"",
-
         --"WD2",
-        --"WORLDNAME=\"san_francisco\"",
-        --"WLUEXT=\"wlu\"",
 
         "GLM_FORCE_DEPTH_ZERO_TO_ONE",
     }

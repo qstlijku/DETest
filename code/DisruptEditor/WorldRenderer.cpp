@@ -6,7 +6,6 @@
 #include <ResourceLoader.h>
 #include <glm\gtx\norm.hpp>
 #include <Common.h>
-#include <RTree.h>
 
 namespace WorldRenderer {
 	static std::mutex mutex;
@@ -22,7 +21,7 @@ namespace WorldRenderer {
 		reset();
 	}
 
-	void Bucket::add(CPathID xbg, const glm::mat4& mat) {
+	void Bucket::add(CPathID xbg, const glm::mat4& mat, uint64_t instance) {
         //Preload the xbg
         loadXBG(xbg);
 
@@ -34,6 +33,7 @@ namespace WorldRenderer {
         Instance &i = instances.emplace_back();
         i.mat = mat;
         i.xbgFile = xbg;
+        i.instance = instance;
 
         spatialHash[std::pair<int, int>(pos.x, pos.y)].push_back(i);
 	}

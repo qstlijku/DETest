@@ -1,6 +1,7 @@
 #include "CLODictionary.h"
 #include <SDL_log.h>
 #include "FileHandler.h"
+#include <Common.h>
 
 static void TestSerialize(IBinaryArchive& fp) {
 	uint8_t unused = 0;
@@ -8,7 +9,7 @@ static void TestSerialize(IBinaryArchive& fp) {
 }
 
 CLODataDictionaries::CLODataDictionaries() {
-	SDL_RWops* fp = FH::openFile("worlds\\" WORLDNAME "\\generated\\citylifedatadict.dat");
+	SDL_RWops* fp = FH::openFile(("worlds\\" + settings.worldName + "\\generated\\citylifedatadict.dat").c_str());
 
 	CBinaryArchiveReader reader(fp);
 	read(reader);

@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <DatFat.h>
 #include <CPathID.h>
+#include <SDL_rwops.h>
 
 namespace FH {
 	std::vector<DatFat> dats;
@@ -165,37 +166,40 @@ void FH::Init() {
 	dats.reserve(60);
 
 #if WD2
-	AddDatFat(settings.gameDir2 + "data_win64/patch2.fat");
-	AddDatFat(settings.gameDir2 + "data_win64/patch.fat");
+	AddDatFat(settings.gameDir2 + settings.platformFolder + "data_win64/patch2.fat");
+	AddDatFat(settings.gameDir2 + settings.platformFolder + "data_win64/patch.fat");
 
-	AddDatFat(settings.gameDir2 + "data_win64/common.fat");
-	AddDatFat(settings.gameDir2 + "data_win64/shadersobj.fat");
-	AddDatFat(settings.gameDir2 + "data_win64/sound.fat");
+	AddDatFat(settings.gameDir2 + settings.platformFolder + "data_win64/common.fat");
+	AddDatFat(settings.gameDir2 + settings.platformFolder + "data_win64/shadersobj.fat");
+	AddDatFat(settings.gameDir2 + settings.platformFolder + "data_win64/sound.fat");
 
-	AddDatFat(settings.gameDir2 + "data_win64/worlds/san_francisco/san_francisco.fat");
+	AddDatFat(settings.gameDir2 + settings.platformFolder + "data_win64/worlds/san_francisco/san_francisco.fat");
 #else
-	AddDatFat(settings.gameDir + "data_win64/patch1.fat");
-	AddDatFat(settings.gameDir + "data_win64/patch.fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/patch1.fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/patch.fat");
 
-	AddDatFat(settings.gameDir + "data_win64/common.fat");
-	//AddDatFat(settings.gameDir + "data_win64/shaders.fat");
-	AddDatFat(settings.gameDir + "data_win64/shadersobj.fat");
-	AddDatFat(settings.gameDir + "data_win64/sound.fat");
-	AddDatFat(settings.gameDir + "data_win64/sound_" + settings.soundLang + ".fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/common.fat");
+	//AddDatFat(settings.gameDir + settings.platformFolder + "/shaders.fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/shadersobj.fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/sound.fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/sound_" + settings.soundLang + ".fat");
 
-	AddDatFat(settings.gameDir + "data_win64/worlds/windy_city/windy_city.fat");
-	AddDatFat(settings.gameDir + "data_win64/worlds/windy_city/windy_city_" + settings.soundLang + ".fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/worlds/" + settings.worldName + "/" + settings.worldName + ".fat");
+	AddDatFat(settings.gameDir + settings.platformFolder + "/worlds/" + settings.worldName + "/" + settings.worldName + "_" + settings.soundLang + ".fat");
 
-	/*AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
+	if (settings.wd1_dlc_exclusive) {
+		AddDatFat(settings.gameDir + settings.platformFolder + "/dlc/dlc_exclusive/dlc_exclusive.fat");
+		AddDatFat(settings.gameDir + settings.platformFolder + "/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");
+	}
 
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_pill_people/dlc_pill_people.fat");
+	if (settings.wd1_dlc_pill_people) {
+		AddDatFat(settings.gameDir + settings.platformFolder + "/dlc/dlc_pill_people/dlc_pill_people.fat");
+	}
 
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_solo/dlc_solo.fat");
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_solo/dlc_solo_" + settings.soundLang + ".fat");
-
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive.fat");
-	AddDatFat(settings.gameDir + "data_win64/dlc/dlc_exclusive/dlc_exclusive_" + settings.soundLang + ".fat");*/
+	if (settings.wd1_dlc_solo) {
+		AddDatFat(settings.gameDir + settings.platformFolder + "/dlc/dlc_solo/dlc_solo.fat");
+		AddDatFat(settings.gameDir + settings.platformFolder + "/dlc/dlc_solo/dlc_solo_" + settings.soundLang + ".fat");
+	}
 #endif
 }
 

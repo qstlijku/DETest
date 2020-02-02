@@ -502,5 +502,8 @@ public:
 	void registerMembers(MemberStructure &ms);
 	void draw(ID3D11DeviceContext* context, int lodNum = 0);
 	void draw(ID3D11DeviceContext* context, const std::vector<glm::mat4> &mats, int lodNum = 0);
+
+	//Cache
+	std::vector<ID3D11ShaderResourceView*> srvs;
 };
 

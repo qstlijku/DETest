@@ -50,45 +50,6 @@ void UI::displayTopMenu() {
 		ImGui::InputText("FNV64##UIDOUT", outbuffer, sizeof(buffer), ImGuiInputTextFlags_ReadOnly);
 		ImGui::EndMenu();
 	}
-	if (ImGui::BeginMenu("Batch")) {
-		if (ImGui::MenuItem("Import Wlu XML")) {
-			for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
-				std::string xmlFileName = it->second->shortName + ".xml";
-				tinyxml2::XMLDocument doc;
-				if (doc.LoadFile(xmlFileName.c_str()) == tinyxml2::XMLError::XML_SUCCESS)
-					it->second->root.deserializeXML(doc.RootElement());
-			}
-		}
-		if (ImGui::MenuItem("Export Wlu XML")) {
-			for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
-				std::string xmlFileName = it->second->shortName + ".xml";
-				FILE *fp = fopen(xmlFileName.c_str(), "wb");
-				tinyxml2::XMLPrinter printer(fp);
-				it->second->root.serializeXML(printer);
-				fclose(fp);
-			}
-		}
-		if (ImGui::MenuItem("Save Wlu")) {
-			for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
-
-				/*it->second->root.findFirstChild("Entities")->children.clear();//DEBUG
-				for (auto a = it->second->root.children.begin(); a != it->second->root.children.end();) {
-					if (a->getHashName() != "Entities")
-						a = it->second->root.children.erase(a);
-					else
-						++a;
-				}
-
-				it->second->wluhead.unknown1 = 0;
-				it->second->wluhead.unknown2 = 0;*/
-
-				SDL_RWops* fp = FH::openFileWrite("worlds/" WORLDNAME "/generated/wlu/" + it->second->shortName);
-				it->second->serialize(fp);
-				SDL_RWclose(fp);
-			}
-		}
-		ImGui::EndMenu();
-	}
 
 	if (ImGui::BeginMenu("Settings")) {
 		ImGui::DragFloat3("CameraPos", &RenderInterface::instance().camera.location.x);

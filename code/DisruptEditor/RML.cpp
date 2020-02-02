@@ -3,6 +3,12 @@
 #include <SDL_assert.h>
 #include <SDL_rwops.h>
 #include "Vector.h"
+#include <Common.h>
+#include "FileHandler.h"
+
+//CompiledXMLFile
+//XmlParser::parse
+//XmlParserImp::parse(
 
 struct RmlHeader {
 	uint8_t magic;
@@ -74,6 +80,15 @@ tinyxml2::XMLElement* RmlNode::serializeXML(tinyxml2::XMLDocument *doc, tinyxml2
 	return me;
 }
 
+std::unique_ptr<tinyxml2::XMLDocument> loadRml(std::string filename) {
+	SDL_RWops *fp = FH::openFile(filename.c_str());
+	if (fp)
+		return loadRml(fp);
+
+	SDL_assert_release(false);
+	return std::unique_ptr<tinyxml2::XMLDocument>();
+}
+
 std::unique_ptr<tinyxml2::XMLDocument> loadRml(SDL_RWops *fp) {
 	if (!fp)
 		return NULL;
@@ -82,6 +97,7 @@ std::unique_ptr<tinyxml2::XMLDocument> loadRml(SDL_RWops *fp) {
 
 	RmlHeader head;
 	head.magic = SDL_ReadU8(fp);
+	SDL_assert_release(head.magic == 0);
 	head.unknown = SDL_ReadU8(fp);
 	head.stringTableSize = readPackedU32(fp);
 	head.totalNodeCount = readPackedU32(fp);
@@ -99,6 +115,15 @@ std::unique_ptr<tinyxml2::XMLDocument> loadRml(SDL_RWops *fp) {
 	return doc;
 }
 
+std::unique_ptr<tinyxml2::XMLDocument> loadXml(std::string filename) {
+	SDL_RWops *fp = FH::openFile(filename.c_str());
+	if (fp)
+		return loadXml(fp);
+
+	SDL_assert_release(false);
+	return std::unique_ptr<tinyxml2::XMLDocument>();
+}
+
 std::unique_ptr<tinyxml2::XMLDocument> loadXml(SDL_RWops * fp) {
 	std::unique_ptr<tinyxml2::XMLDocument> doc = std::make_unique<tinyxml2::XMLDocument>();
 
@@ -114,4 +139,23 @@ std::string XMLToString(tinyxml2::XMLDocument& doc) {
 	tinyxml2::XMLPrinter printer;
 	doc.Accept(&printer);
 	return printer.CStr();
+}
+
+std::unique_ptr<tinyxml2::XMLDocument> loadXmlOrRML(std::string filename) {
+	SDL_RWops* fp = NULL;
+
+	//Try RML
+	filename[filename.size() - 3] = 'r';
+	fp = FH::openFile(filename.c_str());
+	if (fp)
+		return loadRml(fp);
+
+	//Try XML
+	filename[filename.size() - 3] = 'x';
+	fp = FH::openFile(filename.c_str());
+	if (fp)
+		return loadXml(fp);
+
+	SDL_assert_release(false);
+	return std::unique_ptr<tinyxml2::XMLDocument>();
 }

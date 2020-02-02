@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <Windows.h>
 #include "lz4.h"
+#include "Common.h"
 
 //XCompress
 typedef enum _XMEMCODEC_TYPE {
@@ -69,7 +70,7 @@ DatFat::~DatFat() {
 
 #if WD2
 DatFat::DatFat(const std::string& filename) {
-	name = filename.substr(filename.find("data_win64") + 11);
+	name = filename.substr(filename.find(PLATFORM_FOLDER) + strlen(PLATFORM_FOLDER) + 1);
 
 	std::string fatFile = filename;
 	fatFile[fatFile.size() - 3] = 'f';
@@ -434,7 +435,7 @@ SDL_RWops* DatFat::openRead(CPathID hash) {
 #else
 
 DatFat::DatFat(const std::string &filename) {
-	name = filename.substr(filename.find("data_win64") + 11);
+	name = filename.substr(filename.find(settings.platformFolder) + settings.platformFolder.size() + 1);
 
 	std::string fatFile = filename;
 	fatFile[fatFile.size() - 3] = 'f';

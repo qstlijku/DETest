@@ -12,10 +12,11 @@ namespace WorldRenderer {
         bool enabled = true;
         CPathID xbgFile;
         glm::mat4 mat;
+        uint64_t instance = 0;
     };
     struct Bucket {
         ~Bucket();
-        void add(CPathID xbgFile, const glm::mat4 &mat);
+        void add(CPathID xbgFile, const glm::mat4 &mat, uint64_t instance = 0);
         void reset();
         void setEnabled(bool isEnabled);
         std::vector<Instance> instances;

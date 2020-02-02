@@ -31,7 +31,7 @@ Node* findEntityByUID(CPathID UID) {
 }
 
 void loadEntityLibrary() {
-	SDL_RWops *fp = FH::openFile("worlds\\" WORLDNAME "\\generated\\entitylibrary_rt.fcb");
+	SDL_RWops *fp = FH::openFile(("worlds\\" + settings.worldName + "\\generated\\entitylibrary_rt.fcb").c_str());
 	if (!fp) {
 		SDL_ShowSimpleMessageBox(0, "Disrupt Editor", "Failed to load entity Library", NULL);
 		exit(0);

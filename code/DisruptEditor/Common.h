@@ -1,13 +1,10 @@
 #pragma once
 
-#include "Vector.h"
+#include <vector>
 #include <string>
 #include <map>
-#include <unordered_map>
 #include "glm/glm.hpp"
-#include <SDL_rwops.h>
 #include <SDL_keycode.h>
-#include <memory>
 
 class Node;
 class MemberStructure;
@@ -16,13 +13,23 @@ typedef uint32_t SDL_Scancode_V;
 typedef uint32_t SDL_Keymod_V;
 
 struct Settings {
-	//Filesystem Settings
+	//WD1 Settings
 	std::string gameDir;
-	std::string gameDir2;
 	std::string patchDir;
-	std::string patchDir2;
+	bool wd1_dlc_exclusive = false;
+	bool wd1_dlc_pill_people = false;
+	bool wd1_dlc_solo = false;
 
+	//WD2 Settings
+	std::string patchDir2;
+	std::string gameDir2;
+	
+	std::string platformFolder = "data_win64";
+	bool bigEndian = false;
+	std::string worldName = "windy_city";//san_francisco on WD2
+	std::string wluExtension = "xml.data.fcb";//wlu on WD2
 	std::string soundLang = "english";
+
 	bool devTools = false;
 
 	//Graphics Settings
@@ -60,5 +67,3 @@ void saveSettings();
 
 std::string readFile(const std::string &file);
 bool writeFile(const std::string &file, const std::string &contents);
-
-#include "imgui.h"

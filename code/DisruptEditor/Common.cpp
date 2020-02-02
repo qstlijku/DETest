@@ -94,10 +94,20 @@ bool writeFile(const std::string & file, const std::string &contents) {
 
 void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(gameDir);
-	REGISTER_MEMBER(gameDir2);
 	REGISTER_MEMBER(patchDir);
+	REGISTER_MEMBER(wd1_dlc_exclusive);
+	REGISTER_MEMBER(wd1_dlc_pill_people);
+	REGISTER_MEMBER(wd1_dlc_solo);
+
 	REGISTER_MEMBER(patchDir2);
+	REGISTER_MEMBER(gameDir2);
+
+	REGISTER_MEMBER(platformFolder);
+	REGISTER_MEMBER(bigEndian);
+	REGISTER_MEMBER(worldName);
+	REGISTER_MEMBER(wluExtension);
 	REGISTER_MEMBER(soundLang);
+
 	REGISTER_MEMBER(devTools);
 
 	REGISTER_MEMBER(near_plane);
