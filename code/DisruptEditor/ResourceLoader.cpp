@@ -11,6 +11,7 @@
 #include "SplineLoft.h"
 #include "batchFile.h"
 #include "buildingBatchFile.h"
+#include "hkxFile.h"
 #include "realTreeFile.h"
 #include <mutex>
 #include <queue>
@@ -25,6 +26,7 @@ static std::unordered_map<CPathID, std::shared_ptr<xbtFile>> textures;
 static std::unordered_map<CPathID, std::shared_ptr<SplineLoftHiRes>> hiResSplineLofts;
 static std::unordered_map<CPathID, std::shared_ptr<batchFile>> batches;
 static std::unordered_map<CPathID, std::shared_ptr<buildingBatchFile>> buildingBatches;
+static std::unordered_map<CPathID, std::shared_ptr<batchCollisionFile>> batchCollisions;
 static std::unordered_map<CPathID, std::shared_ptr<realTreeFile>> realTrees;
 
 static xbgMipFile loadXBGMIP(const std::string& path) {
@@ -142,6 +144,23 @@ std::shared_ptr<buildingBatchFile> loadBuildingBatchFile(CPathID path) {
 	std::shared_ptr<buildingBatchFile> model = buildingBatches[path];
 	if (!model) {
 		model = buildingBatches[path] = std::make_shared<buildingBatchFile>();
+		SDL_RWops* fp = FH::openFileHash(path.id);
+		if (!fp)
+			return model;
+
+		CBinaryArchiveReader reader(fp);
+		model->open(reader);
+		SDL_RWclose(fp);
+	}
+	return model;
+}
+
+std::shared_ptr<batchCollisionFile> loadCollisionBatchFile(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
+	std::shared_ptr<batchCollisionFile> model = batchCollisions[path];
+	if (!model) {
+		model = batchCollisions[path] = std::make_shared<batchCollisionFile>();
 		SDL_RWops* fp = FH::openFileHash(path.id);
 		if (!fp)
 			return model;

@@ -8,6 +8,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl.h>
 #include <imgui_impl_dx11.h>
+#include <IconsFontAwesome5.h>
 #include <ImGuizmo.h>
 #include <d3dcompiler.h>
 
@@ -29,6 +30,15 @@ RenderInterface::RenderInterface() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui_ImplSDL2_InitForD3D(window);
 	ImGui_ImplDX11_Init(g_pd3dDevice.Get(), g_pd3dDeviceContext.Get());
+
+	//Font
+	io.Fonts->AddFontDefault();
+	// merge in icons from Font Awesome
+	static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+	io.Fonts->AddFontFromFileTTF("res/" FONT_ICON_FILE_NAME_FAS, 16.0f, &icons_config, icons_ranges);
+	// use FONT_ICON_FILE_NAME_FAR if you want regular instead of solid
+
 
 	//Style
 	ImGui::StyleColorsDark(NULL);
@@ -62,9 +72,9 @@ RenderInterface::RenderInterface() {
 	//Texture Sampler
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.MipLODBias = 0.0f;
@@ -217,6 +227,11 @@ void RenderInterface::beginDraw() {
 		g_pd3dDevice->CreateRasterizerState(&rsDesc, rasterizerState.GetAddressOf());
 	}
 	g_pd3dDeviceContext->RSSetState(rasterizerState.Get());
+
+	ID3D11SamplerState* samplers[] = {
+			RenderInterface::instance().tex0,
+	};
+	g_pd3dDeviceContext->PSSetSamplers(0, 1, samplers);
 }
 
 void RenderInterface::endDraw() {

@@ -135,8 +135,11 @@ class SSplineLoftDrawCall {
 public:
 	uint32_t unk1;
 	uint32_t unk2;
-	uint32_t unk3;
-	uint32_t unk4;
+	struct SSplineLoftVertexP {//32 bytes
+		std::array<uint8_t, 32> unk1;
+	};
+	std::vector<SSplineLoftVertexP> unk5;
+	std::vector<uint16_t> unk6;
 
 	void read(IBinaryArchive& fp);
 };
@@ -146,7 +149,7 @@ public:
 	CSceneSplineLoftRegion loftReigon;
 	std::vector<std::unique_ptr<CSplineLoftPrimitiveDesc>> primitiveDesc;
 	std::vector<std::unique_ptr<SSplineLoftDrawCall>> drawCalls;
-	std::vector<CPathID> unk2;
+	std::vector<CPathID> materials;
 	std::vector<uint32_t> unk3;
 
 	void read(IBinaryArchive& fp);
@@ -156,10 +159,15 @@ class SplineLoftHiRes {
 public:
 	uint32_t unk1;
 	
-	struct UnkStr {
-		std::array<uint8_t, 32> unk;
+	struct UnkStr {//32 bytes
+		glm::vec3 pos;
+		glm::vec2 texcoord2;
+		std::array<uint8_t, 4> normal;
+		std::array<uint8_t, 4> texCoord1;
+		std::array<uint8_t, 4> texCoord0;
 		void read(IBinaryArchive& fp) {
-			fp.memBlock(unk.data(), 1, unk.size());
+			static_assert(sizeof(*this) == 32);
+			fp.memBlock(this, 1, sizeof(*this));
 		}
 	};
 	std::vector<UnkStr> vertexData;
@@ -168,7 +176,6 @@ public:
 	std::vector<uint16_t> indexData;
 	std::shared_ptr<IndexBuffer> index;
 
-	uint32_t unk2;
 	std::vector<std::unique_ptr<CSplineNetworkRegionResourceEntry>> networkRegionResources;
 
 	CPathID lowRes;

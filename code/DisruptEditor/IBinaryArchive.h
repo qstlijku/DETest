@@ -16,7 +16,7 @@ public:
 
 	void serialize(bool& value);
 	void serialize(uint8_t& value);
-	void serialize(int8_t& value);
+	void serialize(char& value);
 	void serialize(uint16_t& value);
 	void serialize(int16_t& value);
 	void serialize(uint32_t& value);
@@ -67,7 +67,7 @@ public:
 	void serializeNdVectorExternal(Vector<std::unique_ptr<T>>& vec, CStringID typeId);
 
 	template<typename T>
-	void serializeNdVectorInPlace(Vector<T>& vec);
+	void serializeNdVectorInPlace(Vector<T>& vec, uint32_t padding = sizeof(T));
 
 	template<typename T>
 	void serialize(T &value);
@@ -255,11 +255,11 @@ inline void IBinaryArchive::serializeNdVectorExternal(Vector<std::unique_ptr<T>>
 }
 
 template<typename T>
-inline void IBinaryArchive::serializeNdVectorInPlace(Vector<T>& vec) {
+inline void IBinaryArchive::serializeNdVectorInPlace(Vector<T>& vec, uint32_t padding) {
 	uint32_t count = vec.size();
 	serialize(count);
-	vec.resize(count);
-	memBlockInPlace(vec.data(), sizeof(T), count);
+	
+	serializeInPlace(vec, count, padding);
 }
 
 template<typename T>

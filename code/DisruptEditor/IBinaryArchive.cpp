@@ -33,7 +33,7 @@ void IBinaryArchive::serialize(uint8_t& value) {
 	serializePOD(*this, value);
 }
 
-void IBinaryArchive::serialize(int8_t& value) {
+void IBinaryArchive::serialize(char& value) {
 	serializePOD(*this, value);
 }
 

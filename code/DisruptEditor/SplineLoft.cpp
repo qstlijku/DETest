@@ -42,9 +42,11 @@ void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
 	if (!layout.Get()) {
 		const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
-			//DXGI_FORMAT_R32G32B32_SINT
 		  { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		  { "TEXCOORD", 0, DXGI_FORMAT_R16G16B16A16_SINT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  { "TEXCOORD2", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  { "NORMAL", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  { "TEXCOORD1", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  { "TEXCOORD0", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 		HRESULT ret = RenderInterface::instance().g_pd3dDevice->CreateInputLayout(
 			vertexDesc,
@@ -105,28 +107,28 @@ void CSceneSplineLoftRegion::read(IBinaryArchive& fp) {
 	fp.PreAllocateSizeOfType("CSplineLoftElementDBInfo", unk5);
 
 	static_assert(sizeof(SSplineRangeCoords) == (1 << 4));
-	fp.serializeNdVectorInPlace(rangeCoords);
+	fp.serializeNdVectorInPlace(rangeCoords, 4);
 
 	static_assert(sizeof(CRangeOffsets) == 0x24);
-	fp.serializeNdVectorInPlace(rangeOffsets);
+	fp.serializeNdVectorInPlace(rangeOffsets, 4);
 
 	fp.serializeNdVectorExternal(morphing, "CSplineLoftMorphing");
 
 	static_assert(sizeof(CSplineLoftMeshDesc) == 0x8);
-	fp.serializeNdVectorInPlace(meshDescs);
+	fp.serializeNdVectorInPlace(meshDescs, 4);
 
 	static_assert(sizeof(CSplineLoftMeshLODGFXDesc) == 2);
-	fp.serializeNdVectorInPlace(meshLODGFXDescs);
+	fp.serializeNdVectorInPlace(meshLODGFXDescs, 4);
 
-	fp.serializeNdVectorInPlace(unk6);
+	fp.serializeNdVectorInPlace(unk6, 4);
 
-	fp.serializeNdVectorInPlace(unk7);
+	fp.serializeNdVectorInPlace(unk7, 8);
 
 	static_assert(sizeof(CSplineLoftPrimitiveDrawCallDesc) == 4);
-	fp.serializeNdVectorInPlace(primitiveDrawCallDesc);
+	fp.serializeNdVectorInPlace(primitiveDrawCallDesc, 4);
 
 	static_assert(sizeof(CSplineLoftPrimitiveDrawCallGFXBuffers) == 0x10);
-	fp.serializeNdVectorInPlace(primitiveDrawCallGFXBufDesc);
+	fp.serializeNdVectorInPlace(primitiveDrawCallGFXBufDesc, 4);
 }
 
 void CSplineNetworkRegionResourceEntry::read(IBinaryArchive& fp) {
@@ -135,8 +137,9 @@ void CSplineNetworkRegionResourceEntry::read(IBinaryArchive& fp) {
 	fp.serialize(loftReigon);
 	fp.serializeNdVectorExternal(primitiveDesc, "CSplineLoftPrimitiveDesc");
 	fp.serializeNdVectorExternal(drawCalls, "SSplineLoftDrawCall");
-	fp.serializeNdVector(unk2);
-	fp.serializeNdVectorInPlace(unk3);
+	SDL_assert_release(drawCalls.size() == 0);
+	fp.serializeNdVector(materials);
+	fp.serializeNdVectorInPlace(unk3, 4);
 }
 
 void CSpline::read(IBinaryArchive& fp) {
@@ -145,7 +148,7 @@ void CSpline::read(IBinaryArchive& fp) {
 	fp.serialize(unk2);
 	fp.serialize(unk3);
 
-	fp.serializeNdVectorInPlace(controlPoints);
+	fp.serializeNdVectorInPlace(controlPoints, 0x10);
 }
 
 void CSplineControlPoint::read(IBinaryArchive& fp) {
@@ -167,17 +170,23 @@ void CSplineLoftPrimitiveDesc::read(IBinaryArchive& fp) {
 	fp.serialize(primitive);
 
 	//TODO: SerializeBasicTypeInPlace(ptr: 0, objCount: 0x50, objSize: 1, padding: 0x10, DoInPlace: 1);
+	fp.padInPlace(0x10);
 	fp.memBlockInPlace(unk2.data(), 1, unk2.size());
 }
 
 void SSplineLoftDrawCall::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 	fp.serialize(unk2);
+
+	uint32_t unk3 = unk5.size();
 	fp.serialize(unk3);
+
+	uint32_t unk4 = unk6.size();
 	fp.serialize(unk4);
 
-	//TODO: SerializeInPlace__tm__3_Uc
-	//TODO: SerializeInPlace__tm__3_Us
+	fp.serializeInPlace(unk5, unk3, 0x10);
+
+	fp.serializeInPlace(unk6, unk4, 0x10);
 }
 
 void CSplineLoftMorphing::read(IBinaryArchive& fp) {

@@ -9,3 +9,7 @@ cbuffer ObjectConstantBuffer : register(b1) {
 	matrix Model;
 	float4 Offset;
 };
+
+cbuffer InstanceConstantBuffer : register(b2) {
+	matrix iModel;
+};

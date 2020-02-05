@@ -2,7 +2,7 @@
 
 struct VertexShaderInput {
 	float4 pos : POSITION;
-	int2 uv : TEXCOORD0;
+	float2 uv : TEXCOORD2;
 };
 
 struct PixelShaderInput {
@@ -14,7 +14,7 @@ PixelShaderInput main(VertexShaderInput input) {
 	PixelShaderInput output;
 
 	output.pos = mul(mul(ViewProjection, Model), input.pos);
-	output.uv = input.uv * (1.0 / 32767.0);
+	output.uv = input.uv;
 
 	return output;
 }

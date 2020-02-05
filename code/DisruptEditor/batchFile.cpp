@@ -11,61 +11,50 @@
 #include "IBinaryArchive.h"
 #include "NBCF.h"
 
-//Game stores ptr in 0x20 of r3, size in 0x24
-void crashFileHandler() {
-	throw 0;
-}
-
-#define assert_file_crash(x) { SDL_assert_release(x); if(!(x)) crashFileHandler(); }
-
 bool batchFile::open(IBinaryArchive &reader) {
 	size_t size = reader.size();
 
 	reader.serialize(head);
 
-	if (head.type == 0) {
-		//assert_file_crash(strstr(filename, "_compound.cbatch"));
+	//SDL_assert_release(strstr(filename, "_compound.cbatch"));
 
-		reader.markHeader();
-		reader.markInPlaceOffset(reader.header.unk2);
+	reader.markHeader();
+	reader.markInPlaceOffset(reader.header.unk2);
 
-		//assert_file_crash(compound.unk3 == 0);
+	//SDL_assert_release(compound.unk3 == 0);
 
-		reader.serialize(srcFilename);
+	reader.serialize(srcFilename);
 
-		//Resources
-		reader.serializeNdVector(resources);
+	//Resources
+	reader.serializeNdVector(resources);
 
-		reader.serialize(physicsFile);
+	reader.serialize(physicsFile);
 
-		reader.serialize(hasProcessor[0]);
-		if(hasProcessor[0])
-			componentMBP.read(reader);
+	reader.serialize(hasProcessor[0]);
+	if(hasProcessor[0])
+		componentMBP.read(reader);
 
-		reader.serialize(hasProcessor[1]);
-		if (hasProcessor[1])
-			buildingMBP.read(reader);
+	reader.serialize(hasProcessor[1]);
+	if (hasProcessor[1])
+		buildingMBP.read(reader);
 
-		reader.serialize(hasProcessor[2]);
-		if (hasProcessor[2])
-			quadtreeCollidableMBP.read(reader);
+	reader.serialize(hasProcessor[2]);
+	if (hasProcessor[2])
+		quadtreeCollidableMBP.read(reader);
 
-		reader.serialize(hasProcessor[3]);
-		if (hasProcessor[3])
-			debrisSpawnerMBP.read(reader);
+	reader.serialize(hasProcessor[3]);
+	if (hasProcessor[3])
+		debrisSpawnerMBP.read(reader);
 
-		reader.serialize(hasProcessor[4]);
-		if (hasProcessor[4])
-			vegetationMBP.read(reader);
+	reader.serialize(hasProcessor[4]);
+	if (hasProcessor[4])
+		vegetationMBP.read(reader);
 
-		reader.serialize(batchResource);
+	reader.serialize(batchResource);
 
-		reader.finish();
+	reader.finish();
 
-		//assert_file_crash(compound.bridgeSize == reader.tell() - 24);
-	} else if (head.type == 1) {
-		//assert_file_crash(strstr(filename, "_phys.cbatch"));
-	}
+	//SDL_assert_release(compound.bridgeSize == reader.tell() - 24);
 
 	/*reader.pad(4);
 	while (SDL_RWtell(reader.fp) < SDL_RWsize(reader.fp)) {
@@ -164,7 +153,7 @@ void batchFile::CBatchModelProcessorsAndResources::read(IBinaryArchive& fp) {
 		else if (batch.batchProcessor == "CBollardBatchProcessor")
 			serializeAny<CBollardBatchProcessor>(fp, batch.data);
 		else {
-			assert_file_crash(false && "IBatchProcessor not implemented");
+			SDL_assert_release(false && "IBatchProcessor not implemented");
 			return;
 		}
 
@@ -209,7 +198,7 @@ void batchFile::CGraphicBatchProcessor::read(IBinaryArchive& fp) {
 		fp.PreAllocateSizeOfType("CClusterHelper", rangeCount);
 
 		fp.serialize(data);
-		SDL_assert_release(data.data.size() == rangeCount);
+		//SDL_assert_release(data.data.size() == rangeCount);
 
 		if (hasBatchInstanceID) {
 			fp.serialize(batchedInstanceID);
@@ -233,12 +222,12 @@ void batchFile::batchHeader::read(IBinaryArchive& fp) {
 	fp.serialize(unk5);
 	fp.serialize(unk6);
 
-	assert_file_crash(magic == 1112818504);
-	assert_file_crash(unk1 == 32);
-	assert_file_crash(type == 0 || type == 1 || type == 2);
-	assert_file_crash(unk4 == 0);
-	assert_file_crash(unk5 == 0);
-	assert_file_crash(unk6 == 0);
+	SDL_assert_release(magic == 1112818504);
+	SDL_assert_release(unk1 == 32);
+	SDL_assert_release(type == 0 || type == 1 || type == 2);
+	SDL_assert_release(unk4 == 0);
+	SDL_assert_release(unk5 == 0);
+	SDL_assert_release(unk6 == 0);
 }
 
 void batchFile::CSoundPointBatchProcessor::read(IBinaryArchive& fp) {
@@ -435,7 +424,7 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 		} else if(type == "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement") {
 			serializeAny<CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>>(fp, var);
 		} else {
-			assert_file_crash(false);
+			SDL_assert_release(false);
 		}
 	}
 

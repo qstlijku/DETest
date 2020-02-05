@@ -221,6 +221,10 @@ void World::regenWLUCommandList() {
 				compound += "_Compound.cbatch";
 
 				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
+
+				if(batch->physicsFile != 0xFFFFFFFF)
+					loadCollisionBatchFile(batch->physicsFile);
+
 				auto& component = batch->componentMBP;
 				for (auto& it : component.batchProcessors) {
 					for (auto& it : it.processors) {
@@ -310,6 +314,11 @@ void World::regenWLUCommandList() {
 					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
 
 					std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
+
+					for (auto& it : loft->networkRegionResources) {
+						if (!it) continue;
+
+					}
 				}
 			}
 		}

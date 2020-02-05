@@ -22,3 +22,6 @@
 [submodule "code/vendor/debug-draw"]
 	path = code/vendor/debug-draw
 	url = https://github.com/glampert/debug-draw.git
+[submodule "code/vendor/IconFontCppHeaders"]
+	path = code/vendor/IconFontCppHeaders
+	url = https://github.com/juliettef/IconFontCppHeaders.git
