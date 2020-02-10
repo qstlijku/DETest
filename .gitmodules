@@ -25,3 +25,6 @@
 [submodule "code/vendor/IconFontCppHeaders"]
 	path = code/vendor/IconFontCppHeaders
 	url = https://github.com/juliettef/IconFontCppHeaders.git
+[submodule "code/vendor/hk2012_2_0_r1"]
+	path = code/vendor/hk2012_2_0_r1
+	url = https://github.com/j301scott/hk2012_2_0_r1.git

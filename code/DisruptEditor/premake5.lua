@@ -28,6 +28,7 @@ project "DisruptEditor"
 		"../vendor/debug-draw",
 		"../vendor/DirectXTex/DDSTextureLoader",
 		"../vendor/IconFontCppHeaders",
+		"../vendor/hk2012_2_0_r1/Source",
 	}
 
 	links

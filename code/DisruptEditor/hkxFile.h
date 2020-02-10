@@ -2,68 +2,16 @@
 
 #include <array>
 #include <vector>
+#include <glm/glm.hpp>
+#include "CPathID.h"
+
+//Havok
+#include <Common/Base/hkBase.h>
+#include <Physics/Dynamics/Entity/hkpRigidBody.h>
+#include <Common/Serialize/Packfile/Binary/hkPackfileHeader.h>
+#include <Common/Serialize/Packfile/Binary/hkPackfileSectionHeader.h>
 
 class IBinaryArchive;
-
-//Size 0xc
-template <typename T>
-struct hkArray {
-	T* data;
-	int size;
-	int capacityAndFlags;// highest 2 bits indicate any special considerations about the allocation for the array
-
-	enum {
-		CAPACITY_MASK = int(0x3FFFFFFF),
-		FLAG_MASK = int(0xC0000000),
-		DONT_DEALLOCATE_FLAG = int(0x80000000), // Indicates that the storage is not the array's to delete
-		ALLOCATED_FROM_SPU = int(0x40000000),	// Ps3 specific. Indicates that the array storage has been allocated as a result of a SPU request.
-		FORCE_SIGNED = -1
-	};
-};
-
-//Size: 0x4, inherits: none
-struct hkBaseObject {
-	//no members
-private:
-	uint32_t baseStub;//Just to pad to 0x4
-};
-
-//Size: 0x8, inherits: hkBaseObject
-struct hkReferencedObject : public hkBaseObject {
-	uint16_t memSizeAndFlags;//0x4
-	int16_t referenceCount;//0x6
-};
-
-/*//Size: 0x8, inherits: none
-struct hkpEntitySmallArraySerializeOverrideType {
-	void* data;//0x0
-	uint16_t size;//0x4
-	uint16_t capacityAndFlags;//0x6
-};
-
-//Size: 0x38, inherits hkReferencedObject
-struct hkpConstraintInstance : public hkReferencedObject {
-
-};
-
-//Size: 0x220, inherits: 
-struct hkpEntity {
-	hkpMaterial material;//0x88
-	void* limitContactImpulseUtilAndFlag;//0x94, SERIALIZE_IGNORED
-	float damageMultiplier;//0x98
-	void* breakableBody;//0x9C, SERIALIZE_IGNORED
-	uint32_t solverData;//0xA0, SERIALIZE_IGNORED
-	uint16_t storageIndex;//0xA4
-	uint16_t contactPointCallbackDelay;//0xA6
-	hkpEntitySmallArraySerializeOverrideType constraintsMaster;//0xA8, SERIALIZE_IGNORED
-	hkArray<hkConstraintInternal> constraintsSlave;//0xB0, SERIALIZE_IGNORED | NOT_OWNED
-	hkArray<uint8_t> constraintRuntime;//0xBC, SERIALIZE_IGNORED
-};
-
-//Size: 0x220, inherits: hkpEntity
-struct hkpRigidBody : public hkpEntity {
-	//no members
-};*/
 
 //Size: 0x10, inherits: none
 struct SHkChildSpawnableMergedInstanceInfos {
@@ -106,7 +54,7 @@ struct CHkPhysBreakableMergedInstance : public CHkPhysSpawnableMergedInstance {
 
 //Size: 0xc, inherits: none
 struct CHkPhysMergedResource {
-	uint32_t resourceId;//0x0
+	CPathID resourceId;//0x0, e.g graphics\buildings\facade\facade_plaza_base_store_6x8_01.hkx
 	void* physResourceImpl;//0x4, SERIALIZE_IGNORED
 	uint16_t typeFlags;//0x8
 };
@@ -174,76 +122,29 @@ struct CHkPhysBreakableMergedResource : public CHkPhysSpawnableMergedResource {
 	hkArray<SHkPhysBreakableLayerParamsData> layerParams;//0x20
 };
 
-class hkpRigidBody;
-
 //Size: 0x90, inherits: hkReferencedObject
 struct CHkPhysMergedBody : public hkReferencedObject {
-	hkpRigidBody *rigidBody;  //0x8, struct ptr
-	hkArray<SHkChildSpawnableMergedInstanceInfos> childInstanceInfos;  //0xC, struct array
-	hkArray<CHkPhysStaticMergedInstance> staticInstances; //0x18, struct array
-	hkArray<CHkPhysDynamicMergedInstance> dynamicInstances; //0x24, struct array
-	hkArray<CHkPhysBreakableMergedInstance> breakableInstances; //0x30, struct array
-	hkArray<CHkPhysMergedResource> staticMergedResources; //0x3C, struct array
-	hkArray<CHkPhysDynamicMergedResource> dynamicMergedResources; //0x48, struct array
-	hkArray<CHkPhysBreakableMergedResource> breakableMergedResources; //0x54, struct array
-	uint32_t version; //0x60
+	hkpRigidBody *rigidBody;  //0x10, struct ptr
+	hkArray<SHkChildSpawnableMergedInstanceInfos> childInstanceInfos;  //0x18, struct array
+	hkArray<CHkPhysStaticMergedInstance> staticInstances; //0x28, struct array
+	hkArray<CHkPhysDynamicMergedInstance> dynamicInstances; //0x38, struct array
+	hkArray<CHkPhysBreakableMergedInstance> breakableInstances; //0x48, struct array
+	hkArray<CHkPhysMergedResource> staticMergedResources; //0x58, struct array
+	hkArray<CHkPhysDynamicMergedResource> dynamicMergedResources; //0x68, struct array
+	hkArray<CHkPhysBreakableMergedResource> breakableMergedResources; //0x78, struct array
+	uint32_t version; //0x88
 };
+static_assert(sizeof(CHkPhysMergedBody) == 0x90);
 
 class hkxFile {
 public:
-	int32_t userTag;
-
-	struct Section {
-		std::array<char, 19> sectionTag;
-
-		int32_t absoluteDataStart;
-
-		//Add absoluteDataStart to these
-		int32_t localFixupsOffset;
-		int32_t globalFixupsOffset;
-		int32_t virtualFixupsOffset;
-		int32_t exportsOffset;
-		int32_t importsOffset;
-		int32_t endOffset;
-
-		/// Size in bytes of data part
-		int getDataSize() const {
-			return localFixupsOffset;
-		}
-		/// Size in bytes of intra section pointer patches
-		int getLocalSize() const {
-			return globalFixupsOffset - localFixupsOffset;
-		}
-		/// Size in bytes of inter section pointer patches
-		int getGlobalSize() const {
-			return virtualFixupsOffset - globalFixupsOffset;
-		}
-		/// Size in bytes of finishing table.
-		int getFinishSize() const {
-			return exportsOffset - virtualFixupsOffset;
-		}
-		/// Size in bytes of exports table.
-		int getExportsSize() const {
-			return importsOffset - exportsOffset;
-		}
-		/// Size in bytes of imports table.
-		int getImportsSize() const {
-			return endOffset - importsOffset;
-		}
-
-		void read(IBinaryArchive& fp);
-	};
-	std::array<Section, 3> sections;
+	std::vector<uint8_t> data;
+	hkPackfileHeader* hkxHeader = NULL;
+	std::array<hkPackfileSectionHeader*, 3> sections;
 	enum SectionTypes { CLASSNAMES = 0, TYPES = 1, DATA = 2 };
 
-	struct ClassNames {
-		uint32_t signature;
-		std::string name;
-		void read(IBinaryArchive& fp);
-	};
-	std::vector<ClassNames> classNames;
-
-	void read(IBinaryArchive& fp);
+	void read(const std::vector<uint8_t>& hkxData);
+	std::vector<uint8_t> write();
 };
 
 #include <batchFile.h>

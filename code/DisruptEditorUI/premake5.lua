@@ -36,6 +36,7 @@ project "DisruptEditorUI"
 		"../vendor/stb",
 		"../vendor/dr_libs",
 		"../vendor/debug-draw",
+		"../vendor/hk2012_2_0_r1/Source",
 
 		"C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/include",
 	}

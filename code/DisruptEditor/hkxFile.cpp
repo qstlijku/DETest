@@ -1,115 +1,146 @@
 #include "hkxFile.h"
 
 #include "IBinaryArchive.h"
-
-static void serializeHkString(IBinaryArchive& fp, std::string& str) {
-	if (fp.isReading()) {
-		str.clear();
-		char it;
-		do {
-			fp.serialize(it);
-			if (it != '\0')
-				str.push_back(it);
-		} while (it != '\0');
-	} else {
-		SDL_assert_release(false);
-	}
-}
+#include <SDL_log.h>
 
 bool batchCollisionFile::open(IBinaryArchive& fp) {
 	fp.serialize(head);
 	if (head.size != 0) {
 		fp.serialize(hkxSize);
 		fp.pad(16);
-		if (hkxSize != 0)
-			fp.serialize(hkx);
+		if (hkxSize != 0) {
+			std::vector<uint8_t> data(hkxSize);
+			fp.memBlock(data.data(), 1, hkxSize);
+			hkx.read(data);
+		}
 	}
 	return true;
 }
 
-void hkxFile::read(IBinaryArchive& fp) {
-	return;
+template <typename T>
+static T* ReadPtr(uint8_t* &ptr) {
+	T* value = (T*)ptr;
+	ptr += sizeof(T);
+	return value;
+}
 
-	fp.padding = fp.PADDING_NONE;
-	size_t beginOffset = SDL_RWtell(fp.fp);
+void hkxFile::read(const std::vector<uint8_t>& hkxData) {
+	//Read our havok file to the base
+	data = hkxData;
 
-	fp.serializeConstant<uint32_t>(1474355287);//magic1
-	fp.serializeConstant<uint32_t>(281067536);//magic2
+	uint8_t* ptr = data.data();
 
-	fp.serialize(userTag);//userTag
-	fp.serializeConstant<uint32_t>(0x09);//fileVersion
-
+	//Validate Header
+	hkxHeader = ReadPtr<hkPackfileHeader>(ptr);
+	SDL_assert_release(hkxHeader->m_magic[0] == 0x57e0e057);
+	SDL_assert_release(hkxHeader->m_magic[1] == 0x10c0c010);
+	SDL_assert_release(hkxHeader->m_fileVersion == 9);
 	//This is for x64 pc
-	//layoutRules
-	fp.serializeConstant<uint8_t>(8);//Trying to process a binary file with a different pointer size than this platform.
-	fp.serializeConstant<uint8_t>(1);//Trying to process a binary file with a different endian than this platform.
-	fp.serializeConstant<uint8_t>(0);//Trying to process a binary file with a different padding optimization than this platform.
-	fp.serializeConstant<uint8_t>(1);//Trying to process a binary file with a different empty base class optimization than this platform.
-
-	fp.serializeConstant<uint32_t>(sections.size());//numSections, hardcoded
-	fp.serializeConstant<uint32_t>(2);//contentsSectionIndex
-	fp.serializeConstant<uint32_t>(0);//contentsSectionOffset
-	fp.serializeConstant<uint32_t>(0);//contentsClassNameSectionIndex
-	fp.serializeConstant<uint32_t>(75);//contentsClassNameSectionOffset
-
-	//contentsVersion, 16 bytes
-	const char* versionStr = "hk_2012.2.0-r1";
-	for (const char* it = versionStr; *it != '\0'; ++it)
-		fp.serializeConstant(*it);
-	fp.serializeConstant<uint8_t>(0);//Null term
-	fp.serializeConstant<uint8_t>(0xFF);
-
-	//pad
-	fp.serializeConstant<uint32_t>(0);
-	fp.serializeConstant<uint32_t>(0xFFFFFFFF);
+	SDL_assert_release(hkxHeader->m_layoutRules[0] == 8);//Trying to process a binary file with a different pointer size than this platform.
+	SDL_assert_release(hkxHeader->m_layoutRules[1] == 1);//Trying to process a binary file with a different endian than this platform.
+	SDL_assert_release(hkxHeader->m_layoutRules[2] == 0);//Trying to process a binary file with a different padding optimization than this platform.
+	SDL_assert_release(hkxHeader->m_layoutRules[3] == 1);//Trying to process a binary file with a different empty base class optimization than this platform.
+	SDL_assert_release(hkxHeader->m_numSections == sections.size());//hardcoded
+	SDL_assert_release(hkxHeader->m_contentsSectionIndex == 2);
+	SDL_assert_release(hkxHeader->m_contentsSectionOffset == 0);
+	SDL_assert_release(hkxHeader->m_contentsClassNameSectionIndex == 0);
+	SDL_assert_release(hkxHeader->m_contentsClassNameSectionOffset == 75);
+	SDL_assert_release(strcmp(hkxHeader->m_contentsVersion, "hk_2012.2.0-r1") == 0);
+	SDL_assert_release(hkxHeader->m_flags == 0);
+	SDL_assert_release(hkxHeader->m_pad[0] == -1);
 	//This is the end of the 64 byte header, hkPackfileHeader
 
 	//Read Sections
 	for(size_t i = 0; i < sections.size(); ++i)
-		fp.serialize(sections[i]);
-
-	//Read the first section, should be __classnames__
-	SDL_assert_release(sections[CLASSNAMES].absoluteDataStart == SDL_RWtell(fp.fp) - beginOffset);
-	Sint64 mark = SDL_RWtell(fp.fp) + sections[CLASSNAMES].endOffset;
-	while(SDL_RWtell(fp.fp) < mark - 5) {
-		auto& it = classNames.emplace_back();
-		fp.serialize(it);
-	}
-	//Read Pad
-	for (int i = 0; i < 5; ++i)
-		fp.serializeConstant<uint8_t>(0xFF);
+		sections[i] = ReadPtr<hkPackfileSectionHeader>(ptr);
 
 	//Make sure __types__ is empty
-	SDL_assert_release(sections[TYPES].localFixupsOffset == 0);
-	SDL_assert_release(sections[TYPES].globalFixupsOffset == 0);
-	SDL_assert_release(sections[TYPES].virtualFixupsOffset == 0);
-	SDL_assert_release(sections[TYPES].exportsOffset == 0);
-	SDL_assert_release(sections[TYPES].importsOffset == 0);
-	SDL_assert_release(sections[TYPES].endOffset == 0);
+	SDL_assert_release(sections[TYPES]->m_localFixupsOffset == 0);
+	SDL_assert_release(sections[TYPES]->m_globalFixupsOffset == 0);
+	SDL_assert_release(sections[TYPES]->m_virtualFixupsOffset == 0);
+	SDL_assert_release(sections[TYPES]->m_exportsOffset == 0);
+	SDL_assert_release(sections[TYPES]->m_importsOffset == 0);
+	SDL_assert_release(sections[TYPES]->m_endOffset == 0);
+
+	{
+		//Patch Local Fixups
+		//Local fixup int32_t local[2]
+		//Patch by *(void*)(local[0] + absoluteDataStart + filePtr) = local[1] + absoluteDataStart + filePtr;
+		int* localFixups = (int*)(data.data() + sections[DATA]->m_absoluteDataStart + sections[DATA]->m_localFixupsOffset);
+		int size = sections[DATA]->getLocalSize() / sizeof(int32_t);
+		for (int i = 0; i < size; i += 2) {
+			if (localFixups[i] == -1)
+				break;
+
+			uint64_t* toPatch = (uint64_t*)(localFixups[i] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+			*toPatch = (uint64_t)(localFixups[i + 1] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+		}
+	}
+
+	{
+		//Patch Global Fixups
+		//int32_t offsetToPatch
+		//int32_t section
+		//int32_t value
+		int* globalFixups = (int*)(data.data() + sections[DATA]->m_absoluteDataStart + sections[DATA]->m_globalFixupsOffset);
+		int size = sections[DATA]->getGlobalSize() / sizeof(int32_t);
+		for (int i = 0; i < size; i += 3) {
+			if (globalFixups[i] == -1)
+				break;
+
+			int section = globalFixups[i + 1];
+			SDL_assert_release(section >= 0 && section < sections.size());
+
+			uint64_t value = 0;
+
+			if (sections[section]->m_localFixupsOffset == 0) {
+				value = 0;
+			} else {
+				value = sections[section]->m_absoluteDataStart + (uint64_t)globalFixups[i + 2] + (uint64_t)data.data();
+			}
+
+			uint64_t* toPatch = (uint64_t*)(globalFixups[i] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+			*toPatch = value;
+		}
+	}
+
+	{
+		//Patch Virtual Fixups
+		//int32_t offsetToPatch
+		//int32_t section
+		//int32_t value
+		int* virtualFixups = (int*)(data.data() + sections[DATA]->m_absoluteDataStart + sections[DATA]->m_virtualFixupsOffset);
+		int size = sections[DATA]->getFinishSize() / sizeof(int32_t);
+		for (int i = 0; i < size; i += 3) {
+			if (virtualFixups[i] == -1)
+				break;
+
+			int section = virtualFixups[i + 1];
+			SDL_assert_release(section >= 0 && section < sections.size());
+
+			uint64_t value = 0;
+
+			if (sections[section]->m_localFixupsOffset == 0) {
+				value = 0;
+			} else {
+				value = sections[section]->m_absoluteDataStart + (uint64_t)virtualFixups[i + 2] + (uint64_t)data.data();
+			}
+
+			//TODO
+			//uint64_t* toPatch = (uint64_t*)(virtualFixups[i] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+			//*toPatch = value;
+		}
+	}
 
 	//Read __data__
-	SDL_assert_release(sections[DATA].absoluteDataStart == SDL_RWtell(fp.fp) - beginOffset);
+	CHkPhysMergedBody* dataSection = (CHkPhysMergedBody*)(data.data() + sections[DATA]->m_absoluteDataStart);
+
+	//DEBUG
+	/*for (auto& it : dataSection->mergedResources) {
+		SDL_Log("hkxMergedResource: %s", it.resourceId.getReverseFilename().c_str());
+	}*/
 
 	__debugbreak();
-}
-
-void hkxFile::Section::read(IBinaryArchive& fp) {
-	fp.memBlock(sectionTag.data(), 1, sectionTag.size());
-	fp.serializeConstant<uint8_t>(0xFF);//nullByte
-
-	fp.serialize(absoluteDataStart);
-	fp.serialize(localFixupsOffset);
-	fp.serialize(globalFixupsOffset);
-	fp.serialize(virtualFixupsOffset);
-	fp.serialize(exportsOffset);
-	fp.serialize(importsOffset);
-	fp.serialize(endOffset);
-}
-
-void hkxFile::ClassNames::read(IBinaryArchive& fp) {
-	fp.serialize(signature);
-	fp.serializeConstant<uint8_t>(9);
-	serializeHkString(fp, name);
 }
 
 bool physResourceFile::open(IBinaryArchive& fp) {
