@@ -32,6 +32,16 @@ void World::loadWLUAsync() {
 			wlu->open(fp);
 			SDL_RWclose(fp);
 
+			if (wlu->shortName.find("wlu_data_near") != std::string::npos) {
+				wlu->wluType = wlu->WLU_NEAR;
+			} else if (wlu->shortName.find("wlu_data_far") != std::string::npos) {
+				wlu->wluType = wlu->WLU_FAR;
+			} else if (wlu->shortName.find("wlu_data_world") != std::string::npos) {
+				wlu->wluType = wlu->WLU_WORLD;
+			} else {
+				wlu->wluType = wlu->WLU_OTHER;
+			}
+
 			world.mutex.lock();
 			world.wlus[file.name] = wlu;
 			++i;
@@ -40,6 +50,41 @@ void World::loadWLUAsync() {
 			world.mutex.unlock();
 		} else {
 			SDL_Log("Failed to open %s", file.fullPath.c_str());
+		}
+	}
+
+	//Map WLU pos
+	for (int32_t x = 0; x < world.GridMapSectorsCount.x / 2; ++x) {
+		for (int32_t y = 0; y < world.GridMapSectorsCount.y / 2; ++y) {
+			int32_t offset = (y * world.GridMapSectorsCount.x / 2) + x;
+			glm::vec2 bbMin((x * world.GridMapSectorsGranularity * 2) - world.GridsWorldOffset.x, (y * world.GridMapSectorsGranularity * 2) - world.GridsWorldOffset.y);
+			glm::vec2 bbMax(bbMin + glm::vec2(world.GridMapSectorsGranularity * 2, world.GridMapSectorsGranularity * 2));
+
+			char filename[80];
+			snprintf(filename, sizeof(filename), "wlu_data_near%u", offset);
+			auto it = world.wlus.find(filename);
+			if (it != world.wlus.end()) {
+				it->second->bbMin = bbMin;
+				it->second->bbMax = bbMax;
+				it->second->sectorID = offset;
+			}
+		}
+	}
+
+	for (int32_t x = 0; x < world.GridMapSectorsCount.x / 4; ++x) {
+		for (int32_t y = 0; y < world.GridMapSectorsCount.y / 4; ++y) {
+			int32_t offset = (y * world.GridMapSectorsCount.x / 4) + x;
+			glm::vec2 bbMin((x * world.GridMapSectorsGranularity * 4) - world.GridsWorldOffset.x, (y * world.GridMapSectorsGranularity * 4) - world.GridsWorldOffset.y);
+			glm::vec2 bbMax(bbMin + glm::vec2(world.GridMapSectorsGranularity * 4, world.GridMapSectorsGranularity * 4));
+
+			char filename[80];
+			snprintf(filename, sizeof(filename), "wlu_data_far%u", offset);
+			auto it = world.wlus.find(filename);
+			if (it != world.wlus.end()) {
+				it->second->bbMin = bbMin;
+				it->second->bbMax = bbMax;
+				it->second->sectorID = offset;
+			}
 		}
 	}
 }
@@ -101,7 +146,20 @@ void World::loaderThread() {
 	setLoadingStatus("Setting Up Database");
 	DB::instance();
 
+	//Make sure these entries exist for our wlu loader
+	/*for (int32_t x = 0; x < world.GridMapSectorsCount.x / 4; ++x) {
+		for (int32_t y = 0; y < world.GridMapSectorsCount.y / 4; ++y) {
+			int32_t offset = (y * world.GridMapSectorsCount.x) + x;
+			char filename[180];
+			snprintf(filename, sizeof(filename), "worlds/%s/generated/wlu/wlu_data_near%u.%s", settings.worldName.c_str(), offset, settings.wluExtension.c_str());
+			DB::instance().addFNVEntry(filename, filename);
+			snprintf(filename, sizeof(filename), "worlds/%s/generated/wlu/wlu_data_far%u.%s", settings.worldName.c_str(), offset, settings.wluExtension.c_str());
+			DB::instance().addFNVEntry(filename, filename);
+		}
+	}*/
+
 	world.gameXML = loadRml("worlds\\" + settings.worldName + "\\generated\\" + settings.worldName + ".game.xml");
+	std::string debug = XMLToString(*world.gameXML.get());
 
 	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
 	std::future<void> particlesF = std::async([]() { loadRml("worlds/" + settings.worldName + "/generated/" + settings.worldName + "_deploadnewparticles.rml"); });
@@ -293,15 +351,11 @@ void World::regenWLUCommandList() {
 					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk7);
 					RenderInterface::instance().objectCB.Model = modelMatrix;
 					xbg->draw(pDeferredContext);
-				}
-				if (building.roofGeom.id != -1) {
-					std::shared_ptr<xbgFile> xbg = loadXBG(building.roofGeom.id);
-
-					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk7);
-					RenderInterface::instance().objectCB.Model = modelMatrix;
-
-					xbg->draw(pDeferredContext);
 				}*/
+				if (building.roofGeom.id != -1) {
+					glm::mat4 mat = glm::translate(glm::mat4(1), building.unk3);
+					wlu.second->gBucket->add(building.roofGeom, mat);
+				}
 			}
 #endif
 

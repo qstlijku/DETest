@@ -39,6 +39,8 @@ struct Settings {
 	float drawDistance = 500.f;
 	std::map<std::string, bool> displayComponents;
 	bool displayNear = true;
+	bool displayFar = true;
+	bool displayWorld = true;
 	bool drawTerrain = true;
 	
 	// Window Settings

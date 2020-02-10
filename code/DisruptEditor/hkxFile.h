@@ -10,6 +10,7 @@
 #include <Physics/Dynamics/Entity/hkpRigidBody.h>
 #include <Common/Serialize/Packfile/Binary/hkPackfileHeader.h>
 #include <Common/Serialize/Packfile/Binary/hkPackfileSectionHeader.h>
+#include <Physics/Internal/Collide/StaticCompound/hkpStaticCompoundShape.h>
 
 class IBinaryArchive;
 
@@ -123,6 +124,7 @@ struct CHkPhysBreakableMergedResource : public CHkPhysSpawnableMergedResource {
 };
 
 //Size: 0x90, inherits: hkReferencedObject
+//aka CPhysMergedStaticEntityPreLoad
 struct CHkPhysMergedBody : public hkReferencedObject {
 	hkpRigidBody *rigidBody;  //0x10, struct ptr
 	hkArray<SHkChildSpawnableMergedInstanceInfos> childInstanceInfos;  //0x18, struct array
@@ -142,6 +144,8 @@ public:
 	hkPackfileHeader* hkxHeader = NULL;
 	std::array<hkPackfileSectionHeader*, 3> sections;
 	enum SectionTypes { CLASSNAMES = 0, TYPES = 1, DATA = 2 };
+
+	CHkPhysMergedBody* dataSection = NULL;
 
 	void read(const std::vector<uint8_t>& hkxData);
 	std::vector<uint8_t> write();

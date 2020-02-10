@@ -50,6 +50,7 @@
 #include <dr_wav.h>
 #include <buildingBatchFile.h>
 #include <DB.h>
+#include <hkxFile.h>
 static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
 	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile) {
@@ -108,7 +109,11 @@ int main(int argc, char **argv) {
 	camera.type = Camera::FLYCAM;
 #if 0
 	FH::Init();
-	CLODataDictionaries::instance();
+	CBinaryArchiveReader reader(FH::openFile("worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c0_i0_xn2047_yn2559_xp2047_yp2559_phys.cbatch"));
+	batchCollisionFile b;
+	b.open(reader);
+	__debugbreak();
+	//CLODataDictionaries::instance();
 #endif
 
 	//Start World Loader
@@ -211,40 +216,36 @@ int main(int argc, char **argv) {
 				}
 			}
 
-			//WorldRenderer::draw(RenderInterface::instance().g_pd3dDeviceContext.Get());
-
-			/*for (auto& it : world.wlus) {
-				bool isNear = it.first.find("_near") != std::string::npos;
-				bool isFar = it.first.find("_far") != std::string::npos;
-
-				if (!isNear) continue;
-			}*/
-
-			Frustum frustum(RenderInterface::instance().sceneCB.ViewProjection);
 			glm::vec2 camPos2D(RenderInterface::instance().camera.location);
+			glm::vec3 camPos3D(RenderInterface::instance().camera.location);
+			
+			for (auto& it : world.wlus) {
+				if (!it.second->gBucket)
+					continue;
 
-			/*for (int32_t x = 0; x < world.GridMapSectorsCount.x; ++x) {
-				for (int32_t y = 0; y < world.GridMapSectorsCount.y; ++y) {
-					int32_t offset = (y * world.GridMapSectorsCount.x) + x;
-					char filename[80];
-					snprintf(filename, sizeof(filename), "wlu_data_near%u", offset);
-
-					glm::vec3 bbMin((x * world.GridMapSectorsGranularity) - world.GridsWorldOffset.x, (y * world.GridMapSectorsGranularity) - world.GridsWorldOffset.y, 0);
-					glm::vec3 bbMax(bbMin + glm::vec3(world.GridMapSectorsGranularity, world.GridMapSectorsGranularity, 512));
-
-					auto it = world.wlus.find(filename);
-
-					glm::vec2 sectorPos(bbMin);
-
-					float distance = glm::distance(sectorPos, camPos2D);
-
-					if (it != world.wlus.end() && distance < settings.textDrawDistance) {
-						WorldRenderer::drawBucket(it->second->gBucket);
-						dd::aabb(&bbMin.x, &bbMax.x, red);
-					}
-
+				if (it.second->wluType == wluFile::WLU_WORLD && settings.displayWorld) {
+					it.second->gBucket->draw();
 				}
-			}*/
+
+				if ((it.second->wluType == wluFile::WLU_NEAR && settings.displayNear) || (it.second->wluType == wluFile::WLU_FAR && settings.displayFar)) {
+					glm::vec3 bbMin(it.second->bbMin, 0);
+					glm::vec3 bbMax(it.second->bbMax, 512);
+					glm::vec3 pos(bbMin + (bbMax - bbMin) / 2.f);
+
+					bool isIn = (camPos3D.x >= bbMin.x && camPos3D.x <= bbMax.x) &&
+						(camPos3D.y >= bbMin.y && camPos3D.y <= bbMax.y) &&
+						(camPos3D.z >= bbMin.z && camPos3D.z <= bbMax.z);
+
+					if (isIn)
+						it.second->gBucket->draw();
+
+					dd::aabb(&bbMin.x, &bbMax.x, isIn ? blue : red);
+
+					char name[50];
+					snprintf(name, sizeof(name), "%u", it.second->sectorID);
+					dd::projectedText(name, &pos.x, isIn ? blue : red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
+				}
+			}
 
 			WorldRenderer::draw(renderInterface.g_pd3dDeviceContext.Get());
 		}

@@ -59,7 +59,9 @@ void UI::displayTopMenu() {
 		ImGui::DragFloat("Camera Fly Multiplier", &settings.flyMultiplier, 0.02f, 1.f, 10.f);
 		ImGui::DragFloat("Draw Distance", &settings.drawDistance, 0.05f, 0.f, 4096.f);
 		ImGui::Checkbox("Draw Terrain", &settings.drawTerrain);
-		ImGui::Checkbox("Near WLU", &settings.displayNear);
+		ImGui::Checkbox("Draw Near", &settings.displayNear);
+		ImGui::Checkbox("Draw Far", &settings.displayFar);
+		ImGui::Checkbox("Draw World", &settings.displayWorld);
 		ImGui::EndMenu();
 	}
 

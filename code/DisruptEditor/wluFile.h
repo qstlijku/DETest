@@ -16,8 +16,8 @@ class IBinaryArchive;
 struct wluHeader {
 	uint32_t magic;
 	uint32_t size;
-	uint32_t unknown1;//0 or 1 or 2 or 3
-	uint32_t unknown2;//0
+	uint32_t unknown1;//Always 0 or 1 or 2 or 3
+	uint32_t unknown2;//Always 0
 };
 
 struct qualityHeader {
@@ -44,7 +44,7 @@ public:
 	Node root;
 	CCityLifeDataAndStateHandler cityLifeObjectManagerData;
 
-	std::string shortName; //ex. wlu_data_01_loop_vigilante_01.xml.data.fcb
+	std::string shortName; //ex. wlu_data_01_loop_vigilante_01
 
 	bool openWD1(IBinaryArchive &fp);
 	bool openWD2(IBinaryArchive &fp);
@@ -57,5 +57,13 @@ public:
 
 	//Drawing
 	std::shared_ptr<WorldRenderer::Bucket> gBucket;
+	enum WluType {
+		WLU_NEAR, WLU_FAR, WLU_WORLD, WLU_OTHER
+	};
+	WluType wluType = WLU_OTHER;
+
+	//Only applies for WLU_NEAR, WLU_FAR
+	glm::vec2 bbMin = glm::vec2(0), bbMax = glm::vec2(0);
+	uint32_t sectorID;
 };
 

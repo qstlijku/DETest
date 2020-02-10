@@ -73,7 +73,8 @@ void hkxFile::read(const std::vector<uint8_t>& hkxData) {
 				break;
 
 			uint64_t* toPatch = (uint64_t*)(localFixups[i] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
-			*toPatch = (uint64_t)(localFixups[i + 1] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+			uint64_t value = (uint64_t)(localFixups[i + 1] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+			*toPatch = value;
 		}
 	}
 
@@ -107,8 +108,8 @@ void hkxFile::read(const std::vector<uint8_t>& hkxData) {
 	{
 		//Patch Virtual Fixups
 		//int32_t offsetToPatch
-		//int32_t section
-		//int32_t value
+		//int32_t section, likely _classnames__
+		//int32_t classNameOffset, offset from _classnames_ section
 		int* virtualFixups = (int*)(data.data() + sections[DATA]->m_absoluteDataStart + sections[DATA]->m_virtualFixupsOffset);
 		int size = sections[DATA]->getFinishSize() / sizeof(int32_t);
 		for (int i = 0; i < size; i += 3) {
@@ -126,21 +127,27 @@ void hkxFile::read(const std::vector<uint8_t>& hkxData) {
 				value = sections[section]->m_absoluteDataStart + (uint64_t)virtualFixups[i + 2] + (uint64_t)data.data();
 			}
 
-			//TODO
-			//uint64_t* toPatch = (uint64_t*)(virtualFixups[i] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
-			//*toPatch = value;
+			//Value will point to the String of the class in the classnames section
+			const char* className = (const char*)value;
+
+			//Calls hkClassNameRegistry::getClassByName()
+
+			//TODO: I think it's ok to not patch the vtable for now
+			uint64_t* toPatch = (uint64_t*)(virtualFixups[i] + (uint64_t)sections[DATA]->m_absoluteDataStart + data.data());
+			//*toPatch = vtable;
+
 		}
 	}
 
 	//Read __data__
-	CHkPhysMergedBody* dataSection = (CHkPhysMergedBody*)(data.data() + sections[DATA]->m_absoluteDataStart);
+	dataSection = (CHkPhysMergedBody*)(data.data() + sections[DATA]->m_absoluteDataStart);
 
 	//DEBUG
 	/*for (auto& it : dataSection->mergedResources) {
 		SDL_Log("hkxMergedResource: %s", it.resourceId.getReverseFilename().c_str());
 	}*/
 
-	__debugbreak();
+	//__debugbreak();
 }
 
 bool physResourceFile::open(IBinaryArchive& fp) {

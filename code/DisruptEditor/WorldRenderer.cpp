@@ -14,8 +14,6 @@ namespace WorldRenderer {
         std::vector<glm::mat4> positions;
     };
     static std::unordered_map<CPathID, XBGGeomEntry> geomEntires;
-    static std::map<std::pair<int, int>, std::vector<Instance>> spatialHash;
-    static const int spatialHashScale = 64;
 
 	Bucket::~Bucket() {
 		reset();
@@ -25,17 +23,12 @@ namespace WorldRenderer {
         //Preload the xbg
         loadXBG(xbg);
 
-        glm::vec2 pos(mat[3]);
-        pos = glm::round(pos / (float)spatialHashScale);
-
 		std::lock_guard<std::mutex> lck(mutex);
 
         Instance &i = instances.emplace_back();
         i.mat = mat;
         i.xbgFile = xbg;
         i.instance = instance;
-
-        spatialHash[std::pair<int, int>(pos.x, pos.y)].push_back(i);
 	}
 
 	void Bucket::reset() {
@@ -47,6 +40,12 @@ namespace WorldRenderer {
             it.enabled = isEnabled;
     }
 
+	void Bucket::draw() {
+        for (auto& inst : instances) {
+            geomEntires[inst.xbgFile].positions.push_back(inst.mat);
+        }
+	}
+
 	std::shared_ptr<Bucket> createBucket() {
 		return std::make_shared<Bucket>();
 	}
@@ -56,21 +55,6 @@ namespace WorldRenderer {
 
         pContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
         pContext->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
-
-        glm::vec2 camPos2D(RenderInterface::instance().camera.location);
-        camPos2D = glm::round(camPos2D / (float)spatialHashScale);
-        int range = settings.drawDistance / spatialHashScale;
-        for (int x = -range; x < range; ++x) {
-            for (int y = -range; y < range; ++y) {
-                glm::ivec2 pos(glm::ivec2(camPos2D) + glm::ivec2(x, y));
-                auto& it = spatialHash.find(std::pair<int, int>(pos.x, pos.y));
-                if (it == spatialHash.end())
-                    continue;
-                for (auto& inst : it->second) {
-                    geomEntires[inst.xbgFile].positions.push_back(inst.mat);
-                }
-            }
-        }
 
 		for (auto& xbg : geomEntires) {
 			if (!xbg.second.xbg)
