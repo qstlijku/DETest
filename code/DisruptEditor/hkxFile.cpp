@@ -17,6 +17,35 @@ bool batchCollisionFile::open(IBinaryArchive& fp) {
 	return true;
 }
 
+bool physResourceFile::open(IBinaryArchive& fp) {
+	fp.serializeConstant<uint32_t>(0x67);
+	fp.serialize(unk2);
+	fp.serialize(hkxSize);
+	fp.serialize(switchCase);
+
+	if (hkxSize != 0) {
+		std::vector<uint8_t> data(hkxSize);
+		fp.memBlock(data.data(), 1, hkxSize);
+		hkx.read(data);
+	}
+
+	switch (switchCase) {
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 9:
+		break;
+	default:
+		SDL_assert_release(false);
+	}
+
+	return true;
+}
+
 template <typename T>
 static T* ReadPtr(uint8_t* &ptr) {
 	T* value = (T*)ptr;
@@ -140,7 +169,7 @@ void hkxFile::read(const std::vector<uint8_t>& hkxData) {
 	}
 
 	//Read __data__
-	dataSection = (CHkPhysMergedBody*)(data.data() + sections[DATA]->m_absoluteDataStart);
+	dataSection = (uint8_t*)(data.data() + sections[DATA]->m_absoluteDataStart);
 
 	//DEBUG
 	/*for (auto& it : dataSection->mergedResources) {
@@ -148,13 +177,4 @@ void hkxFile::read(const std::vector<uint8_t>& hkxData) {
 	}*/
 
 	//__debugbreak();
-}
-
-bool physResourceFile::open(IBinaryArchive& fp) {
-	fp.serializeConstant<uint32_t>(0x67);
-	fp.serialize(unk2);
-	fp.serialize(hkxSize);
-	fp.serialize(switchCase);
-
-	return false;
 }

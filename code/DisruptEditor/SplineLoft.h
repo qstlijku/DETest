@@ -5,6 +5,7 @@
 #include "IBinaryArchive.h"
 #include "Serialization.h"
 #include <array>
+#include <vector>
 #include "DDRenderInterface.h"
 
 class CSplineControlPoint {
@@ -183,6 +184,66 @@ public:
 	void open(IBinaryArchive& fp);
 	void draw(ID3D11DeviceContext* context);
 	void createBuffers();
+};
+
+///////Low Res
+
+struct SArrayRange {
+	uint16_t unk1;
+	uint16_t unk2;
+	void read(IBinaryArchive& fp);
+};
+
+struct CSceneSplineLoftBatch {
+	uint32_t unk1;
+	struct SRangeDesc {
+		uint16_t unk1;
+		uint16_t unk2;
+		uint8_t unk3;
+		bool unk4;
+		bool unk5;
+		uint8_t unk6;
+
+		void read(IBinaryArchive& fp);
+	};
+	std::vector<CSceneSplineLoftBatch> unk2;
+	struct SPassDrawCallRanges {
+		std::array<SArrayRange, 5> unk1;
+		void read(IBinaryArchive& fp);
+	};
+	SPassDrawCallRanges unk3;
+	glm::vec3 unk4;
+	float unk5;
+	glm::vec3 unk6;
+	glm::vec3 unk7;
+	glm::vec2 unk8;
+	glm::vec4 unk9;
+	glm::vec3 unk10;
+	std::vector<float> unk11;
+	struct SPrimitiveData {
+		uint32_t unk1;
+		std::array< std::array<uint64_t, 8>, 3> unk2;
+		void read(IBinaryArchive& fp);
+	};
+	std::vector<SPrimitiveData> unk12;
+	std::vector<SRangeDesc> unk13;
+
+	void read(IBinaryArchive& fp);
+};
+
+class SplineLoftLowRes {
+public:
+	uint32_t unk1;
+	std::vector<CPathID> materials;
+	CSceneSplineLoftBatch unk3;
+	CPathID hiRes; //CSplineLoftHiResGfxResource
+	uint32_t vertexDataSize;
+	uint32_t indexDataSize;
+
+	std::vector<uint8_t> vertexData;
+	std::vector<uint8_t> indexData;
+
+	void open(IBinaryArchive& fp);
 };
 
 class LoftShape {

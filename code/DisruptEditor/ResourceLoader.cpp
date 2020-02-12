@@ -27,6 +27,7 @@ static std::unordered_map<CPathID, std::shared_ptr<SplineLoftHiRes>> hiResSpline
 static std::unordered_map<CPathID, std::shared_ptr<batchFile>> batches;
 static std::unordered_map<CPathID, std::shared_ptr<buildingBatchFile>> buildingBatches;
 static std::unordered_map<CPathID, std::shared_ptr<batchCollisionFile>> batchCollisions;
+static std::unordered_map<CPathID, std::shared_ptr<physResourceFile>> physCollisions;
 static std::unordered_map<CPathID, std::shared_ptr<realTreeFile>> realTrees;
 
 static xbgMipFile loadXBGMIP(const std::string& path) {
@@ -161,6 +162,23 @@ std::shared_ptr<batchCollisionFile> loadCollisionBatchFile(CPathID path) {
 	std::shared_ptr<batchCollisionFile> model = batchCollisions[path];
 	if (!model) {
 		model = batchCollisions[path] = std::make_shared<batchCollisionFile>();
+		SDL_RWops* fp = FH::openFileHash(path.id);
+		if (!fp)
+			return model;
+
+		CBinaryArchiveReader reader(fp);
+		model->open(reader);
+		SDL_RWclose(fp);
+	}
+	return model;
+}
+
+std::shared_ptr<physResourceFile> loadPhysResourceFile(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
+	std::shared_ptr<physResourceFile> model = physCollisions[path];
+	if (!model) {
+		model = physCollisions[path] = std::make_shared<physResourceFile>();
 		SDL_RWops* fp = FH::openFileHash(path.id);
 		if (!fp)
 			return model;

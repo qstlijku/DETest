@@ -138,6 +138,23 @@ struct CHkPhysMergedBody : public hkReferencedObject {
 };
 static_assert(sizeof(CHkPhysMergedBody) == 0x90);
 
+struct nomadStaticPhysResourceData : public hkpShapeBase {
+	hkpShape *shape;
+	uint16_t navmeshIndex;
+	uint16_t highresIndex;
+};
+
+//root
+struct nomadFacadePhysResourceData : public nomadStaticPhysResourceData {
+	hkArray<uint16_t> facadeLeftVertices;
+	hkArray<uint16_t> facadeRightVertices;
+};
+
+//root
+struct nomadExtraShapes {
+	hkArray<hkpShape*> shapes;
+};
+
 class hkxFile {
 public:
 	std::vector<uint8_t> data;
@@ -145,7 +162,7 @@ public:
 	std::array<hkPackfileSectionHeader*, 3> sections;
 	enum SectionTypes { CLASSNAMES = 0, TYPES = 1, DATA = 2 };
 
-	CHkPhysMergedBody* dataSection = NULL;
+	uint8_t* dataSection = NULL;
 
 	void read(const std::vector<uint8_t>& hkxData);
 	std::vector<uint8_t> write();
@@ -157,6 +174,8 @@ class batchCollisionFile {
 public:
 	batchFile::batchHeader head;
 	uint32_t hkxSize;
+
+	//Root is CHkPhysMergedBody
 	hkxFile hkx;
 
 	bool open(IBinaryArchive& fp);
@@ -167,6 +186,20 @@ public:
 	uint32_t unk2;
 	uint32_t hkxSize;
 	uint32_t switchCase;
+
+	// 0 - nomadVehiclePhysResourceData
+	// 1 - nomadRigidPhysResourceData
+	// 2 - nomadStaticPhysResourceData
+	// 3 - nomadBreakablePhysResourceData
+	// 4 - nomadRagdollPhysResourceData
+	// 5 - nomadKinematicPhysResourceData
+	// 6 - nomadFacadePhysResourceData
+	// 9 - nomadExtraShapes
+
+	//Unknown, find a file with this
+	//nomadMultipleBodiesPhysResourceData
+	//nomadSingleBodyPhysResourceData
+	//nomadPhysResourceData
 
 	hkxFile hkx;
 

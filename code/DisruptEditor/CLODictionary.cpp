@@ -199,7 +199,7 @@ void CEnticerAction::read(IBinaryArchive& fp) {
 void CCityLifeDataAndStateSerializationHandler_SerializeDataTemp(IBinaryArchive& fp) {
 	uint32_t stateCount;
 	fp.serialize(stateCount);
-	SDL_Log("State Count: %u", stateCount);
+	//SDL_Log("State Count: %u", stateCount);
 }
 
 void CCityLifeDataAndStateHandler::read(IBinaryArchive& fp) {

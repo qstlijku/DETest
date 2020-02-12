@@ -208,3 +208,77 @@ void CKnot::read(IBinaryArchive& fp) {
 void CSceneSplineLoftPrimitive::read(IBinaryArchive& fp) {
 	fp.serialize(unk1);
 }
+
+void SplineLoftLowRes::open(IBinaryArchive& fp) {
+	fp.serializeConstant<uint32_t>(1397509202);
+	fp.serializeConstant<uint32_t>(5);
+	fp.serialize(unk1);
+	fp.serializeConstant<uint32_t>(0);
+
+	fp.markHeader();
+	fp.PauseInPlace();
+
+	uint32_t count = materials.size();
+	materials.resize(count);
+	fp.PreAllocateMemory(count << 2, 4);
+	for (auto& it : materials)
+		fp.serialize(it);
+
+	fp.PreAllocateSizeOfType(0xA1A47E4E, materials.size());
+	fp.serialize(unk3);
+	fp.serialize(hiRes);
+	fp.serialize(vertexDataSize);
+	fp.serialize(indexDataSize);
+
+	fp.finish();
+
+	vertexData.resize(vertexDataSize);
+	fp.memBlock(vertexData.data(), 1, vertexData.size());
+
+	indexData.resize(indexDataSize);
+	fp.memBlock(indexData.data(), 1, indexData.size());
+}
+
+void CSceneSplineLoftBatch::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serializeNdVector(unk2);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+	fp.serialize(unk7);
+	fp.serialize(unk8);
+	fp.serialize(unk9);
+	fp.serialize(unk10);
+	fp.serializeNdVector(unk11);
+	fp.serializeNdVector(unk12);
+	fp.serializeNdVector(unk13);
+}
+
+void CSceneSplineLoftBatch::SRangeDesc::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	fp.serialize(unk3);
+	fp.serialize(unk4);
+	fp.serialize(unk5);
+	fp.serialize(unk6);
+}
+
+void CSceneSplineLoftBatch::SPassDrawCallRanges::read(IBinaryArchive& fp) {
+	for (int i = 0; i < unk1.size(); ++i)
+		fp.serialize(unk1[i]);
+}
+
+void SArrayRange::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+}
+
+void CSceneSplineLoftBatch::SPrimitiveData::read(IBinaryArchive& fp) {
+	fp.serialize(unk1);
+	for (int i = 0; i < unk2.size(); ++i) {
+		for (int j = 0; j < unk2[i].size(); ++j) {
+			fp.serialize(unk2[i][j]);
+		}
+	}
+}

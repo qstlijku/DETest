@@ -5,6 +5,8 @@
 
 class xbtFile : public Texture {
 public:
+	uint32_t offset;
+
 	bool open(IBinaryArchive &reader);
 };
 

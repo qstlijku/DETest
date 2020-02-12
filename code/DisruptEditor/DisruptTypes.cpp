@@ -216,10 +216,6 @@ void CDynamicLightSettings::read(IBinaryArchive& fp) {
 	fp.serialize(unk45);
 	fp.serialize(unk46);
 
-	SDL_Log("File1=%s", unk39.getReverseFilename().c_str());
-	SDL_Log("File2=%s", unk40.getReverseFilename().c_str());
-	SDL_Log("Tell %u", fp.tell());
-
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<CSceneLightClipPlane, NoLock, ndVectorPropertiesWrapper<ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, ndVectorAllowExternalCopyProperties>>]
 	fp.serializeNdVector(clipPlanes);
 
