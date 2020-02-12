@@ -4,37 +4,53 @@
 #include <SDL_assert.h>
 #include "CPathID.h"
 
+static void serializeString(IBinaryArchive& fp, std::string& str) {
+	if (fp.isReading()) {
+		str.clear();
+		char it;
+		do {
+			fp.serialize(it);
+			if (it != '\0')
+				str.push_back(it);
+		} while (it != '\0');
+	} else {
+		for (int i = 0; i < str.size(); ++i)
+			fp.serialize(str[i]);
+		fp.serializeConstant<char>('\0');
+	}
+}
+
 void bundleFile::open(IBinaryArchive & fp) {
 	fp.serializeConstant<uint32_t>(1114530924);
 
 	fp.serializeConstant<uint16_t>(12804);
 
-	uint16_t count = 0;
+	uint16_t count = 1;
 	fp.serialize(count);
 	SDL_assert_release(count != 0);//Game Checks for this
 	SDL_assert_release(count == 1);//My Sanity check
 
 	//Skipped
-	uint32_t unk3 = 0;
-	fp.serialize(unk3);
+	fp.serialize(unk1);
 
 	//Skipped
-	uint32_t unk4 = 0;
-	fp.serialize(unk4);
-
-	//The comments are for the first iteration of the loop, because ubisoft does something really weird
-	//Seeks to 0x10
-	//Then Seeks back by -0x14
+	fp.serialize(unk2);
 
 	for (uint16_t i = 0; i < count; ++i) {
-		CPathID a;//CPathID for the string you can see
-		a.read(fp);
+		//CPathID for the string you can see
+		fp.serialize(path);
+		fp.serialize(type);
+		fp.serialize(unk3);
+		fp.serialize(offset);
+		fp.serialize(size);
+		serializeString(fp, fileName);
+		fp.pad(16);
 
-		//Then Reads 0x0 to r11 and 0x4 to r9
-		//Takes the 4 and r7 = r9 & 0x200000
-
-		//CResourceManager::GetResource((CPathID const &  ,CStringID const &))
-
-		//Then Reads 0x8 to r10 and compares to 0
+		SDL_assert_release(SDL_RWtell(fp.fp) == offset);
+		//Read Data
+		data.resize(size);
+		fp.memBlock(data.data(), 1, size);
 	}
+
+	fp.pad(16);
 }
