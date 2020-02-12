@@ -84,7 +84,6 @@ void DB::reinit() {
 	dareBaoList.clear();
 	root.clear();
 
-	dobbsList.reserve(275000);
 	crcList.reserve(275000);
 	fnvList.reserve(275000);
 	dareBaoList.reserve(150000);
@@ -118,6 +117,40 @@ void DB::reinit() {
 		fclose(fp);
 	});
 
+	//Load Dobbs
+	{
+		const char* dobbsNames[] = {
+			"ResourceDescriptor",
+			"PlayEventDescriptor",
+			"MultiEventDescriptor",
+			"PresetDescriptor",
+			"PresetEventDescriptor",
+			"StopEventDescriptor",
+			"RemovePresetEventDescriptor",
+			"ProjectDesc",
+			"RolloffResourceDescriptor",
+			"EmitterSpec",
+			"ChangeVolumeEventDescriptor",
+			"StopNGoEventDescriptor",
+			"SwitchEventDescriptor",
+			"SndData",
+			"SampleResourceDescriptor",
+			"RandomResourceDescriptor",
+			"SilenceResourceDescriptor",
+			"MultiLayerResourceDescriptor",
+			"SequenceResourceDescriptor",
+			"MultiTrackResourceDescriptor",
+			"ThemeResourceDescriptor",
+			"GranularResourceDescriptor",
+			"SwitchResourceDescriptor",
+			"ThemePartOutroDescriptor",
+		};
+		for (const char* name : dobbsNames) {
+			CDobbsID id(name);
+			dobbsList[id] = name;
+		}
+	}
+
 	//Scan the Patch Dir
 	try {
 		for (auto& p : std::filesystem::recursive_directory_iterator(settings.patchDir)) {
@@ -149,9 +182,6 @@ void DB::handleCRCFile(const char *file, const char* type) {
 
 		CStringID strID(line);
 		crcList[strID] = line;
-
-		CDobbsID dobbsID(line);
-		dobbsList[dobbsID] = line;
 	}
 
 	fclose(fp);

@@ -16,6 +16,7 @@
 #include <Serialization.h>
 #include <SDL.h>
 #include <fbxsdk.h>
+#include <xbgMipFile.h>
 
 static std::string currentFile;
 static std::vector<uint8_t> currentFileData;
@@ -104,8 +105,6 @@ void UI::displayFileBrowser() {
 			RenderInterface::instance().objectCB.Model = glm::mat4(1.f);
 			xbg->draw(context, selLod);
 
-			displayImGui(*xbg);
-
 			if (ImGui::Button("XML")) {
 				std::string xml = serializeToXML(*xbg);
 				SDL_SetClipboardText(xml.c_str());
@@ -135,6 +134,9 @@ void UI::displayFileBrowser() {
 						lRootNode->AddChild(lChild);
 
 						for (auto& mesh : lod.meshes) {
+							if (mesh.primitiveType != 0)
+								continue;
+
 							// Create a node for our mesh in the scene.
 							FbxNode* lMeshNode = FbxNode::Create(lScene, "meshNode");
 
@@ -147,7 +149,67 @@ void UI::displayFileBrowser() {
 							// Add the mesh node to the lod node in the scene.
 							lChild->AddChild(lMeshNode);
 
+							std::vector<FbxVector4> verticies;
+							std::vector<FbxVector4> uvs;
 
+							UINT offset = mesh.drawCall.unk1;
+							UINT stride = mesh.vertexStride;
+							uint8_t* vPtr = xbg->buffers[count].vertexData.data() + offset;
+							uint16_t* iPtr = (uint16_t*)(xbg->buffers[count].indexData.data() + (mesh.drawCall.unk4 * 2));
+							lMesh->InitControlPoints(mesh.drawCall.primitiveCount);
+							FbxVector4* lControlPoints = lMesh->GetControlPoints();
+
+							// Create UV for Diffuse channel
+							FbxGeometryElementUV* lUVDiffuseElement = lMesh->CreateElementUV("DiffuseUV");
+							FBX_ASSERT(lUVDiffuseElement != NULL);
+							lUVDiffuseElement->SetMappingMode(FbxGeometryElement::eByPolygonVertex);
+							lUVDiffuseElement->SetReferenceMode(FbxGeometryElement::eIndexToDirect);
+
+							for (int i = 0; i < mesh.drawCall.primitiveCount; ++i) {
+								uint16_t index = iPtr[i];
+
+								uint8_t* ptr = vPtr + (stride * index);
+								int16_t v[3];
+								int16_t u[2];
+								memcpy(v, ptr, sizeof(v));
+								memcpy(u, ptr + 8, sizeof(u));
+
+								glm::vec3 fv = glm::vec3(v[0], v[1], v[2]);
+								fv *= xbg->geomParams.unk2;
+								fv += xbg->geomParams.unk1;
+
+								glm::vec2 fu = glm::vec2(u[0], u[1]);
+								fu *= xbg->geomParams.unk5;
+								fu += xbg->geomParams.unk4;
+
+								lControlPoints[i] = FbxVector4(fv.x, fv.y, fv.z);
+								lUVDiffuseElement->GetDirectArray().Add(FbxVector2(fu.x, fu.y));
+							}
+							lUVDiffuseElement->GetIndexArray().SetCount(mesh.drawCall.primitiveCount);
+
+							for (int i = 0; i < mesh.drawCall.primitiveCount / 3; i++) {
+								//we won't use the default way of assigning textures, as we have
+								//textures on more than just the default (diffuse) channel.
+								lMesh->BeginPolygon(-1, -1, false);
+
+								for (int j = 0; j < 3; j++) {
+									//this function points 
+									lMesh->AddPolygon((i * 3) + j);
+									lUVDiffuseElement->GetIndexArray().SetAt(i * 3 + j, j);
+								}
+
+								lMesh->EndPolygon();
+							}
+
+							//Write Material
+							auto material = loadMaterial(xbg->materialResources.materials[mesh.matID].file.c_str());
+							auto diffuse = loadTexture(material->getCommandPath("DiffuseTexture1").c_str());
+
+							FbxSurfacePhong* lMaterial = FbxSurfacePhong::Create(lScene, xbg->materialResources.materials[mesh.matID].file.c_str());
+							lMeshNode->AddMaterial(lMaterial);
+							FbxFileTexture* lTexture = FbxFileTexture::Create(lScene, material->getCommandPath("DiffuseTexture1").c_str());
+							lTexture->SetRelativeFileName(material->getCommandPath("DiffuseTexture1").c_str());
+							lMaterial->Diffuse.ConnectSrcObject(lTexture);
 						}
 
 						++count;
@@ -162,12 +224,15 @@ void UI::displayFileBrowser() {
 					lExporter->Destroy();
 				}
 			}
+
 			if (ImGui::Button("Import")) {
 				auto selection = pfd::select_folder("Select the folder to import from").result();
 				if (!selection.empty()) {
 					std::string xml = serializeToXML(*xbg);
 				}
 			}
+
+			displayImGui(*xbg);
 		} else if (type == "CGeometryMipResource") {
 			ImGui::Text("You can't edit a mip resource, find its xbg!");
 		} else if (type == "CTextureResource") {

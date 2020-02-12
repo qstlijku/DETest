@@ -236,14 +236,15 @@ int main(int argc, char **argv) {
 						(camPos3D.y >= bbMin.y && camPos3D.y <= bbMax.y) &&
 						(camPos3D.z >= bbMin.z && camPos3D.z <= bbMax.z);
 
-					if (isIn)
+					if (isIn) {
 						it.second->gBucket->draw();
 
-					dd::aabb(&bbMin.x, &bbMax.x, isIn ? blue : red);
+						dd::aabb(&bbMin.x, &bbMax.x, isIn ? blue : red);
 
-					char name[50];
-					snprintf(name, sizeof(name), "%u", it.second->sectorID);
-					dd::projectedText(name, &pos.x, isIn ? blue : red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
+						char name[50];
+						snprintf(name, sizeof(name), "%u", it.second->sectorID);
+						dd::projectedText(name, &pos.x, isIn ? blue : red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
+					}
 				}
 			}
 
