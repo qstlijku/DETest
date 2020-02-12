@@ -1,5 +1,4 @@
-## Disrupt Editor
-
+![Disrupt Editor](https://jonathanscott.me/wp-content/uploads/sites/12/2020/02/unknown.png "Disrupt Editor")
 # Download
 
 You can download stable builds from the [Releases](https://github.com/j301scott/DisruptEditor/releases) Page
