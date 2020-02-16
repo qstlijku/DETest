@@ -282,7 +282,6 @@ public:
 	struct CQuadtreeCollidableBatchProcessor {
 		void read(IBinaryArchive& fp);
 
-		uint32_t unk0;
 		bool notHas;
 		glm::vec2 unk1;
 		glm::vec2 unk2;
@@ -292,7 +291,6 @@ public:
 	};
 
 	struct CQuadtreeCollidableMultiBatchProcessor {
-		CStringID type;
 		std::array< std::variant<CQuadtreeCollidableBatchProcessor<SDeepEllipse>, CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement> > , 3> quadTrees;
 
 		void read(IBinaryArchive& fp);
@@ -315,6 +313,16 @@ public:
 	};
 
 	struct CVegetationMultiBatchProcessor {
+		uint32_t unk1;
+		uint32_t unk2;
+
+		//if unk1
+		uint32_t objSize;
+		uint32_t objCount;
+		std::vector<uint8_t> data;//Probably SBatchVegetationInstance
+		glm::vec2 unk5;
+		glm::vec2 unk6;
+
 		void read(IBinaryArchive& fp);
 	};
 	
@@ -337,8 +345,6 @@ public:
 
 template<typename T>
 inline void batchFile::CQuadtreeCollidableBatchProcessor<T>::read(IBinaryArchive & fp) {
-	fp.serialize(unk0);
-
 	fp.serialize(notHas);
 	if (notHas) return;
 

@@ -90,6 +90,11 @@ void IBinaryArchive::serialize(glm::vec2& value) {
 	serialize(value.y);
 }
 
+void IBinaryArchive::serialize(glm::ivec2& value) {
+	serialize(value.x);
+	serialize(value.y);
+}
+
 void IBinaryArchive::serialize(glm::vec3& value) {
 	serialize(value.x);
 	serialize(value.y);
@@ -279,16 +284,19 @@ void CBinaryArchiveReader::finish() {
 			SDL_assert_release(it == 0);
 	}
 
+	pad(4);
 	SDL_assert_release(header.unk5 == SDL_RWtell(fp) - beginOffset);
 
 	//Read You know
 	head6.resize(header.unk6);
-	for (auto it : head6)
+	for (auto &it : head6)
 		serialize(it);
 
 	head8.resize(header.unk8);
-	for (auto it : head8)
+	for (auto &it : head8)
 		serialize(it);
+
+	SDL_assert_release(header.unk1 == SDL_RWtell(fp) - beginOffset);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {

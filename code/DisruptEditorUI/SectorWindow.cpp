@@ -16,8 +16,15 @@ void UI::displaySector() {
 		return;
 	}
 
-	if (ImGui::Button("Save")) {
+	const ImGuiIO& io = ImGui::GetIO();
 
+	if (ImGui::Button("Save")) {
+		for (auto& it : world.sectors) {
+			if (it.isSaveDirty) {
+				it.save();
+			}
+			it.isSaveDirty = false;
+		}
 	}
 
 	//Brush Settings
@@ -41,13 +48,13 @@ void UI::displaySector() {
 	ImGui::SameLine();
 	if (ImGui::Button("Ramp"))
 		currentBrush = 3;
-	ImGui::SameLine();
+	/*ImGui::SameLine();
 	if (ImGui::Button("Hole"))
-		currentBrush = 4;
+		currentBrush = 4;*/
 
 	ImGui::Separator();
 	ImGui::Text("Brush Settings");
-	ImGui::Checkbox("Square Brush", &squareBrush);
+	//ImGui::Checkbox("Square Brush", &squareBrush);
 	ImGui::SliderFloat("Brush Size", &radius, 1.f, 128.f);
 	ImGui::SliderFloat("Brush Hardness", &hardness, 0.f, 1.f);
 	if(currentBrush == 2)
@@ -58,6 +65,42 @@ void UI::displaySector() {
 
 	if (col != glm::vec3(0)) {
 		ImGui::Text("Col %f %f %f", col.x, col.y, col.z);
+
+		float sectorSize = 64 * 4;
+
+		//Get Sector we're on
+		for (auto& it : world.sectors) {
+			glm::vec3 bbMin(it.xPos, it.yPos, 0.f);
+			bbMin *= 64;
+			bbMin -= glm::vec3(world.GridsWorldOffset, 0.f);
+			glm::vec3 bbMax(bbMin + sectorSize);
+			
+			bool isIn = (col.x >= bbMin.x && col.x <= bbMax.x) &&
+				(col.y >= bbMin.y && col.y <= bbMax.y) &&
+				(col.z >= bbMin.z && col.z <= bbMax.z);
+			if (isIn) {
+				dd::aabb(&bbMin.x, &bbMax.x, red);
+				ImGui::Text("Sector %u %u %u", it.sectorID, it.xPos, it.yPos);
+
+				glm::vec3 secPos = col - bbMin;
+
+				ImGui::Text("InnerSector %f %f", secPos.x, secPos.y);
+
+				auto& hi = it.getHiRes();
+				auto& map = hi->getMap(secPos.x / 64.f, secPos.y / 64.f);
+
+				glm::ivec3 intPos(secPos);
+				intPos %= 64;
+
+				if (io.MouseDown[0]) {
+					map.SetZ(intPos.x, intPos.y, 80.f);
+					it.isSaveDirty = true;
+				}
+
+				break;
+			}
+		}
+
 		if (squareBrush) {
 
 		} else {

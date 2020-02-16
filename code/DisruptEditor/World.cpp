@@ -176,24 +176,14 @@ void World::loaderThread() {
 	world.readyToRender = true;
 
 	world.graphicMutex.unlock();
-	onResize();
+
+	world.regenWLUCommandList();
 }
 
 void World::onResize() {
-	if (world.graphicMutex.try_lock()) {
-		world.regenTerrainCommandList();
-		world.regenWLUCommandList();
-		world.graphicMutex.unlock();
-	}
 }
 
 void World::regenWLUCommandList() {
-	//Create a deferred context
-	HRESULT hr;
-	ID3D11DeviceContext* pDeferredContext = NULL;
-	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
-	assert(hr == S_OK);
-
 	//Start Drawing WLUs
 	int i = 0;
 	for (auto& wlu : world.wlus) {
@@ -379,8 +369,6 @@ void World::regenWLUCommandList() {
 
 		world.loadingProgress = (i++ + world.sectors.size() + 1) / ((float)world.wlus.size() + world.sectors.size());
 	}
-
-	pDeferredContext->Release();
 }
 
 void World::drawTerrain(ID3D11DeviceContext* context) {
@@ -440,25 +428,4 @@ void World::drawTerrain(ID3D11DeviceContext* context) {
 			}
 		}
 	}
-}
-
-void World::regenTerrainCommandList() {
-	if (terrainCommandList)
-		terrainCommandList->Release();
-
-	//Create a deferred context
-	HRESULT hr;
-	ID3D11DeviceContext* pDeferredContext = NULL;
-	hr = RenderInterface::instance().g_pd3dDevice->CreateDeferredContext(0, &pDeferredContext);
-	assert(hr == S_OK);
-	RenderInterface::instance().setupState(pDeferredContext);
-
-	//Render Terrain
-	drawTerrain(pDeferredContext);
-
-	//Start Creating command queues
-	hr = pDeferredContext->FinishCommandList(FALSE, &terrainCommandList);
-	assert(hr == S_OK);
-
-	pDeferredContext->Release();
 }

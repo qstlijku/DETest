@@ -13,6 +13,19 @@ class realTreeFile;
 class batchCollisionFile;
 class physResourceFile;
 
+class ResourceFile {
+public:
+	virtual bool read(IBinaryArchive& fp) = 0;
+
+	void SetPath(CPathID p);
+	void SetPathStr(const std::string &p);
+	CPathID GetPath();
+	std::string GetPathStr();
+private:
+	CPathID path = -1;
+	std::string pathStr;
+};
+
 std::shared_ptr<xbgFile> loadXBG(CPathID path);
 
 std::shared_ptr<materialFile> loadMaterial(CPathID path);

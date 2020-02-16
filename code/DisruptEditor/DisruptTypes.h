@@ -429,4 +429,11 @@ struct ClusterData {
 	void read(IBinaryArchive& fp);
 };
 
+struct CSphere {
+	glm::vec3 pos;
+	float radius;
+	void read(IBinaryArchive& fp);
+	void registerMembers(MemberStructure& ms);
+};
+
 #pragma pack(pop)

@@ -880,20 +880,6 @@ void xbgFile::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(clothWrinkleControlPatchBundles);
 }
 
-void xbgFile::CSphere::read(IBinaryArchive & fp) {
-	fp.serialize(unk1);
-	fp.serialize(unk2);
-	fp.serialize(unk3);
-	fp.serialize(unk4);
-}
-
-void xbgFile::CSphere::registerMembers(MemberStructure & ms) {
-	REGISTER_MEMBER(unk1);
-	REGISTER_MEMBER(unk2);
-	REGISTER_MEMBER(unk3);
-	REGISTER_MEMBER(unk4);
-}
-
 void xbgFile::LOD::CSceneMesh::CDrawCallRange::read(IBinaryArchive & fp) {
 	SDL_Log("CDrawCallRange: %u", fp.tell());
 	drawCall.read(fp);

@@ -413,12 +413,22 @@ void batchFile::CQuadtreeCollidableMultiBatchProcessor::read(IBinaryArchive& fp)
 	//CQuadtreeCollidableBatchProcessor::SDeepEllipse
 	//CQuadtreeCollidableBatchProcessor::SRoadObjectQuadtreeElement
 
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < quadTrees.size(); ++i) {
+		auto& var = quadTrees[i];
+
 		fp.serializeConstant<uint32_t>(0);
 
+		CStringID type;
+		if (std::holds_alternative<CQuadtreeCollidableBatchProcessor<SDeepEllipse>>(var))
+			type = "CQuadtreeCollidableBatchProcessorSDeepEllipse";
+		else if (std::holds_alternative<CQuadtreeCollidableBatchProcessor<SRoadObjectQuadtreeElement>>(var))
+			type = "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement";
+		else
+			SDL_assert_release(false);
 		fp.serialize(type);
 
-		auto& var = quadTrees[i];
+		fp.PreAllocateDynamicType(type);
+
 		if (type == "CQuadtreeCollidableBatchProcessorSDeepEllipse") {
 			serializeAny<CQuadtreeCollidableBatchProcessor<SDeepEllipse>>(fp, var);
 		} else if(type == "CQuadtreeCollidableBatchProcessorSRoadObjectQuadtreeElement") {
@@ -445,11 +455,15 @@ void batchFile::SRoadObjectQuadtreeElement::read(IBinaryArchive & fp) {
 }
 
 void batchFile::CDebrisSpawnerMultiBatchProcessor::read(IBinaryArchive & fp) {
+	fp.PauseInPlace();
+
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVectorExternal<SDebrisSpawnerBatchInstance, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>>]
 	fp.serializeNdVectorExternal(batchInstances, "SDebrisSpawnerBatchInstance");
 
 	fp.serialize(unk2);
 	fp.serialize(unk3);
+
+	fp.ResumeInPlace();
 }
 
 void batchFile::SDebrisSpawnerBatchInstance::read(IBinaryArchive & fp) {
@@ -460,6 +474,19 @@ void batchFile::SDebrisSpawnerBatchInstance::read(IBinaryArchive & fp) {
 }
 
 void batchFile::CVegetationMultiBatchProcessor::read(IBinaryArchive & fp) {
+	//Only exists on PC Version
+	fp.serialize(unk1);
+	fp.serialize(unk2);
+	if (unk1) {
+		fp.serialize(objSize);
+		fp.serialize(objCount);
+
+		data.resize(objSize * objCount);
+		fp.memBlock(data.data(), objSize, objCount);
+
+		fp.serialize(unk5);
+		fp.serialize(unk6);
+	}
 }
 
 void batchFile::CTrafficLightBatchProcessor::read(IBinaryArchive& fp) {

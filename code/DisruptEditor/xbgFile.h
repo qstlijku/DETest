@@ -17,6 +17,7 @@ You may not use this file without permission
 #include "NBCF.h"
 #include <memory>
 #include "DDRenderInterface.h"
+#include "DisruptTypes.h"
 
 class IBinaryArchive;
 class MemberStructure;
@@ -410,16 +411,6 @@ public:
 		uint32_t unk5;//16, 17, 0x1C
 		uint32_t unk6;//18, 19, 0x20, vertexCount
 		//uint32_t unk7;//0x24 maxIndexValue
-
-		void read(IBinaryArchive &fp);
-		void registerMembers(MemberStructure &ms);
-	};
-
-	struct CSphere {
-		float unk1;
-		float unk2;
-		float unk3;
-		float unk4;
 
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);

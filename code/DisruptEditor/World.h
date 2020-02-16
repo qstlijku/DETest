@@ -40,8 +40,6 @@ public:
 	void regenWLUCommandList();
 
 	void drawTerrain(ID3D11DeviceContext* context);
-	void regenTerrainCommandList();
-	ID3D11CommandList* terrainCommandList = NULL;
 };
 
 extern World world;

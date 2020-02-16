@@ -73,14 +73,7 @@ bool materialFile::open(IBinaryArchive &fp) {
 		commands[i].read(fp);
 
 	//void SerializeMember<T1>(IBinaryArchive &, T1 &) [with T1=ndVector<CMaterialResource::CGradient, NoLock, ndVectorTracker<(unsigned long)18, (unsigned long)4, (unsigned long)9>, false>]
-	if (fp.isReading()) {
-		gradients.clear();
-		if (fp.tell() != fp.size()) {
-			fp.serializeNdVector(gradients);
-		}
-	} else {
-		fp.serializeNdVector(gradients);
-	}
+	fp.serializeNdVector(gradients);
 
 	fp.finish();
 
@@ -148,7 +141,7 @@ void materialFile::SCommand::read(IBinaryArchive & fp) {
 	fp.serialize(type);
 	if (type - 1 <= 0xA) {
 		fp.serialize(unk1);
-		fp.serialize(name.id);
+		fp.serialize(name);
 	}
 
 	switch (type) {//Switch 12 cases
@@ -179,8 +172,8 @@ void materialFile::SCommand::read(IBinaryArchive & fp) {
 		fp.serialize(path);
 		break;
 	case 11:
-		fp.serialize(unks11.id);
-		fp.serialize(unks11_2);
+		fp.serialize(unks11);
+		//fp.serialize(unks11_2);
 		break;
 	case 0:
 		break;

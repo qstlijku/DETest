@@ -100,6 +100,7 @@ public:
 	std::shared_ptr<xbtFile> getDiffuseTexture();
 	std::shared_ptr<xbtFile> getMaskTexture();
 	std::shared_ptr<CSectorHighRes> getHiRes();
+	bool isSaveDirty = false;
 private:
 	std::shared_ptr<CSectorHighRes> highRes;
 	std::shared_ptr<xbtFile> color, diffuse, mask;

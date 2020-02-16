@@ -774,3 +774,13 @@ void SDynamicIngredientPreset::read(IBinaryArchive& fp) {
 	if (what == 0)
 		fp.serialize(SDynamicIngredientPresetRef);
 }
+
+void CSphere::read(IBinaryArchive& fp) {
+	fp.serialize(pos);
+	fp.serialize(radius);
+}
+
+void CSphere::registerMembers(MemberStructure& ms) {
+	REGISTER_MEMBER(pos);
+	REGISTER_MEMBER(radius);
+}

@@ -186,8 +186,8 @@ int main(int argc, char **argv) {
 			UI::displayWindows();
 
 			world.terrainCursor = glm::vec3(0.f);
-			if (settings.drawTerrain && world.terrainCommandList) {
-				RenderInterface::instance().g_pd3dDeviceContext->ExecuteCommandList(world.terrainCommandList, TRUE);
+			if (settings.drawTerrain) {
+				world.drawTerrain(RenderInterface::instance().g_pd3dDeviceContext.Get());
 
 				//Get Depth At Cursor
 				RenderInterface::instance().g_pd3dDeviceContext->CopySubresourceRegion(RenderInterface::instance().dsBufferCPU.Get(), 0, 0, 0, 0, RenderInterface::instance().dsBuffer.Get(), 0, NULL);
@@ -200,7 +200,6 @@ int main(int argc, char **argv) {
 
 				// copy data
 				float depth = 1.f;
-				SDL_assert_release(msr.RowPitch == settings.windowSize.x * sizeof(float));
 				Sint64 offset = (posY * msr.RowPitch) + (posX * sizeof(float));
 				if(msr.pData)
 					memcpy(&depth, (uint8_t*)msr.pData + offset, sizeof(depth));

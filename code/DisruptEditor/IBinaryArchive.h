@@ -26,6 +26,7 @@ public:
 	void serialize(float& value);
 	void serialize(double& value);
 	void serialize(glm::vec2& value);
+	void serialize(glm::ivec2& value);
 	void serialize(glm::vec3& value);
 	void serialize(glm::vec4& value);
 	void serialize(glm::mat4& value);

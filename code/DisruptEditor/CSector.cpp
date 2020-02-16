@@ -90,6 +90,7 @@ double CSectorHighRes::CSceneTerrainSectorPackedData::GetZ(long x, long y) {
 
 void CSectorHighRes::CSceneTerrainSectorPackedData::SetZ(long x, long y, double height) {
 	terrainSectorPackedData[GetOffset(x, y)] = CompressHeight(height);
+	isDirty = true;
 }
 
 int CSectorHighRes::CSceneTerrainSectorPackedData::GetOffset(long x, long y) {
