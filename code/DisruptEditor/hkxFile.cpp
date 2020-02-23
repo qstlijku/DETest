@@ -2,10 +2,12 @@
 
 #include "IBinaryArchive.h"
 #include <SDL_log.h>
+#include <ResourceLoader.h>
 
 bool batchCollisionFile::open(IBinaryArchive& fp) {
 	fp.serialize(head);
 	if (head.size != 0) {
+		uint32_t hkxSize;
 		fp.serialize(hkxSize);
 		fp.pad(16);
 		if (hkxSize != 0) {
@@ -14,12 +16,25 @@ bool batchCollisionFile::open(IBinaryArchive& fp) {
 			hkx.read(data);
 		}
 	}
+	root = (CHkPhysMergedBody*)hkx.dataSection;
+	if (root) {
+		for (auto& it : root->staticMergedResources) {
+			loadPhysResourceFile(it.resourceId);
+		}
+		for (auto& it : root->dynamicMergedResources) {
+			loadPhysResourceFile(it.resourceId);
+		}
+		for (auto& it : root->breakableMergedResources) {
+			loadPhysResourceFile(it.resourceId);
+		}
+	}
 	return true;
 }
 
 bool physResourceFile::open(IBinaryArchive& fp) {
 	fp.serializeConstant<uint32_t>(0x67);
 	fp.serialize(unk2);
+	uint32_t hkxSize;
 	fp.serialize(hkxSize);
 	fp.serialize(switchCase);
 
@@ -29,13 +44,11 @@ bool physResourceFile::open(IBinaryArchive& fp) {
 		hkx.read(data);
 	}
 
+	root = hkx.dataSection;
 	switch (switchCase) {
-	case 0:
 	case 1:
 	case 2:
 	case 3:
-	case 4:
-	case 5:
 	case 6:
 	case 9:
 		break;
@@ -170,11 +183,4 @@ void hkxFile::read(const std::vector<uint8_t>& hkxData) {
 
 	//Read __data__
 	dataSection = (uint8_t*)(data.data() + sections[DATA]->m_absoluteDataStart);
-
-	//DEBUG
-	/*for (auto& it : dataSection->mergedResources) {
-		SDL_Log("hkxMergedResource: %s", it.resourceId.getReverseFilename().c_str());
-	}*/
-
-	//__debugbreak();
 }

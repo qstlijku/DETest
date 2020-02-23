@@ -2,7 +2,6 @@
 
 #include <array>
 #include <vector>
-#include <glm/glm.hpp>
 #include "CPathID.h"
 
 //Havok
@@ -75,12 +74,12 @@ struct CHkPhysDynamicMergedResource : public CHkPhysSpawnableMergedResource {
 
 //Size: 0x80, inherits: none
 struct SHkPhysBreakableInitialMotionParams {
-	glm::vec4 towardsCameraTargets;//0x0
-	glm::vec4 directionalMinVel;//0x10
-	glm::vec4 directionalMaxVel;//0x20
-	glm::vec4 rotationalMinVel;//0x30
-	glm::vec4 rotationalMaxVel;//0x40
-	glm::vec4 radialCenterOffset;//0x50
+	hkVector4 towardsCameraTargets;//0x0
+	hkVector4 directionalMinVel;//0x10
+	hkVector4 directionalMaxVel;//0x20
+	hkVector4 rotationalMinVel;//0x30
+	hkVector4 rotationalMaxVel;//0x40
+	hkVector4 radialCenterOffset;//0x50
 	float radialMinSpeed;//0x60
 	float radialMaxSpeed;//0x64
 	float towardsCameraMinSpeed;//0x68
@@ -138,10 +137,56 @@ struct CHkPhysMergedBody : public hkReferencedObject {
 };
 static_assert(sizeof(CHkPhysMergedBody) == 0x90);
 
-struct nomadStaticPhysResourceData : public hkpShapeBase {
+struct nomadPhysResourceData {
+	hkStringPtr highresResourceName;
+	hkStringPtr navmeshResourceName;
+};
+
+//root
+struct nomadRigidPhysResourceData : public nomadPhysResourceData {
+	hkpShape* shape;
+	uint16_t navmeshIndex;
+	uint16_t highresIndex;
+};
+
+//root
+struct nomadStaticPhysResourceData : public nomadPhysResourceData {
 	hkpShape *shape;
 	uint16_t navmeshIndex;
 	uint16_t highresIndex;
+};
+
+struct nomadBreakableNode {
+	hkVector4 centerOfMass;
+	hkVector4 boneOffset;
+	hkMatrix3 inertiaTensor;
+	float volume;
+	hkpShape* shape;
+	hkpConstraintInstance* constraint;
+	uint16_t parent;
+	uint16_t boneIndex;
+	uint16_t highresShape;
+	uint8_t flags;
+	uint8_t depth;
+	hkArray<uint16_t> childNodes;
+	hkArray<uint32_t> connectivityMasks;
+};
+
+struct nomadBreakableDepthInfo {
+	uint16_t numDynamic;
+	uint16_t firstDynamicIndex;
+	uint16_t numStatic;
+	uint16_t firstStaticIndex;
+};
+
+struct nomadBreakableHierarchy {
+	hkArray<nomadBreakableNode> nodes;
+	hkArray<nomadBreakableDepthInfo> depthInfos;
+};
+
+//root
+struct nomadBreakablePhysResourceData : public nomadPhysResourceData {
+	nomadBreakableHierarchy *breakableHierarchy;
 };
 
 //root
@@ -173,10 +218,10 @@ public:
 class batchCollisionFile {
 public:
 	batchFile::batchHeader head;
-	uint32_t hkxSize;
 
 	//Root is CHkPhysMergedBody
 	hkxFile hkx;
+	CHkPhysMergedBody* root;
 
 	bool open(IBinaryArchive& fp);
 };
@@ -184,7 +229,6 @@ public:
 class physResourceFile {
 public:
 	uint32_t unk2;
-	uint32_t hkxSize;
 	uint32_t switchCase;
 
 	// 0 - nomadVehiclePhysResourceData
@@ -202,6 +246,14 @@ public:
 	//nomadPhysResourceData
 
 	hkxFile hkx;
+	union {
+		void* root;
+		nomadRigidPhysResourceData* rigidPhys;
+		nomadStaticPhysResourceData* staticPhys;
+		nomadBreakablePhysResourceData* breakablePhys;
+		nomadFacadePhysResourceData* facadePhys;
+		nomadExtraShapes* extraShapes;
+	};
 
 	bool open(IBinaryArchive& fp);
 };
