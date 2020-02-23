@@ -96,6 +96,12 @@ void renderProgressBar() {
 	ImGui::End();
 }
 
+bool intersect(const glm::vec3 &amin, const glm::vec3& amax, const glm::vec3& bmin, const glm::vec3 &bmax) {
+	return (amin.x <= bmax.x && amax.x >= bmin.x) &&
+		(amin.y <= bmax.y && amax.y >= bmin.y) &&
+		(amin.z <= bmax.z && amax.z >= bmin.z);
+}
+
 int main(int argc, char **argv) {
 	SetUnhandledExceptionFilter(HandleException);
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -159,7 +165,7 @@ int main(int argc, char **argv) {
 				std::string output = event.drop.file + std::string(".xml");
 				SDL_RWclose(fp);
 				fp = SDL_RWFromFile(output.c_str(), "wb");
-				SDL_RWwrite(fp, printer.CStr(), printer.CStrSize(), 1);
+				SDL_RWwrite(fp, printer.CStr(), 1, printer.CStrSize() - 1);
 				SDL_RWclose(fp);
 				break;
 			}
@@ -217,6 +223,8 @@ int main(int argc, char **argv) {
 
 			glm::vec2 camPos2D(RenderInterface::instance().camera.location);
 			glm::vec3 camPos3D(RenderInterface::instance().camera.location);
+			glm::vec3 camPosMin(camPos3D - glm::vec3(settings.drawDistance));
+			glm::vec3 camPosMax(camPos3D + glm::vec3(settings.drawDistance));
 			
 			for (auto& it : world.wlus) {
 				if (!it.second->gBucket)
@@ -235,7 +243,7 @@ int main(int argc, char **argv) {
 						(camPos3D.y >= bbMin.y && camPos3D.y <= bbMax.y) &&
 						(camPos3D.z >= bbMin.z && camPos3D.z <= bbMax.z);
 
-					if (isIn) {
+					if (intersect(camPosMin, camPosMax, bbMin, bbMax)) {
 						it.second->gBucket->draw();
 
 						dd::aabb(&bbMin.x, &bbMax.x, isIn ? blue : red);
