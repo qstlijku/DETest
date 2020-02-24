@@ -126,8 +126,7 @@ int main(int argc, char **argv) {
 	std::thread worldLoaderThread(world.loaderThread);
 
 	Uint32 ticks = SDL_GetTicks();
-	bool windowOpen = true;
-	while (windowOpen) {
+	while (world.windowOpen) {
 		//Event Handling
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -136,9 +135,9 @@ int main(int argc, char **argv) {
 			case SDL_WINDOWEVENT: {
 				switch (event.window.event) {
 				case SDL_WINDOWEVENT_CLOSE:
-					windowOpen = false;
+					world.windowOpen = false;
 					saveSettings();
-					exit(0);
+					break;
 				case SDL_WINDOWEVENT_RESIZED:
 				case SDL_WINDOWEVENT_SIZE_CHANGED: {
 					settings.windowSize = glm::ivec2(event.window.data1, event.window.data2);
@@ -274,6 +273,8 @@ int main(int argc, char **argv) {
 
 		RenderInterface::instance().endFrame();
 	}
+
+	worldLoaderThread.join();
 
 	ImGui::DestroyContext();
 	SDL_DestroyWindow(window);

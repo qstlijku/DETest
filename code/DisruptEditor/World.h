@@ -33,6 +33,7 @@ public:
 	static void loadWLUAsync();
 	static void loadSectors();
 
+	bool windowOpen = true;
 	static void loaderThread();
 	std::mutex graphicMutex;
 	static void onResize();

@@ -173,7 +173,7 @@ void World::loaderThread() {
 
 	world.graphicMutex.unlock();
 
-	while (true) {
+	while (world.windowOpen) {
 		world.regenWLUCommandList();
 		SDL_Delay(1);
 	}
@@ -186,6 +186,9 @@ void World::regenWLUCommandList() {
 	//Start Drawing WLUs
 	int i = 0;
 	for (auto& wlu : world.wlus) {
+		if (!world.windowOpen)
+			return;
+
 		if (!wlu.second->renderDirty)
 			continue;
 		wlu.second->renderDirty = false;
