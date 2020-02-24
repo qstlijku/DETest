@@ -18,9 +18,15 @@ void SplineLoftHiRes::open(IBinaryArchive& fp) {
 
 	fp.serialize(lowRes);
 	fp.finish();
+
+	SDL_assert_release(vertexData.size() != 1603);
+	SDL_assert_release(indexData.size() != 14355);
 }
 
 void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
+	if (vertexData.size() == 0 || indexData.size() == 0)
+		return;
+
 	RenderInterface::instance().objectCB.Offset = glm::vec4(1, 0.5, 0.5, 0);
 	RenderInterface::instance().objectCB.Model = glm::mat4(1);
 	context->UpdateSubresource(RenderInterface::instance().objectCBB, 0, NULL, &RenderInterface::instance().objectCB, 0, 0);
@@ -43,10 +49,10 @@ void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
 		const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
 		  { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		  { "TEXCOORD2", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		  { "NORMAL", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  /*{ "NORMAL", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		  { "TEXCOORD1", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		  { "TEXCOORD0", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		  { "TEXCOORD0", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },*/
 		};
 		HRESULT ret = RenderInterface::instance().g_pd3dDevice->CreateInputLayout(
 			vertexDesc,
@@ -58,11 +64,18 @@ void SplineLoftHiRes::draw(ID3D11DeviceContext* context) {
 	}
 	context->IASetInputLayout(layout.Get());
 
+	for (auto& it : networkRegionResources) {
+		if (!it) continue;
+	}
+
 	context->Draw(vertexData.size(), 0);
 	//context->DrawIndexed(indexData.size(), 0, 0);
 }
 
 void SplineLoftHiRes::createBuffers() {
+	if (vertexData.size() == 0 || indexData.size() == 0)
+		return;
+
 	vertex = std::make_shared<VertexBuffer>();
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 	vertexBufferData.pSysMem = vertexData.data();
@@ -85,13 +98,22 @@ void SplineLoftHiRes::createBuffers() {
 }
 
 void LoftShape::open(IBinaryArchive& fp) {
-	uint32_t magic = 1280263764;
-	fp.serialize(magic);
-	SDL_assert_release(magic == 1280263764);
+	fp.serializeConstant<uint32_t>(1280263764);
+	fp.serializeConstant<uint32_t>(24);
 
-	uint32_t version = 24;
-	fp.serialize(version);
-	SDL_assert_release(version == 24);
+	fp.serialize(unk1);
+	fp.serializeConstant<uint32_t>(0);
+	fp.serializeConstant<uint32_t>(0);
+	fp.serialize(size);//-12 bytes
+	fp.serializeConstant<uint32_t>(0);
+	fp.serialize(count);
+
+	if (count == 0)
+		return;
+
+	for (uint32_t i = 0; i < count; ++i) {
+
+	}
 }
 
 void CSceneSplineLoftRegion::read(IBinaryArchive& fp) {
@@ -219,6 +241,7 @@ void SplineLoftLowRes::open(IBinaryArchive& fp) {
 	fp.PauseInPlace();
 
 	uint32_t count = materials.size();
+	fp.serialize(count);
 	materials.resize(count);
 	fp.PreAllocateMemory(count << 2, 4);
 	for (auto& it : materials)
@@ -227,6 +250,10 @@ void SplineLoftLowRes::open(IBinaryArchive& fp) {
 	fp.PreAllocateSizeOfType(0xA1A47E4E, materials.size());
 	fp.serialize(unk3);
 	fp.serialize(hiRes);
+
+	uint32_t vertexDataSize = vertexData.size();
+	uint32_t indexDataSize = indexData.size();
+
 	fp.serialize(vertexDataSize);
 	fp.serialize(indexDataSize);
 

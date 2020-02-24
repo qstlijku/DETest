@@ -132,10 +132,6 @@ static void setLoadingStatus(const char* str, float progress = 0.f) {
 	world.mutex.unlock();
 }
 
-glm::mat4 convertRotation(const glm::vec3 &a) {
-	return glm::eulerAngleYXZ(a.y, a.x, a.z);
-}
-
 void World::loaderThread() {
 	world.graphicMutex.lock();
 
@@ -177,7 +173,10 @@ void World::loaderThread() {
 
 	world.graphicMutex.unlock();
 
-	world.regenWLUCommandList();
+	while (true) {
+		world.regenWLUCommandList();
+		SDL_Delay(1);
+	}
 }
 
 void World::onResize() {
@@ -187,6 +186,10 @@ void World::regenWLUCommandList() {
 	//Start Drawing WLUs
 	int i = 0;
 	for (auto& wlu : world.wlus) {
+		if (!wlu.second->renderDirty)
+			continue;
+		wlu.second->renderDirty = false;
+
 		wlu.second->gBucket = WorldRenderer::createBucket();
 
 		Node* Entities = wlu.second->root.findFirstChild("Entities");
@@ -225,10 +228,7 @@ void World::regenWLUCommandList() {
 							glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
 							glm::vec3 angles = entityPtr->getAttrValue<glm::vec3>("hidAngles");
 
-							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
-							modelMatrix *= convertRotation(angles);
-							
-							wlu.second->gBucket->add(path, modelMatrix);
+							wlu.second->gBucket->add(path, wluFile::posRotToMat(pos, angles));
 						}
 					}
 				}
@@ -251,10 +251,7 @@ void World::regenWLUCommandList() {
 							glm::vec3 pos = entityPtr->getAttrValue<glm::vec3>("hidPos");
 							glm::vec3 angles = entityPtr->getAttrValue<glm::vec3>("hidAngles");
 
-							glm::mat4 modelMatrix = glm::translate(glm::mat4(1), pos);
-							modelMatrix *= convertRotation(angles);
-
-							wlu.second->gBucket->add(path, modelMatrix);
+							wlu.second->gBucket->add(path, wluFile::posRotToMat(pos, angles));
 						}
 					}
 				}
@@ -357,12 +354,7 @@ void World::regenWLUCommandList() {
 					CPathID path;
 					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
 
-					std::shared_ptr<SplineLoftHiRes> loft = loadHiResSplineLoft(path);
-
-					for (auto& it : loft->networkRegionResources) {
-						if (!it) continue;
-
-					}
+					wlu.second->hiResSplines.push_back(loadHiResSplineLoft(path));
 				}
 			}
 		}

@@ -62,6 +62,8 @@ void UI::displayWLU() {
 				doc.LoadFile(xmlFileName.c_str());
 				wlu.root.deserializeXML(doc.RootElement());
 			}
+			ImGui::SameLine();
+			ImGui::Checkbox("Draw", &wlu.forceRender);
 		}
 
 		if (currentWlu) {

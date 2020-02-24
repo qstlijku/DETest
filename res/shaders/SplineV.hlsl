@@ -2,7 +2,7 @@
 
 struct VertexShaderInput {
 	float4 pos : POSITION;
-	float2 uv : TEXCOORD2;
+	float2 uv : TEXCOORD0;
 };
 
 struct PixelShaderInput {

@@ -149,7 +149,7 @@ class CSplineNetworkRegionResourceEntry {
 public:
 	CSceneSplineLoftRegion loftReigon;
 	std::vector<std::unique_ptr<CSplineLoftPrimitiveDesc>> primitiveDesc;
-	std::vector<std::unique_ptr<SSplineLoftDrawCall>> drawCalls;
+	std::vector<std::unique_ptr<SSplineLoftDrawCall>> drawCalls;//Unused?
 	std::vector<CPathID> materials;
 	std::vector<uint32_t> unk3;
 
@@ -206,7 +206,7 @@ struct CSceneSplineLoftBatch {
 
 		void read(IBinaryArchive& fp);
 	};
-	std::vector<CSceneSplineLoftBatch> unk2;
+	std::vector<SRangeDesc> unk2;
 	struct SPassDrawCallRanges {
 		std::array<SArrayRange, 5> unk1;
 		void read(IBinaryArchive& fp);
@@ -237,8 +237,6 @@ public:
 	std::vector<CPathID> materials;
 	CSceneSplineLoftBatch unk3;
 	CPathID hiRes; //CSplineLoftHiResGfxResource
-	uint32_t vertexDataSize;
-	uint32_t indexDataSize;
 
 	std::vector<uint8_t> vertexData;
 	std::vector<uint8_t> indexData;
@@ -248,24 +246,11 @@ public:
 
 class LoftShape {
 public:
-	//
-	struct Loft {
+	uint32_t unk1;
+	uint32_t size;
+	uint32_t count;
 
-	};
-
-	struct Lods {
-
-	};
-
-	struct Lodd {
-
-	};
-
-	struct Side {
-
-	};
-	
-	struct Mtrl {
+	struct LODS {
 
 	};
 

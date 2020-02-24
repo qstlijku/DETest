@@ -9,8 +9,10 @@
 #include "DDRenderInterface.h"
 #include <CLODictionary.h>
 #include <WorldRenderer.h>
+#include <glm/gtx/quaternion.hpp>
 
 class IBinaryArchive;
+class SplineLoftHiRes;
 
 #pragma pack(push, 1)
 struct wluHeader {
@@ -65,5 +67,11 @@ public:
 	//Only applies for WLU_NEAR, WLU_FAR
 	glm::vec2 bbMin = glm::vec2(0), bbMax = glm::vec2(0);
 	uint32_t sectorID;
+	bool forceRender = false;
+	bool renderDirty = true;
+	std::vector<std::shared_ptr<SplineLoftHiRes>> hiResSplines;
+
+	static glm::mat4 posRotToMat(const glm::vec3& pos, glm::vec3& rot);
+	static glm::vec3 matToRot(const glm::mat4& mat);
 };
 

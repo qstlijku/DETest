@@ -17,6 +17,7 @@
 #include "DB.h"
 #include "Types.h"
 #include "IBinaryArchive.h"
+#include <glm\gtx\euler_angles.hpp>
 
 bool wluFile::open(SDL_RWops* fp) {
 	if (!fp)
@@ -150,6 +151,51 @@ void wluFile::handleHeaders(IBinaryArchive &fp, size_t size) {
 	}
 }
 
+glm::mat4 wluFile::posRotToMat(const glm::vec3& pos, glm::vec3& rot) {
+	glm::mat4 ret = glm::translate(glm::mat4(1), pos);
+
+	float cosX = cosf(rot.x);
+	float sinX = sinf(rot.x);
+	float cosY = cosf(rot.y);
+	float sinY = sinf(rot.y);
+	float cosZ = cosf(rot.z);
+	float sinZ = sinf(rot.z);
+
+	glm::mat4 Rotation;
+	Rotation[0][0] = cosY * cosZ;
+	Rotation[0][1] = cosY * sinZ;
+	Rotation[0][2] = -sinY;
+	Rotation[0][3] = 0.f;
+	Rotation[1][0] = sinY * cosZ * sinX - cosX * sinZ;
+	Rotation[1][1] = sinY * sinZ * sinX + cosX * cosZ;
+	Rotation[1][2] = cosY * sinX;
+	Rotation[1][3] = 0;
+	Rotation[2][0] = sinY * cosZ * cosX + sinX * sinZ;
+	Rotation[2][1] = sinY * sinZ * cosX - sinX * cosZ;
+	Rotation[2][2] = cosY * cosX;
+	Rotation[2][3] = 0;
+	Rotation[3][0] = 0;
+	Rotation[3][1] = 0;
+	Rotation[3][2] = 0;
+	Rotation[3][3] = 1;
+
+	ret *= Rotation;
+	return ret;
+}
+
+glm::vec3 wluFile::matToRot(const glm::mat4& mat) {
+	const float* m = &mat[0][0];
+
+	float a = -1.f;
+	if (m[2] - 1.f <= 0.f)
+		a = -m[2];
+	float b = asinf(a);
+	if(0.01 <= glm::abs(glm::abs(b) - 1.5707964f))
+		return glm::vec3(atan2f(m[6], m[10]), b, atan2f(m[1], m[0]));
+	else
+		return glm::vec3(0.f, b, atan2f(m[4], m[5]));
+}
+
 void wluFile::serialize(SDL_RWops* fp) {
 	CBinaryArchiveWriter aw(fp);
 	
@@ -242,8 +288,15 @@ void wluFile::draw(bool drawImgui) {
 
 			bool selected = &entity == selectedEntity;
 
-			if (ImGui::Selectable(tempName, selected))
+			if (ImGui::Selectable(tempName, selected, ImGuiSelectableFlags_AllowDoubleClick)) {
 				selectedEntity = &entity;
+			}
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+				glm::vec3 pos = entity.getAttrValue<glm::vec3>("hidPos");
+				RenderInterface::instance().camera.location = pos + glm::vec3(1, 1, 1);
+				RenderInterface::instance().camera.lat = -36.8799820f;
+				RenderInterface::instance().camera.lon = -500.110077;
+			}
 
 			if (&entity == selectedEntity)
 				foundSelectedEntity = true;
@@ -261,18 +314,17 @@ void wluFile::draw(bool drawImgui) {
 		ImGui::Separator();
 		Node &entity = *selectedEntity;
 
+		bool didChange = false;
+
 		Attribute *hidName = entity.getAttribute("hidName");
 		Attribute *hidPos = entity.getAttribute("hidPos");
 		glm::vec3 pos = entity.getAttrValue<glm::vec3>("hidPos");
 		glm::vec3 angles = entity.getAttrValue<glm::vec3>("hidAngles");
-		float scale[3] = { 1.f };
-		glm::mat4 matrix;
-
+		glm::mat4 matrix = wluFile::posRotToMat(pos, angles);
 		RenderInterface &renderInterface = RenderInterface::instance();
-
-		ImGuizmo::RecomposeMatrixFromComponents(&pos.x, &angles.x, scale, &matrix[0][0]);
 		EditTransform(&renderInterface.sceneCB.View[0][0], &renderInterface.sceneCB.Projection[0][0], &matrix[0][0]);
-		ImGuizmo::DecomposeMatrixToComponents(&matrix[0][0], &pos.x, &angles.x, scale);
+		pos = glm::vec3(matrix[3]);
+		angles = matToRot(matrix);
 		entity.setAttrValue<glm::vec3>("hidPos", pos);
 		entity.setAttrValue<glm::vec3>("hidAngles", angles);
 		ImGui::Separator();
@@ -350,5 +402,8 @@ void wluFile::draw(bool drawImgui) {
 			ImGui::TreePop();
 		}
 
+		const ImGuiIO& io = ImGui::GetIO();
+		if(io.WantCaptureKeyboard || io.WantCaptureMouse)
+			renderDirty = true;
 	}
 }

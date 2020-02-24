@@ -115,8 +115,8 @@ int main(int argc, char **argv) {
 	camera.type = Camera::FLYCAM;
 #if 0
 	FH::Init();
-	CBinaryArchiveReader reader(FH::openFile("worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c0_i0_xn2047_yn2559_xp2047_yp2559_phys.cbatch"));
-	batchCollisionFile b;
+	CBinaryArchiveReader reader(FH::openFile("worlds\\windy_city\\generated\\roadresources\\roadres_00000000c20cc3f3.hgfx"));
+	SplineLoftHiRes b;
 	b.open(reader);
 	__debugbreak();
 	//CLODataDictionaries::instance();
@@ -139,6 +139,7 @@ int main(int argc, char **argv) {
 					windowOpen = false;
 					saveSettings();
 					exit(0);
+				case SDL_WINDOWEVENT_RESIZED:
 				case SDL_WINDOWEVENT_SIZE_CHANGED: {
 					settings.windowSize = glm::ivec2(event.window.data1, event.window.data2);
 					saveSettings();
@@ -230,7 +231,7 @@ int main(int argc, char **argv) {
 				if (!it.second->gBucket)
 					continue;
 
-				if (it.second->wluType == wluFile::WLU_WORLD && settings.displayWorld) {
+				if ((it.second->wluType == wluFile::WLU_WORLD && settings.displayWorld) || it.second->forceRender) {
 					it.second->gBucket->draw();
 				}
 
@@ -251,6 +252,10 @@ int main(int argc, char **argv) {
 						char name[50];
 						snprintf(name, sizeof(name), "%u", it.second->sectorID);
 						dd::projectedText(name, &pos.x, isIn ? blue : red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
+
+						for (auto& it : it.second->hiResSplines) {
+							it->draw(renderInterface.g_pd3dDeviceContext.Get());
+						}
 					}
 				}
 			}
