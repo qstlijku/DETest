@@ -438,10 +438,14 @@ DatFat::DatFat(const std::string &filename) {
 	name = filename.substr(filename.find(settings.platformFolder) + settings.platformFolder.size() + 1);
 
 	std::string fatFile = filename;
-	fatFile[fatFile.size() - 3] = 'f';
+    fatFile[fatFile.size() - 3] = 'f';
+    fatFile[fatFile.size() - 2] = 'a';
+    fatFile[fatFile.size() - 1] = 't';
 
 	std::string datFile = filename;
 	datFile[datFile.size() - 3] = 'd';
+    datFile[datFile.size() - 2] = 'a';
+    datFile[datFile.size() - 1] = 't';
 
 	FILE *fat = fopen(fatFile.c_str(), "rb");
 	SDL_assert_release(fat);

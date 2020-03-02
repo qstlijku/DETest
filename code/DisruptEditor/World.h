@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <map>
 #include <mutex>
@@ -33,7 +34,7 @@ public:
 	static void loadWLUAsync();
 	static void loadSectors();
 
-	bool windowOpen = true;
+	std::atomic_bool windowOpen = true;
 	static void loaderThread();
 	std::mutex graphicMutex;
 	static void onResize();

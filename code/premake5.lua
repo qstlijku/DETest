@@ -84,7 +84,12 @@ workspace "DisruptEditor"
 	group "Editor"
 	include "./DisruptEditor"
 	include "./DisruptEditorUI"
-	
+    
+    group "Tools"
+    include "./ConvertMaterials"
+    include "./ConvertXBG"
+    include "./xbox2pc_nfo"
+
 	group "Vendor"
 	include "vendor/3rdparty.lua"
 

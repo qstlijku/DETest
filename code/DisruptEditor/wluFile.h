@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <stdint.h>
 #include "tinyxml2.h"
 #include <string>
@@ -68,7 +69,7 @@ public:
 	glm::vec2 bbMin = glm::vec2(0), bbMax = glm::vec2(0);
 	uint32_t sectorID;
 	bool forceRender = false;
-	bool renderDirty = true;
+	std::atomic_bool renderDirty = true;
 	std::vector<std::shared_ptr<SplineLoftHiRes>> hiResSplines;
 
 	static glm::mat4 posRotToMat(const glm::vec3& pos, glm::vec3& rot);
