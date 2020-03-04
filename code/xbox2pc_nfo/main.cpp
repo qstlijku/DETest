@@ -9,6 +9,15 @@
 #include <future>
 #include <Windows.h>
 
+struct NFOFile {
+	std::string Path;
+	CPathID Crc;
+	uint64_t FileTime;
+	uint64_t FileSize;
+	uint64_t FilePosition;
+};
+bool SortByPosition(const NFOFile &i, const NFOFile &j) { return (i.FilePosition < j.FilePosition); }
+
 int main(int argc, char **argv) {
 	printf("Disrupt Editor - Xbox NFO Extractor\nCreated by Jon : https://github.com/j301scott/DisruptEditor\n");
 
@@ -31,40 +40,51 @@ int main(int argc, char **argv) {
 			std::unordered_set<CPathID> hasRead;
 			DatFat dat(argv[i]);
 
-			//Read NFO and extact each file
+			std::vector<NFOFile> files;
+
 			for (tinyxml2::XMLElement* it = nfo.RootElement()->FirstChildElement("common")->FirstChildElement("File"); it; it = it->NextSiblingElement("File")) {
-				CPathID fileID;
-				fileID = it->UnsignedAttribute("Crc");
-				std::string fileName = it->Attribute("Path");
+				NFOFile& file = files.emplace_back();
+				file.Path = it->Attribute("Path");
+				file.Crc = it->UnsignedAttribute("Crc");
+				file.FileTime = it->Unsigned64Attribute("FileTime");
+				file.FileSize = it->Unsigned64Attribute("FileSize");
+				file.FilePosition = it->Unsigned64Attribute("FilePosition");
 
-				hasRead.emplace(fileID);
+				//SDL_assert_release(CPathID(file.Path) == file.Crc);
+			}
 
-				std::filesystem::path outputfileName = std::string(argv[i]) + "_unpack/" + fileName;
+			std::sort(files.begin(), files.end(), SortByPosition);
+
+			//Read NFO and extact each file
+			for (auto &it : files) {
+				hasRead.emplace(it.Crc);
+
+				std::filesystem::path outputfileName = std::string(argv[i]) + "_unpack/" + it.Path;
 				std::filesystem::path root = outputfileName.parent_path();
 				std::filesystem::create_directories(root);
 
-				uint64_t FileTimeU64 = it->Unsigned64Attribute("FileTime");
 				FILETIME ft;
-				ft.dwLowDateTime = (DWORD)(FileTimeU64 & 0xFFFFFFFF);
-				ft.dwHighDateTime = (DWORD)(FileTimeU64 >> 32);
+				ft.dwLowDateTime = (DWORD)(it.FileTime & 0xFFFFFFFF);
+				ft.dwHighDateTime = (DWORD)(it.FileTime >> 32);
 
 				if (std::filesystem::exists(outputfileName))
 					continue;
 
-				printf("Extracting %s %08x\n", fileName.c_str(), fileID.id);
+				printf("Extracting %s %08x %p\n", it.Path.c_str(), it.Crc.id, it.FilePosition);
+
+				SDL_RWops* fp = dat.openRead(it.Crc);
+				std::vector<uint8_t> data;
+				if (fp) {
+					data.resize(SDL_RWsize(fp));
+					SDL_RWread(fp, data.data(), 1, data.size());
+					SDL_RWclose(fp);
+				} else {
+					printf("Failed opening file\n");
+				}
 
 				SDL_RWops* out = SDL_RWFromFile(outputfileName.generic_string().c_str(), "wb");
 				if (out) {
-					SDL_RWops* fp = dat.openRead(fileID);
-					if (fp) {
-						std::vector<uint8_t> data(SDL_RWsize(fp));
-						SDL_RWread(fp, data.data(), 1, data.size());
-						SDL_RWclose(fp);
-
-						SDL_RWwrite(out, data.data(), 1, data.size());
-					} else {
-						printf("Failed opening file\n");
-					}
+					SDL_RWwrite(out, data.data(), 1, data.size());
 					SDL_RWclose(out);
 
 					HANDLE hFile = CreateFileW(outputfileName.generic_wstring().c_str(), FILE_WRITE_ATTRIBUTES, 0, 0, OPEN_EXISTING, 0, 0);
