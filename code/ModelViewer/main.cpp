@@ -115,6 +115,14 @@ int main(int argc, char **argv) {
 		SDL_MaximizeWindow(window);
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
+#if 0
+	FH::Init();
+	CBinaryArchiveReader reader(FH::openFile("worlds\\windy_city\\generated\\roadresources\\roadres_00000000c20cc3f3.hgfx"));
+	SplineLoftHiRes b;
+	b.open(reader);
+	__debugbreak();
+	//CLODataDictionaries::instance();
+#endif
 
 	//Start World Loader
 	std::thread worldLoaderThread(world.loaderThread);
@@ -253,8 +261,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
-			//WorldRenderer::draw(renderInterface.g_pd3dDeviceContext.Get());
-			WorldRenderer::drawModel(renderInterface.g_pd3dDeviceContext.Get());
+			WorldRenderer::draw(renderInterface.g_pd3dDeviceContext.Get());
 		}
 
 		renderProgressBar();

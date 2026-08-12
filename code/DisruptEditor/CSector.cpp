@@ -1,5 +1,5 @@
 #include "CSector.h"
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <stdio.h>
 #include <stdint.h>
 #include <SDL_assert.h>

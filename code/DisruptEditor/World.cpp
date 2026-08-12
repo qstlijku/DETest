@@ -7,6 +7,7 @@
 #include <DB.h>
 #include <RML.h>
 #include "Entity.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtx\euler_angles.hpp>
 #include <Hash.h>
@@ -153,7 +154,8 @@ void World::loaderThread() {
 			DB::instance().addFNVEntry(filename, filename);
 		}
 	}*/
-
+	// Commented out for ModelViewer
+	/*
 	world.gameXML = loadRml("worlds\\" + settings.worldName + "\\generated\\" + settings.worldName + ".game.xml");
 	std::string debug = XMLToString(*world.gameXML.get());
 
@@ -167,7 +169,9 @@ void World::loaderThread() {
 	loadEntityLibraryF.get();
 	particlesF.get();
 	loadWLUF.get();
-	loadSectorF.get();
+	loadSectorF.get();*/
+
+	setLoadingStatus("DONE", 1);
 
 	world.readyToRender = true;
 
@@ -325,23 +329,26 @@ void World::regenWLUCommandList() {
 					for (auto& buildingData : buildingBatch->buildingData) {
 						for (auto& facade : buildingData.facades) {
 							buildingBatchFile::SGfxModelInfo& gfx = buildingBatch->facadeGfxModels.models[facade.unk6];
-
+							CMaterialSlotsMap materialSlots = gfx.materialSlots;
+							CGeometryResource geomResource = gfx.geomResource;
 							for (int i = 0; i < facade.data.data.size(); ++i) {
 								glm::mat4 mat;
 								facade.data.getMatrix(i, mat);
 
-								wlu.second->gBucket->add(gfx.geomResource.file, mat);
+								//wlu.second->gBucket->add(gfx.geomResource.file, mat);
 							}
 						}
 					}
 				}
-				/*if (building.lowGeom.id != -1) {
-					std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
+				if (building.lowGeom.id != -1) {
+					/*std::shared_ptr<xbgFile> xbg = loadXBG(building.lowGeom.id);
 
 					glm::mat4 modelMatrix = glm::translate(glm::mat4(1), building.unk7);
 					RenderInterface::instance().objectCB.Model = modelMatrix;
-					xbg->draw(pDeferredContext);
-				}*/
+					xbg->draw(pDeferredContext);*/
+					glm::mat4 mat = glm::translate(glm::mat4(1), building.unk3);
+					wlu.second->gBucket->add(building.lowGeom, mat);
+				}
 				if (building.roofGeom.id != -1) {
 					glm::mat4 mat = glm::translate(glm::mat4(1), building.unk3);
 					wlu.second->gBucket->add(building.roofGeom, mat);

@@ -8,8 +8,6 @@ namespace UI {
 		virtual void draw() = 0;
 	};
 
-	void handleFNVFile(const char* file);
-
 	void displayTopMenu();
 	void displayTempWindows();
 	void displayWindows();

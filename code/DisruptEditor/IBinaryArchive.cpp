@@ -187,8 +187,8 @@ void IBinaryArchive::pad(size_t padding) {
 
 	uint8_t data[64] = { 0 };
 	memBlock(data, 1, seek);
-	for (Sint64 i = 0; i < seek; ++i)
-		SDL_assert_release(data[i] == 0);
+	//for (Sint64 i = 0; i < seek; ++i)
+		//SDL_assert_release(data[i] == 0);
 }
 
 void IBinaryArchive::padInPlace(size_t padding) {

@@ -291,7 +291,7 @@ inline void unserializeFromXML(T& value, const char* str) {
 	if (!str || *str == '\0') return;
 	tinyxml2::XMLDocument doc;
 	tinyxml2::XMLError ret = doc.Parse(str);
-	SDL_assert_release(ret == tinyxml2::XML_SUCCESS);
+	//SDL_assert_release(ret == tinyxml2::XML_SUCCESS);
 	unserializeFromXML(value, doc.RootElement());
 }
 

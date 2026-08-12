@@ -4,6 +4,7 @@
 #include "SDL.h"
 #include "FileHandler.h"
 #include "IBinaryArchive.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm\ext\matrix_transform.hpp>
 
 void CResourceContainer::read(IBinaryArchive& fp) {

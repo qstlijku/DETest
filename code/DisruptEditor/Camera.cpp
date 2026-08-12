@@ -66,7 +66,7 @@ void Camera::update(float delta) {
 			int mouseX, mouseY;
 			Uint32 mouseMask = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-			if (!(mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)))
+			if (!(mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)))
 				actualLookSpeed = 0.f;
 
 			lon -= mouseX * actualLookSpeed;

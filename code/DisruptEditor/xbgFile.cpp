@@ -23,6 +23,7 @@ You may not use this file without permission
 #include "HexBase64.h"
 #include <DDRenderInterface.h>
 #include <unordered_map>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm\gtc\matrix_transform.hpp>
 
 #define SDL_Log

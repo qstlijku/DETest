@@ -1,5 +1,5 @@
 #include "Entity.h"
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <SDL.h>
 #include <unordered_set>
 #include "Common.h"

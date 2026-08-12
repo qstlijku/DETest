@@ -9,8 +9,6 @@
 
 #include <Windows.h>
 #include <shellapi.h>
-#include <SDL.h>
-#include <list>
 
 void UI::displayTopMenu() {
 	std::map<std::string, bool> &windows = settings.openWindows;
@@ -55,13 +53,6 @@ void UI::displayTopMenu() {
 
 	if (ImGui::BeginMenu("Settings")) {
 		ImGui::DragFloat3("CameraPos", &RenderInterface::instance().camera.location.x);
-		ImGui::DragFloat3("LookingAt", &RenderInterface::instance().camera.lookingAt.x);
-		//ImGui::DragFloat3("Up", &RenderInterface::instance().camera.up.x);
-		ImGui::DragFloat("Theta", &RenderInterface::instance().camera.theta);
-		ImGui::DragFloat("Phi", &RenderInterface::instance().camera.phi);
-		ImGui::DragFloat("Radius", &RenderInterface::instance().camera.radius);
-		ImGui::DragFloat("Lon", &RenderInterface::instance().camera.lon);
-		ImGui::DragFloat("Lat", &RenderInterface::instance().camera.lat);
 		ImGui::DragFloat("Near Plane", &settings.near_plane, 0.02f, 0.001f, 10.f);
 		ImGui::DragFloat("Far Plane", &settings.far_plane, 1.f, 10.f, 6500.f);
 		ImGui::DragFloat("Fov", &settings.fov, 0.02f, 0.001f, 3.14159f);
@@ -102,46 +93,7 @@ void UI::displayTopMenu() {
 	ImGui::EndMainMenuBar();
 }
 
-std::list<std::string> xbgs;
-
-void UI::handleFNVFile(const char* file) {
-	FILE* fp = fopen(file, "r");
-	char line[512];
-	while (fgets(line, sizeof(line), fp)) {
-		line[strlen(line) - 1] = '\0';
-		std::string lineStr(line);
-		long x = lineStr.rfind(".xbg");
-		if (x == strlen(line) - 4)
-			xbgs.push_back(lineStr);
-	}
-	fclose(fp);
-}
-
 void UI::displayTempWindows() {
-	if (xbgs.size() == 0)
-	{
-		std::string base = SDL_GetBasePath();
-		// Initialize list for the first time
-		handleFNVFile((base + "res/Watch Dogs.filelist").c_str());
-	}
-	if (ImGui::Begin("XBGs"))
-	{
-		if (ImGui::ListBoxHeader("Filelist"))
-		{
-			for (std::string file : xbgs)
-			{
-				long x = file.rfind("char01.xbg");
-				bool curr = false;
-				if (x > 0)
-					curr = true;
-				ImGui::Selectable(file.c_str(), curr);
-			}
-			ImGui::ListBoxFooter();
-		}
-		ImGui::End();
-	}
-}
-
 	/*ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowPos(ImVec2(80.f, 80.f), ImGuiCond_FirstUseEver);
 		if (windows["LocString"] && ImGui::Begin("LocString", &windows["LocString"], 0)) {
@@ -205,6 +157,7 @@ void UI::displayTempWindows() {
 
 		ImGui::End();
 	}*/
+}
 
 void UI::displayWindows() {
 #define DEFINE_WINDOW(x) display ##x ();

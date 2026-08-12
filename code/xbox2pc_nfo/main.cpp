@@ -46,9 +46,9 @@ int main(int argc, char **argv) {
 				NFOFile& file = files.emplace_back();
 				file.Path = it->Attribute("Path");
 				file.Crc = it->UnsignedAttribute("Crc");
-				file.FileTime = it->Unsigned64Attribute("FileTime");
-				file.FileSize = it->Unsigned64Attribute("FileSize");
-				file.FilePosition = it->Unsigned64Attribute("FilePosition");
+				file.FileTime = it->Int64Attribute("FileTime");
+				file.FileSize = it->Int64Attribute("FileSize");
+				file.FilePosition = it->Int64Attribute("FilePosition");
 
 				//SDL_assert_release(CPathID(file.Path) == file.Crc);
 			}

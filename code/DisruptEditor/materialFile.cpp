@@ -38,7 +38,7 @@ void materialFile::deleteCommand(CStringID name) {
 }
 
 void materialFile::bind(ID3D11DeviceContext* context) {
-	auto& diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
+	auto diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
 
 	ID3D11ShaderResourceView* views[] = {
 			diffuse->pResource,

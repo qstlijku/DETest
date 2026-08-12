@@ -43,6 +43,34 @@ static xbgMipFile loadXBGMIP(const std::string& path) {
 	return model;
 }
 
+std::shared_ptr<xbgFile> loadXBG(const char *path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
+	std::shared_ptr<xbgFile> model = xbgs[path];
+	if (!model) {
+		model = xbgs[path] = std::make_shared<xbgFile>();
+		SDL_RWops* fp = FH::openFile(path);
+		if (!fp)
+			return model;
+
+		CBinaryArchiveReader reader(fp);
+		model->open(reader);
+		SDL_RWclose(fp);
+
+		if (model->mips.size() == 1) {
+			xbgMipFile xbgmip = loadXBGMIP(model->mips[0].path);
+			model->buffers.insert(model->buffers.begin(), xbgmip.buffers.begin(), xbgmip.buffers.end());
+			model->mips.clear();
+			model->unk3 = 0;
+		}
+
+		//Create Buffers
+		for (auto& it : model->buffers)
+			it.createBuffers();
+	}
+	return model;
+}
+
 std::shared_ptr<xbgFile> loadXBG(CPathID hash) {
 	std::lock_guard<std::recursive_mutex> lck(mutex);
 

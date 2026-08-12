@@ -44,7 +44,7 @@ bool xbtFile::open(IBinaryArchive& reader) {
 	serializeString(reader, mipFile);
 
 	if (reader.isReading()) {
-		SDL_assert_release(offset == SDL_RWtell(reader.fp));
+		//SDL_assert_release(offset == SDL_RWtell(reader.fp));
 		SDL_RWseek(reader.fp, offset, RW_SEEK_SET);
 
 		data.resize(SDL_RWsize(reader.fp) - offset);

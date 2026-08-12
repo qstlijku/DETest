@@ -4,8 +4,11 @@
 #include <unordered_map>
 #include <mutex>
 #include <ResourceLoader.h>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm\gtx\norm.hpp>
 #include <Common.h>
+#include <FileHandler.h>
+#include <IBinaryArchive.h>
 
 namespace WorldRenderer {
 	static std::mutex mutex;
@@ -49,6 +52,17 @@ namespace WorldRenderer {
 	std::shared_ptr<Bucket> createBucket() {
 		return std::make_shared<Bucket>();
 	}
+
+    void drawModel(ID3D11DeviceContext* pContext) {
+        std::lock_guard<std::mutex> lck(mutex);
+
+        pContext->VSSetShader(RenderInterface::instance().model.pVertexShader, NULL, NULL);
+        pContext->PSSetShader(RenderInterface::instance().model.pPixelShader, NULL, NULL);
+
+        auto aiden = loadXBG("graphics\\characters\\char\\char02\\char02.xbg");
+        RenderInterface::instance().objectCB.Model = glm::mat4(1);
+        aiden->draw(pContext);
+    }
 
     void draw(ID3D11DeviceContext *pContext) {
 		std::lock_guard<std::mutex> lck(mutex);

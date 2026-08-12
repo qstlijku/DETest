@@ -1,5 +1,5 @@
 #pragma once
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <atomic>
 #include <stdint.h>
 #include "tinyxml2.h"
