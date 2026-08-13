@@ -12,8 +12,6 @@ class SplineLoftLowRes;
 class batchFile;
 class buildingBatchFile;
 class realTreeFile;
-class batchCollisionFile;
-class physResourceFile;
 
 class ResourceFile {
 public:
@@ -43,9 +41,5 @@ std::shared_ptr<SplineLoftLowRes> loadLowResSplineLoft(CPathID path);
 std::shared_ptr<batchFile> loadBatchFile(CPathID path);
 
 std::shared_ptr<buildingBatchFile> loadBuildingBatchFile(CPathID path);
-
-std::shared_ptr<batchCollisionFile> loadCollisionBatchFile(CPathID path);
-
-std::shared_ptr<physResourceFile> loadPhysResourceFile(CPathID path);
 
 std::shared_ptr<realTreeFile> loadRealTree(CPathID path);

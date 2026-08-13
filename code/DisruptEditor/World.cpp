@@ -275,9 +275,6 @@ void World::regenWLUCommandList() {
 
 				std::shared_ptr<batchFile> batch = loadBatchFile(compound);
 
-				if(batch->physicsFile != 0xFFFFFFFF)
-					loadCollisionBatchFile(batch->physicsFile);
-
 				auto& component = batch->componentMBP;
 				for (auto& it : component.batchProcessors) {
 					for (auto& it : it.processors) {

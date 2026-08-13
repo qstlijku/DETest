@@ -50,7 +50,6 @@
 #include <dr_wav.h>
 #include <buildingBatchFile.h>
 #include <DB.h>
-#include <hkxFile.h>
 #include <WorldRenderer.cpp>
 #include <mabFile.h>
 #include <material3File.h>
