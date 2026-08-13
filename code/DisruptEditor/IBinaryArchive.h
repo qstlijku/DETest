@@ -73,10 +73,12 @@ public:
 	template<typename T>
 	void serialize(T &value);
 
+	void scanTillConstant(uint32_t value);
+
 	SDL_RWops* fp;
 	bool bigEndian = false;
 	enum PaddingType { PADDING_NONE, PADDING_IBINARYARCHIVE, PADDING_GEAR
-	};
+	, PADDING_ONE};
 	PaddingType padding = PADDING_IBINARYARCHIVE;
 
 	size_t getPadSize(size_t padding);
@@ -113,7 +115,7 @@ public:
 	Sint64 inPlaceRead = 0;
 
 protected:
-	Sint64 offset = 0;//Usefull for debugging
+	Sint64 offset = 0; //Useful for debugging
 };
 
 bool operator==(const IBinaryArchive::Header& lhs, const IBinaryArchive::Header& rhs);
@@ -138,7 +140,6 @@ public:
 	CBinaryArchiveWriter(SDL_RWops* _fp);
 	~CBinaryArchiveWriter();
 
-	int64_t headerOffset = -1;
 	std::vector<uint8_t> inPlaceData;
 
 	bool isReading() const;
@@ -158,6 +159,17 @@ inline void IBinaryArchive::serializeInPlace(std::vector<T>& data, uint32_t coun
 	memBlockInPlace(data.data(), sizeof(T), count);
 
 	SDL_assert(!bigEndian);
+}
+
+inline void IBinaryArchive::scanTillConstant(uint32_t value)
+{
+	uint32_t num = 0;
+	while (num != value)
+	{
+		serialize(num);
+		SDL_RWseek(fp, -3, RW_SEEK_CUR);
+	}
+	SDL_RWseek(fp, 3, RW_SEEK_CUR); // skip past value
 }
 
 template<typename T>

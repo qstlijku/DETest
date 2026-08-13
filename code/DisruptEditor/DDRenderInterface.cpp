@@ -1,12 +1,12 @@
 #include "DDRenderInterface.h"
-
 #include "Common.h"
 #include <SDL.h>
 #include "stb_image_write.h"
 #include "Version.h"
 #include <SDL_syswm.h>
+#include <filesystem>
 #include <imgui.h>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <imgui_impl_dx11.h>
 #include <IconsFontAwesome5.h>
 #include <ImGuizmo.h>
@@ -50,11 +50,12 @@ RenderInterface::RenderInterface() {
 	dd::initialize(this);
 
 	//Load Shaders
-	lines = loadShader("DebugLines");
-	tex = loadShader("DebugTex");
-	terrain = loadShader("Terrain");
-	model = loadShader("Model");
-	spline = loadShader("Spline");
+	lines = loadShader(L"DebugLines");
+	tex = loadShader(L"DebugTex");
+	terrain = loadShader(L"Terrain");
+	model = loadShader(L"Model");
+	model3 = loadShader(L"Model3");
+	spline = loadShader(L"Spline");
 
 	//Setup Constant Buffers
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(sceneCB), D3D11_BIND_CONSTANT_BUFFER);
@@ -68,6 +69,24 @@ RenderInterface::RenderInterface() {
 		&constantBufferDesc2,
 		NULL,
 		&objectCBB);
+
+	CD3D11_BUFFER_DESC lightBufferDesc(sizeof(lightCB), D3D11_BIND_CONSTANT_BUFFER);
+	g_pd3dDevice->CreateBuffer(
+		&lightBufferDesc,
+		NULL,
+		&lightCBB);
+
+	CD3D11_BUFFER_DESC cameraBufferDesc(sizeof(cameraCB), D3D11_BIND_CONSTANT_BUFFER);
+	g_pd3dDevice->CreateBuffer(
+		&cameraBufferDesc,
+		NULL,
+		&cameraCBB);
+
+	CD3D11_BUFFER_DESC offsetBufferDesc(sizeof(offsetsCB), D3D11_BIND_CONSTANT_BUFFER);
+	g_pd3dDevice->CreateBuffer(
+		&offsetBufferDesc,
+		NULL,
+		&offsetsCBB);
 
 	//Texture Sampler
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -99,7 +118,7 @@ RenderInterface::RenderInterface() {
 
 void RenderInterface::newFrame() {
 	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplSDL2_NewFrame(window);
+	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 	ImGuizmo::BeginFrame();
 	setupState(g_pd3dDeviceContext.Get());
@@ -107,6 +126,9 @@ void RenderInterface::newFrame() {
 	g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView.Get(), (float*)& clear_color);
 	g_pd3dDeviceContext->ClearDepthStencilView(g_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	g_pd3dDeviceContext->UpdateSubresource(sceneCBB, 0, NULL, &sceneCB, 0, 0);
+	g_pd3dDeviceContext->UpdateSubresource(lightCBB, 0, NULL, &lightCB, 0, 0);
+	g_pd3dDeviceContext->UpdateSubresource(cameraCBB, 0, NULL, &cameraCB, 0, 0);
+	g_pd3dDeviceContext->UpdateSubresource(offsetsCBB, 0, NULL, &offsetsCB, 0, 0);
 }
 
 void RenderInterface::endFrame() {
@@ -127,6 +149,9 @@ void RenderInterface::setupState(ID3D11DeviceContext* context) {
 	context->ClearState();
 	context->VSSetConstantBuffers(0, 1, &sceneCBB);
 	context->VSSetConstantBuffers(1, 1, &objectCBB);
+	context->VSSetConstantBuffers(2, 1, &cameraCBB);
+	context->VSSetConstantBuffers(3, 1, &offsetsCBB);
+	context->PSSetConstantBuffers(0, 1, &lightCBB);
 	context->OMSetRenderTargets(1, g_mainRenderTargetView.GetAddressOf(), g_depthStencilView.Get());
 
 	D3D11_VIEWPORT vp;
@@ -284,7 +309,8 @@ void RenderInterface::drawPointList(const dd::DrawVertex *points, int count, boo
 	g_pd3dDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	g_pd3dDeviceContext->Draw(count, 0);
 
-	m_vertexBuffer->Release();
+	if (m_vertexBuffer != NULL)
+		m_vertexBuffer->Release();
 }
 
 void RenderInterface::drawLineList(const dd::DrawVertex *points, int count, bool depthEnabled) {
@@ -334,7 +360,8 @@ void RenderInterface::drawLineList(const dd::DrawVertex *points, int count, bool
 	g_pd3dDeviceContext->IASetInputLayout(m_inputLayout.Get());
 	g_pd3dDeviceContext->Draw(count, 0);
 
-	m_vertexBuffer->Release();
+	if (m_vertexBuffer != NULL)
+	    m_vertexBuffer->Release();
 }
 
 void RenderInterface::drawGlyphList(const dd::DrawVertex * glyphs, int count, dd::GlyphTextureHandle glyphTex) {
@@ -404,29 +431,43 @@ void RenderInterface::drawGlyphList(const dd::DrawVertex * glyphs, int count, dd
 
 	g_pd3dDeviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 
-	m_vertexBuffer->Release();
+	if (m_vertexBuffer != NULL)
+		m_vertexBuffer->Release();
 }
 
-RenderInterface::Shader RenderInterface::loadShader(const std::string &name) {
-	RenderInterface::Shader shader;
+std::wstring basePath = std::filesystem::current_path().wstring();
 
+// https://stackoverflow.com/questions/34340965/vertex-shader-creating
+//DX::ThrowIfFailed(D3DCompileFromFile("Shaders.shader", nullptr, nullptr, "VShader",
+//"vs_4_0", 0, 0, &VS, &Errors));
+RenderInterface::Shader RenderInterface::loadShader(std::wstring name) {
+	RenderInterface::Shader shader;
+	Microsoft::WRL::ComPtr<ID3DBlob> Errors;
 	//Create Vertex Shader
 	{
-		std::string filename = "res/shaders/" + name + "V.hlsl";
-		std::string contents = readFile(filename);
-		D3DCompile(contents.c_str(), contents.size(), filename.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0", 0, 0, &shader.vShaderBlob, NULL);
-		SDL_assert_release(shader.vShaderBlob != NULL);
-		HRESULT ret = g_pd3dDevice->CreateVertexShader((DWORD*)shader.vShaderBlob->GetBufferPointer(), shader.vShaderBlob->GetBufferSize(), NULL, &shader.pVertexShader);
+		std::wstring filename = basePath + L"/res/shaders/" + name + L"V.hlsl";
+		HRESULT ret = D3DCompileFromFile(filename.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0",
+			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &shader.vShaderBlob, &Errors);
+		if (Errors)
+		{
+			OutputDebugStringA(reinterpret_cast<const char*>(Errors->GetBufferPointer()));
+		}
+		SDL_assert_release(ret == S_OK);
+		ret = g_pd3dDevice->CreateVertexShader((DWORD*)shader.vShaderBlob->GetBufferPointer(), shader.vShaderBlob->GetBufferSize(), NULL, &shader.pVertexShader);
 		SDL_assert_release(ret == S_OK);
 	}
 
 	//Create Pixel Shader
 	{
-		std::string filename = "res/shaders/" + name + "P.hlsl";
-		std::string contents = readFile(filename);
-		D3DCompile(contents.c_str(), contents.size(), filename.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0", 0, 0, &shader.pShaderBlob, NULL);
-		SDL_assert_release(shader.pShaderBlob != NULL);
-		HRESULT ret = g_pd3dDevice->CreatePixelShader((DWORD*)shader.pShaderBlob->GetBufferPointer(), shader.pShaderBlob->GetBufferSize(), NULL, &shader.pPixelShader);
+		std::wstring filename = basePath + L"/res/shaders/" + name + L"P.hlsl";
+		HRESULT ret = D3DCompileFromFile(filename.c_str(), NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0",
+			D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &shader.pShaderBlob, &Errors);
+		if (Errors)
+		{
+			OutputDebugStringA(reinterpret_cast<const char*>(Errors->GetBufferPointer()));
+		}
+		SDL_assert_release(ret == S_OK);
+		ret = g_pd3dDevice->CreatePixelShader((DWORD*)shader.pShaderBlob->GetBufferPointer(), shader.pShaderBlob->GetBufferSize(), NULL, &shader.pPixelShader);
 		SDL_assert_release(ret == S_OK);
 	}
 

@@ -44,6 +44,7 @@ public:
 	void deserializeXML(const tinyxml2::XMLElement *node);
 	void serializeXML(tinyxml2::XMLPrinter &printer);
 
+	Node* findFirstChildStr(const char *name);
 	Node* findFirstChild(CStringID hash);
 	Attribute* getAttribute(CStringID hash);
 

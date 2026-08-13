@@ -5,6 +5,7 @@
 #include "xbgFile.h"
 #include "IBinaryArchive.h"
 #include "Serialization.h"
+#include <xbg3File.h>
 
 void convertXBGToXML(const std::string& filename, const std::string& outFilename) {
 	SDL_RWops* fp = SDL_RWFromFile(filename.c_str(), "rb");

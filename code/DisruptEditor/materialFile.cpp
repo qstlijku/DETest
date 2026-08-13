@@ -9,6 +9,16 @@
 #include "ResourceLoader.h"
 #include "xbtFile.h"
 
+std::vector<std::string> materialFile::getTexturePaths() {
+	std::vector<std::string> paths;
+	for (auto& it : commands) {
+		if (it.type == 8 || it.type == 9 || it.type == 10)
+			paths.push_back(it.path);
+	}
+
+	return paths;
+}
+
 std::string materialFile::getCommandPath(const char* name) {
 	CStringID hash(name);
 

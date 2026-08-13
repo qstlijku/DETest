@@ -8,6 +8,7 @@
 #include "xbgFile.h"
 #include "xbgMipFile.h"
 #include "xbtFile.h"
+#include "xbt3File.h"
 #include "SplineLoft.h"
 #include "batchFile.h"
 #include "buildingBatchFile.h"
@@ -133,6 +134,34 @@ std::shared_ptr<xbtFile> loadTexture(CPathID path) {
 	return model;
 }
 
+std::shared_ptr<xbt3File> loadTexture3(const char *path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
+	std::shared_ptr<xbt3File> model = std::make_shared<xbt3File>();
+	SDL_RWops* fp = FH::openFile(path);
+	if (!fp)
+		return model;
+
+	CBinaryArchiveReader reader(fp);
+	model->open(reader);
+	SDL_RWclose(fp);
+	return model;
+}
+
+std::shared_ptr<SplineLoftLowRes> loadLowResSplineLoft(CPathID path) {
+	std::lock_guard<std::recursive_mutex> lck(mutex);
+
+	std::shared_ptr<SplineLoftLowRes> model = std::make_shared<SplineLoftLowRes>();
+	SDL_RWops* fp = FH::openFileHash(path.id);
+	if (!fp)
+		return model;
+
+	CBinaryArchiveReader reader(fp);
+	model->open(reader);
+	SDL_RWclose(fp);
+	return model;
+}
+
 std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path) {
 	std::lock_guard<std::recursive_mutex> lck(mutex);
 
@@ -145,12 +174,13 @@ std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path) {
 
 		CBinaryArchiveReader reader(fp);
 		model->open(reader);
+		model->thisPath = path.getReverseFilename();
 		SDL_RWclose(fp);
 	}
 	return model;
 }
 
-std::shared_ptr<batchFile> loadbatchFile(CPathID path) {
+std::shared_ptr<batchFile> loadBatchFile(CPathID path) {
 	std::lock_guard<std::recursive_mutex> lck(mutex);
 
 	std::shared_ptr<batchFile> model = batches[path];

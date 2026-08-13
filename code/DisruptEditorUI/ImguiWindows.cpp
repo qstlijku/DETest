@@ -67,10 +67,13 @@ void UI::displayTopMenu() {
 		ImGui::DragFloat("Fov", &settings.fov, 0.02f, 0.001f, 3.14159f);
 		ImGui::DragFloat("Camera Fly Multiplier", &settings.flyMultiplier, 0.02f, 0.1f, 10.f);
 		ImGui::DragFloat("Draw Distance", &settings.drawDistance, 64.f, 0.f, 4096.f);
+		ImGui::Checkbox("Draw Splines", &settings.drawSplines);
 		ImGui::Checkbox("Draw Terrain", &settings.drawTerrain);
 		ImGui::Checkbox("Draw Near", &settings.displayNear);
 		ImGui::Checkbox("Draw Far", &settings.displayFar);
 		ImGui::Checkbox("Draw World", &settings.displayWorld);
+		ImGui::Checkbox("Draw Details", &settings.drawDetails);
+		ImGui::Checkbox("Draw Models", &settings.drawModels);
 		ImGui::EndMenu();
 	}
 
@@ -103,6 +106,7 @@ void UI::displayTopMenu() {
 }
 
 std::list<std::string> xbgs;
+int item_selected_idx;
 
 void UI::handleFNVFile(const char* file) {
 	FILE* fp = fopen(file, "r");
@@ -114,8 +118,20 @@ void UI::handleFNVFile(const char* file) {
 		if (x == strlen(line) - 4)
 			xbgs.push_back(lineStr);
 	}
+	int i = 0;
+	// one-time initialization of list box here
+	for (std::string filename : xbgs)
+	{
+		long x = filename.rfind("char01.xbg");
+		if (x > 0)
+			item_selected_idx = i;
+		i++;
+	}
 	fclose(fp);
+	world.xbgs = xbgs;
 }
+
+bool first = true;
 
 void UI::displayTempWindows() {
 	if (xbgs.size() == 0)
@@ -126,20 +142,57 @@ void UI::displayTempWindows() {
 	}
 	if (ImGui::Begin("XBGs"))
 	{
-		if (ImGui::ListBoxHeader("Filelist"))
+		if (ImGui::BeginListBox("Filelist"))
 		{
+			int n = 0;
 			for (std::string file : xbgs)
 			{
-				long x = file.rfind("char01.xbg");
-				bool curr = false;
-				if (x > 0)
-					curr = true;
-				ImGui::Selectable(file.c_str(), curr);
+				const bool is_selected = (item_selected_idx == n);
+				if (ImGui::Selectable(file.c_str(), is_selected))
+				{
+					item_selected_idx = n;
+					world.selectedModel = file;
+				}
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+				{
+					ImGui::SetItemDefaultFocus();
+					if (first)
+					{
+						ImGui::SetScrollHereY();
+						first = false;
+					}
+				}
+				n++;
 			}
-			ImGui::ListBoxFooter();
+			ImGui::EndListBox();
 		}
-		ImGui::End();
+
+		const char* items[] = { "XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"};
+		static int item_selected_idx = 5; // Here we store our selection data as an index.
+
+		// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
+		const char* combo_preview_value = items[item_selected_idx];
+		if (ImGui::BeginCombo("rotation order", combo_preview_value))
+		{
+			for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+			{
+				const bool is_selected = (item_selected_idx == n);
+				if (ImGui::Selectable(items[n], is_selected))
+				{
+					item_selected_idx = n;
+					world.rotationOrder = items[n];
+				}
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
 	}
+	ImGui::End();
 }
 
 	/*ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);

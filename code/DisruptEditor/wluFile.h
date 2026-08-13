@@ -14,6 +14,7 @@
 
 class IBinaryArchive;
 class SplineLoftHiRes;
+class SplineLoftLowRes;
 
 #pragma pack(push, 1)
 struct wluHeader {
@@ -71,6 +72,7 @@ public:
 	bool forceRender = false;
 	std::atomic_bool renderDirty = true;
 	std::vector<std::shared_ptr<SplineLoftHiRes>> hiResSplines;
+	std::vector<std::shared_ptr<SplineLoftLowRes>> lowResSplines;
 
 	static glm::mat4 posRotToMat(const glm::vec3& pos, glm::vec3& rot);
 	static glm::vec3 matToRot(const glm::mat4& mat);

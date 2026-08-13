@@ -154,23 +154,24 @@ void World::loaderThread() {
 			DB::instance().addFNVEntry(filename, filename);
 		}
 	}*/
-	// Commented out for ModelViewer
-	/*
-	world.gameXML = loadRml("worlds\\" + settings.worldName + "\\generated\\" + settings.worldName + ".game.xml");
-	std::string debug = XMLToString(*world.gameXML.get());
+	// Skip this part for ModelViewer
+	if (!world.drawModelsOnly)
+	{
+		world.gameXML = loadRml("worlds\\" + settings.worldName + "\\generated\\" + settings.worldName + ".game.xml");
+		std::string debug = XMLToString(*world.gameXML.get());
 
-	std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
-	std::future<void> particlesF = std::async([]() { loadRml("worlds/" + settings.worldName + "/generated/" + settings.worldName + "_deploadnewparticles.rml"); });
-	std::future<void> loadWLUF = std::async(world.loadWLUAsync);
-	std::future<void> loadSectorF = std::async(world.loadSectors);
+		std::future<void> loadEntityLibraryF = std::async(loadEntityLibrary);
+		std::future<void> particlesF = std::async([]() { loadRml("worlds/" + settings.worldName + "/generated/" + settings.worldName + "_deploadnewparticles.rml"); });
+		std::future<void> loadWLUF = std::async(world.loadWLUAsync);
+		std::future<void> loadSectorF = std::async(world.loadSectors);
 
-	world.spawnPointList = loadXmlOrRML("worlds/" + settings.worldName + "/generated/spawnpointlist.xml");
+		world.spawnPointList = loadXmlOrRML("worlds/" + settings.worldName + "/generated/spawnpointlist.xml");
 
-	loadEntityLibraryF.get();
-	particlesF.get();
-	loadWLUF.get();
-	loadSectorF.get();*/
-
+		loadEntityLibraryF.get();
+		particlesF.get();
+		loadWLUF.get();
+		loadSectorF.get();
+	}
 	setLoadingStatus("DONE", 1);
 
 	world.readyToRender = true;
@@ -272,7 +273,7 @@ void World::regenWLUCommandList() {
 				compound = compound.substr(0, compound.size() - strlen(".batch"));
 				compound += "_Compound.cbatch";
 
-				std::shared_ptr<batchFile> batch = loadbatchFile(compound);
+				std::shared_ptr<batchFile> batch = loadBatchFile(compound);
 
 				if(batch->physicsFile != 0xFFFFFFFF)
 					loadCollisionBatchFile(batch->physicsFile);
@@ -335,7 +336,7 @@ void World::regenWLUCommandList() {
 								glm::mat4 mat;
 								facade.data.getMatrix(i, mat);
 
-								//wlu.second->gBucket->add(gfx.geomResource.file, mat);
+								wlu.second->gBucket->add(gfx.geomResource.file, mat);
 							}
 						}
 					}
@@ -365,6 +366,17 @@ void World::regenWLUCommandList() {
 					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
 
 					wlu.second->hiResSplines.push_back(loadHiResSplineLoft(path));
+				}
+			}
+			//Draw LowResSplineLoft
+			{
+				Node* CSplineLoftLowResGFXComponent = Components->findFirstChild("CSplineLoftLowResGFXComponent");
+				if (CSplineLoftLowResGFXComponent) {
+					Attribute* ResourcePathID = CSplineLoftLowResGFXComponent->getAttribute("ResourcePathID");
+					CPathID path;
+					memcpy(&path, ResourcePathID->buffer.data(), sizeof(CPathID));
+
+					//wlu.second->lowResSplines.push_back(loadLowResSplineLoft(path));
 				}
 			}
 		}

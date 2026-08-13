@@ -6,7 +6,9 @@
 class xbgFile;
 class materialFile;
 class xbtFile;
+class xbt3File;
 class SplineLoftHiRes;
+class SplineLoftLowRes;
 class batchFile;
 class buildingBatchFile;
 class realTreeFile;
@@ -32,9 +34,13 @@ std::shared_ptr<materialFile> loadMaterial(CPathID path);
 
 std::shared_ptr<xbtFile> loadTexture(CPathID path);
 
+std::shared_ptr<xbt3File> loadTexture3(const char *path);
+
 std::shared_ptr<SplineLoftHiRes> loadHiResSplineLoft(CPathID path);
 
-std::shared_ptr<batchFile> loadbatchFile(CPathID path);
+std::shared_ptr<SplineLoftLowRes> loadLowResSplineLoft(CPathID path);
+
+std::shared_ptr<batchFile> loadBatchFile(CPathID path);
 
 std::shared_ptr<buildingBatchFile> loadBuildingBatchFile(CPathID path);
 

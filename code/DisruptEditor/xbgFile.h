@@ -15,6 +15,7 @@ You may not use this file without permission
 #include "CStringID.h"
 #include "glm/glm.hpp"
 #include "NBCF.h"
+#include <list>
 #include <memory>
 #include "DDRenderInterface.h"
 #include "DisruptTypes.h"
@@ -56,7 +57,13 @@ public:
 		void registerMembers(MemberStructure &ms);
 	};
 
+	// CSceneGeometry::SMeshDecompression struct (WDL):
+	// positionMin, positionRange (floats)
+	// meshLocalHeight, isBuildingFacade (both floats!)
+
 	struct SceneGeometryParams {
+		// preAllocatedMemory?
+		// WDL meshDecompression: 4 floats
 		uint32_t unk1;
 		float unk2;
 		float unk3;
@@ -66,10 +73,12 @@ public:
 		float unk5;
 		float unk6;
 
-		glm::vec3 unk7;
-		float unk8;
-		glm::vec3 unk9;//bBoxMin
-		glm::vec3 unk10;//bBoxMax
+		// WDL: glm::vec4 uvDecompression here
+
+		glm::vec3 unk7; // bSphereCenter
+		float unk8; // bSphereRadius
+		glm::vec3 unk9; // bBoxMin
+		glm::vec3 unk10; // bBoxMax
 
 		//Game doesn't read this?
 		uint32_t unk11;
@@ -79,10 +88,10 @@ public:
 
 		Vector<float> lods;
 
-		float unk15;
-		bool unk16;
-		bool unk17;
-		uint8_t unk18;
+		float unk15; // killDistance
+		bool unk16; // castShadowEnable, showInReflectionEnable (WDL)
+		bool unk17; // isMeshWater (WDL)
+		uint8_t unk18; // pcSkuLodFlags (no clue what this is)
 
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);
@@ -141,10 +150,12 @@ public:
 
 	struct SkelResources {
 		struct SRawNode {
-			uint32_t unk1;
+			uint8_t boneLOD;
+			uint8_t unused[3];
 			glm::vec3 pos;
 			glm::vec4 rot;
-			uint32_t unk9;
+			uint16_t parentIndex;
+			uint16_t obj2NodeMatInd;
 			void read(IBinaryArchive &fp);
 			void registerMembers(MemberStructure &ms);
 		};
@@ -154,6 +165,8 @@ public:
 			CMeshNameID name;
 			void read(IBinaryArchive &fp);
 			void registerMembers(MemberStructure &ms);
+
+			glm::mat4 worldMatrix;
 		};
 
 		uint32_t unk1;
@@ -172,7 +185,7 @@ public:
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);
 	};
-	ReflexSystem relfexSystem;
+	ReflexSystem reflexSystem;
 
 	typedef uint32_t ESecondaryMotionObjectType;
 	struct SecondaryMotionObjects {
@@ -403,14 +416,24 @@ public:
 	};
 	ProceduralNodes proceduralNodes;
 
+	// Jon's comments saved below:
+	//8, 9, 0xC
+	//10, 11, 0x10
+	//12, 13, 0x14
+	//14, 15, 0x18
+	//16, 17, 0x1C
+	//18, 19, 0x20, vertexCount
+    //uint32_t unk7;//0x24 maxIndexValue
+
 	struct CBasicDrawCallRange {
-		uint32_t unk1;//8, 9, 0xC
-		uint32_t faceCount;//10, 11, 0x10
-		uint32_t primitiveCount;//12, 13, 0x14
-		uint32_t unk4;//14, 15, 0x18
-		uint32_t unk5;//16, 17, 0x1C
-		uint32_t unk6;//18, 19, 0x20, vertexCount
-		//uint32_t unk7;//0x24 maxIndexValue
+		uint32_t vertexBufferByteOffset; // in WDL: int[3]?
+		uint32_t primitiveCount;
+		uint32_t indexCount;
+		uint32_t indexBufferStartIndex; // TODO: why is this times 2 when used?
+		uint16_t vertexCount;
+		uint16_t minIndexValue;
+		uint16_t maxIndexValue;
+		uint16_t groupCount; // vertex smoothing group?
 
 		void read(IBinaryArchive &fp);
 		void registerMembers(MemberStructure &ms);
@@ -441,12 +464,12 @@ public:
 
 			struct CDrawCallRange {
 				CBasicDrawCallRange drawCall;
-				CSphere sphere;
-				glm::vec3 unk1;
-				glm::vec3 unk2;
+				CSphere sphere; // bounding sphere
+				glm::vec3 unk1; // CAABBox boundingBox
+				glm::vec3 unk2; // CAABBox boundingBox
 				CMeshNameID name;
-				uint16_t unk3;
-				uint16_t unk4;
+				uint16_t unk3; // visibilityBitIndex
+				uint16_t unk4; // attachedBoneIndex
 
 				void read(IBinaryArchive &fp);
 				void registerMembers(MemberStructure &ms);
@@ -455,6 +478,9 @@ public:
 
 			void read(IBinaryArchive &fp);
 			void registerMembers(MemberStructure &ms);
+
+			// cache
+			std::shared_ptr<VertexBuffer> vertex;
 		};
 		Vector<CSceneMesh> meshes;
 
@@ -474,6 +500,7 @@ public:
 		std::vector<uint8_t> vertexData, indexData;
 
 		void read(IBinaryArchive &fp);
+		void extractNormals();
 		void registerMembers(MemberStructure &ms);
 	};
 	Vector<SGfxBuffers> buffers;
@@ -492,9 +519,49 @@ public:
 
 	void registerMembers(MemberStructure &ms);
 	void draw(ID3D11DeviceContext* context, int lodNum = 0);
+	std::list<std::string> getDiffuseTexture(int lodNum = 0);
+
+	struct VertexType
+	{
+		glm::vec4 pos;
+		glm::vec2 uv;
+		glm::vec4 blendWeights;
+		glm::vec4 blendIndices;
+		glm::vec3 normal;
+		glm::vec3 tangent;
+		glm::vec3 binormal;
+	};
+
+	struct ModelType
+	{
+		float x, y, z;
+		float tu, tv;
+		float nx, ny, nz;
+		float tx, ty, tz;
+		float bx, by, bz;
+	};
+
+	struct TempVertexType
+	{
+		float x, y, z;
+		float tu, tv;
+		float nx, ny, nz;
+	};
+
+	struct VectorType
+	{
+		float x, y, z;
+	};
+	std::shared_ptr<VertexBuffer> createVertexBuffer(std::vector<uint8_t> vertexData, int start, int count, int stride, int format, glm::vec4 offset);
+	xbgFile::SkelResources::SkelResource getSkelResAtIndex(uint16_t index);
+	glm::mat4 getMatAtIndex(uint16_t index);
+	glm::mat4 calculateRotationTransform(glm::mat4 transform, char axis, glm::vec3 rot);
+	void updatePose(xbgFile::SkelResources::SkelResource &skelRes);
+	glm::mat4 calculateLocalMatrix(xbgFile::SkelResources::SkelResource skelRes);
 	void draw(ID3D11DeviceContext* context, const std::vector<glm::mat4> &mats, int lodNum = 0);
 
 	//Cache
 	std::vector<ID3D11ShaderResourceView*> srvs;
-};
 
+	bool firstTime = true;
+};

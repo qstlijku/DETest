@@ -81,6 +81,8 @@ public:
 	};
 	Vector<SCommand> commands;
 
+	std::vector<std::string> getTexturePaths();
+
 	std::string getCommandPath(const char* name);
 	SCommand* findCommand(CStringID name);
 	void deleteCommand(CStringID name);

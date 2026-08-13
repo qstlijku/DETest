@@ -41,7 +41,10 @@ struct Settings {
 	bool displayNear = true;
 	bool displayFar = true;
 	bool displayWorld = true;
+	bool drawSplines = true;
 	bool drawTerrain = true;
+	bool drawDetails = false;
+	bool drawModels = true;
 	
 	// Window Settings
 	glm::ivec2 windowSize = glm::ivec2(1600, 900);

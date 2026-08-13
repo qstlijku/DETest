@@ -125,6 +125,12 @@ void IBinaryArchive::serialize(std::string& value) {
 	} else {
 		memBlock(value.data(), 1, value.size());
 	}
+	if (padding == PADDING_ONE)
+	{
+		uint8_t pad;
+		serialize(pad);
+		SDL_assert_release(pad == 0);
+	}
 }
 
 void IBinaryArchive::PreAllocateSizeOfType(CStringID type, uint32_t count) {
@@ -285,7 +291,8 @@ void CBinaryArchiveReader::finish() {
 	}
 
 	pad(4);
-	SDL_assert_release(header.unk5 == SDL_RWtell(fp) - beginOffset);
+	auto offset = SDL_RWtell(fp) - beginOffset;
+	SDL_assert_release(header.unk5 == offset);
 
 	//Read You know
 	head6.resize(header.unk6);
@@ -295,8 +302,8 @@ void CBinaryArchiveReader::finish() {
 	head8.resize(header.unk8);
 	for (auto &it : head8)
 		serialize(it);
-
-	SDL_assert_release(header.unk1 == SDL_RWtell(fp) - beginOffset);
+	offset = SDL_RWtell(fp) - beginOffset;
+	SDL_assert_release(header.unk1 == offset);
 }
 
 CBinaryArchiveWriter::CBinaryArchiveWriter(SDL_RWops* _fp) {
@@ -328,7 +335,7 @@ void CBinaryArchiveWriter::memBlockInPlace(void* ptr, size_t objSize, size_t obj
 
 void CBinaryArchiveWriter::markHeader() {
 	pad(16);
-	headerOffset = SDL_RWtell(fp);
+	beginOffset = SDL_RWtell(fp);
 	serialize(header);
 }
 
@@ -336,40 +343,38 @@ void CBinaryArchiveWriter::markInPlaceOffset(size_t offset) {
 }
 
 void CBinaryArchiveWriter::finish() {
-	if (headerOffset >= 0) {
-		header.unk5 = SDL_RWtell(fp) - beginOffset;
+	header.unk5 = SDL_RWtell(fp) - beginOffset;
 
-		for (auto it : head6)
-			serialize(it);
+	for (auto it : head6)
+		serialize(it);
 
-		for (auto it : head8)
-			serialize(it);
+	for (auto it : head8)
+		serialize(it);
 
-		//Calculate End Padding
-		size_t padding = 16;
-		size_t size = SDL_RWtell(fp) - beginOffset;
-		size_t seek = (padding - (size % padding)) % padding;
+	//Calculate End Padding
+	size_t padding = 16;
+	size_t size = SDL_RWtell(fp) - beginOffset;
+	size_t seek = (padding - (size % padding)) % padding;
 
-		header.unk1 = SDL_RWtell(fp) - beginOffset;
-		header.unk2 = header.unk1 + seek;
-		header.unk3 = inPlaceData.size();
-		//Unk4 is calculated
-		//Unk6 is calculated
-		header.unk7 = header.unk6 * 0x10 + header.unk5;
-		//Unk8 is calculated
-		//Unk9 is calculated
+	header.unk1 = SDL_RWtell(fp) - beginOffset;
+	header.unk2 = header.unk1 + seek;
+	header.unk3 = inPlaceData.size();
+	//Unk4 is calculated
+	//Unk6 is calculated
+	header.unk7 = header.unk6 * 0x10 + header.unk5;
+	//Unk8 is calculated
+	//Unk9 is calculated
 
-		//Write Padding
-		char temp[16] = { 0 };
-		SDL_RWwrite(fp, temp, 1, seek);
+	//Write Padding
+	char temp[16] = { 0 };
+	SDL_RWwrite(fp, temp, 1, seek);
 
-		//Write Inplace Data
-		SDL_RWwrite(fp, inPlaceData.data(), 1, inPlaceData.size());
+	//Write Inplace Data
+	SDL_RWwrite(fp, inPlaceData.data(), 1, inPlaceData.size());
 
-		//Write back correct Header
-		SDL_RWseek(fp, headerOffset, RW_SEEK_SET);
-		serialize(header);
-	}
+	//Write back correct Header
+	SDL_RWseek(fp, beginOffset, RW_SEEK_SET);
+	serialize(header);
 }
 
 bool operator==(const IBinaryArchive::Header& lhs, const IBinaryArchive::Header& rhs) {

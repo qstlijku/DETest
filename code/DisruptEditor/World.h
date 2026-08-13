@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <list>
 #include <memory>
 #include <map>
 #include <mutex>
@@ -16,6 +17,12 @@ public:
 	std::unique_ptr<tinyxml2::XMLDocument> spawnPointList;
 	std::map<std::string, std::shared_ptr<wluFile> > wlus;
 	std::unique_ptr<tinyxml2::XMLDocument> gameXML;
+
+	// for ModelViewer
+	bool drawModelsOnly;
+	std::string rotationOrder = "ZYX";
+	std::string selectedModel;
+	std::list<std::string> xbgs;
 
 	//Terrain Sectors
 	glm::ivec2 GridsWorldOffset;

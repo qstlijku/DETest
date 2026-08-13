@@ -114,11 +114,15 @@ void Settings::registerMembers(MemberStructure & ms) {
 	REGISTER_MEMBER(far_plane);
 	REGISTER_MEMBER(fov);
 	REGISTER_MEMBER(drawDistance);
+
 	REGISTER_MEMBER(displayComponents);
 	REGISTER_MEMBER(displayNear);
 	REGISTER_MEMBER(displayFar);
 	REGISTER_MEMBER(displayWorld);
+	REGISTER_MEMBER(drawSplines);
 	REGISTER_MEMBER(drawTerrain);
+	REGISTER_MEMBER(drawDetails);
+	REGISTER_MEMBER(drawModels);
 
 	REGISTER_MEMBER(windowSize);
 	REGISTER_MEMBER(maximized);

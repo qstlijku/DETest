@@ -35,7 +35,6 @@
 #include "CResourceDataBase.h"
 #include "embedFile.h"
 #include "CMoveResourceDataManager.h"
-#include "batchFile.h"
 #include "ResourceLoader.h"
 #include <glm/gtx/norm.hpp>
 #include "WaterMeshes.h"
@@ -47,12 +46,17 @@
 #include <DbgHelp.h>
 #include <RoadNetwork.h>
 #include <SDL_syswm.h>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <dr_wav.h>
 #include <buildingBatchFile.h>
 #include <DB.h>
 #include <hkxFile.h>
 #include <WorldRenderer.cpp>
+#include <mabFile.h>
+#include <material3File.h>
+
+#include "renderdoc_app.h"
+
 static LONG WINAPI HandleException(struct _EXCEPTION_POINTERS* apExceptionInfo) {
 	HANDLE hFile = ::CreateFile(L"crash.mdmp", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile) {
@@ -105,6 +109,21 @@ bool intersect(const glm::vec3 &amin, const glm::vec3& amax, const glm::vec3& bm
 }
 
 int main(int argc, char **argv) {
+	/*
+	RENDERDOC_API_1_1_2* rdoc_api = NULL;
+	auto loaded = LoadLibraryA("C:\\Program Files\\RenderDoc\\renderdoc.dll");
+
+	// At init, on windows
+	if (HMODULE mod = GetModuleHandleA("renderdoc.dll"))
+	{
+		pRENDERDOC_GetAPI RENDERDOC_GetAPI =
+			(pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
+		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void**)&rdoc_api);
+		assert(ret == 1);
+	}*/
+
+	//rdoc_api->LaunchReplayUI(1, NULL);
+
 	SetUnhandledExceptionFilter(HandleException);
 	SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -116,8 +135,47 @@ int main(int argc, char **argv) {
 	Camera &camera = RenderInterface::instance().camera;
 	camera.type = Camera::FLYCAM;
 
+	world.drawModelsOnly = true;
+
+	if (world.drawModelsOnly)
+	{
+		RenderInterface::instance().camera.location = glm::vec3(0, 2, 2);
+		AllocConsole();
+		freopen("conout$", "w", stdout);
+		freopen("conout$", "w", stderr);
+		SDL_Log("Test");
+		SDL_LogInfo(0, "Info");
+		SDL_LogError(0, "Error");
+	}
+
 	//Start World Loader
 	std::thread worldLoaderThread(world.loaderThread);
+
+	//SDL_RWops* fp = FH::openFileHash("worlds\\windy_city\\generated\\combinedmovefile.bin");
+	//CBinaryArchiveReader reader(fp);
+	//CMoveResourceDataManager* cmf = new CMoveResourceDataManager();
+	//cmf->open(reader);
+	SDL_RWops* fp = FH::openFileHash("animations\\locomotion\\sprint\\male_fulb_idle-start-sprint_090l_stealth_nowep_none.mab");
+	fp = FH::openFile("f00-000-00_trained-idle_mplyr_000f_norm_nowep.mab");
+	CBinaryArchiveReader reader(fp);
+	auto anim = std::make_shared<mabFile>();
+	anim->open(reader);
+
+	//std::string outFilename = "C:\\Users\\qstli\\Downloads\\cb.xml";
+	//auto cb = loadBatchFile("worlds\\windy_city\\generated\\batchmeshentity\\batchmeshentity_c1_i0_xn1279_yp1281_xn1025_yp1535_compound.cbatch");
+	//std::string str = serializeToXML(*cb);
+	//fp = SDL_RWFromFile(outFilename.c_str(), "wb");
+	//if (!fp) {
+	//	printf("Failed to open file for writing\n");
+	//	return 0;
+	//}
+	//SDL_RWwrite(fp, str.data(), str.size(), 1);
+	//SDL_RWclose(fp);
+
+	fp = FH::openFile("graphics\\_materials\\MM_GENERIC_METAL_BLACKMETAL.material.bin");
+	CBinaryArchiveReader reader2(fp);
+	auto material = std::make_shared<material3File>();
+	material->open(reader2);
 
 	Uint32 ticks = SDL_GetTicks();
 	while (world.windowOpen) {
@@ -172,11 +230,100 @@ int main(int argc, char **argv) {
 		if (delta > 0.5f)
 			delta = 0.5f;
 
+		//rdoc_api->TriggerCapture();
+
+		//int num = rdoc_api->GetNumCaptures();
+
+		//SDL_Log("Num captures: %d\n", num);
+
+		//if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
+
 		RenderInterface &renderInterface = RenderInterface::instance();
 		renderInterface.sceneCB.View = glm::lookAt(camera.location, camera.lookingAt, camera.up);
 		renderInterface.sceneCB.Projection = glm::perspective(settings.fov, (float)settings.windowSize.x / settings.windowSize.y, settings.near_plane, settings.far_plane);
 		renderInterface.sceneCB.ViewProjection = renderInterface.sceneCB.Projection * renderInterface.sceneCB.View;
+
+		renderInterface.lightCB.ambientColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.0f);
+		renderInterface.lightCB.diffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		renderInterface.lightCB.lightDirection = glm::vec3(0.0f, 1.0f, 0.0f);
+		renderInterface.lightCB.specularColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		renderInterface.lightCB.specularPower = 16.0f;
+
+		renderInterface.cameraCB.cameraPosition = camera.location; // Dynamic, updated every frame
+		renderInterface.cameraCB.angle++;
+		if (renderInterface.cameraCB.angle >= 360)
+		{
+			/*
+			auto conn = rdoc_api->IsTargetControlConnected();
+			if (!conn)
+			    rdoc_api->LaunchReplayUI(1, NULL);
+				*/
+			renderInterface.cameraCB.angle = 0;
+		}
 		RenderInterface::instance().newFrame();
+
+		// Open console with stdout
+		/*
+		AllocConsole();
+		freopen("CONOUT$", "w", stdout);
+
+		if (world.readyToRender)
+		{
+			glm::vec3 camPos3D(RenderInterface::instance().camera.location);
+			glm::vec3 camPosMin(camPos3D - glm::vec3(settings.drawDistance));
+			glm::vec3 camPosMax(camPos3D + glm::vec3(settings.drawDistance));
+
+			for (auto& it : world.wlus) {
+				if (!it.second->gBucket)
+					continue;
+
+				if (it.second->wluType == wluFile::WLU_NEAR)
+				{
+					glm::vec3 bbMin(it.second->bbMin, 0);
+					glm::vec3 bbMax(it.second->bbMax, 512);
+
+					std::unordered_map<int, int> cpIdxs;
+
+					for (auto& hiRes : it.second->hiResSplines)
+					{
+						for (auto& netRes : hiRes->networkRegionResources) {
+							for (auto& spline : netRes->loftRegion.splineSubsets)
+							{
+								if (spline == nullptr)
+									continue;
+								for (CSplineControlPoint cp : spline->controlPoints)
+								{
+									cpIdxs[cp.cpIdx] = 1;
+									//dd::sphere(&cp.position.x, magenta, 2);
+								}
+							}
+						}
+					}
+
+					for (auto& hiRes : it.second->hiResSplines)
+					{
+						int misses = 0;
+						for (auto& netRes : hiRes->networkRegionResources)
+						{
+							for (auto& coord : netRes->loftRegion.rangeCoords)
+							{
+								if (cpIdxs.find(coord.x1.cpIdx) == cpIdxs.end())
+									misses++;
+								if (cpIdxs.find(coord.x2.cpIdx) == cpIdxs.end())
+									misses++;
+								//SDL_assert_release(cpIdxs.find(coord.x1.cpIdx) != cpIdxs.end());
+								//SDL_assert_release(cpIdxs.find(coord.x2.cpIdx) != cpIdxs.end());
+							}
+						}
+						SDL_Log("Cache misses: %u", misses);
+						SDL_Log("Cache size: %u", cpIdxs.size());
+					}
+				}
+				else
+					SDL_assert_release(it.second->hiResSplines.size() == 0);
+			}
+			
+		}*/
 
 		world.mutex.lock();
 
@@ -215,7 +362,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
-			glm::vec2 camPos2D(RenderInterface::instance().camera.location);
+			//glm::vec2 camPos2D(RenderInterface::instance().camera.location);
 			glm::vec3 camPos3D(RenderInterface::instance().camera.location);
 			glm::vec3 camPosMin(camPos3D - glm::vec3(settings.drawDistance));
 			glm::vec3 camPosMax(camPos3D + glm::vec3(settings.drawDistance));
@@ -226,6 +373,20 @@ int main(int argc, char **argv) {
 
 				if ((it.second->wluType == wluFile::WLU_WORLD && settings.displayWorld) || it.second->forceRender) {
 					it.second->gBucket->draw();
+				}
+
+				if (it.second->wluType == wluFile::WLU_NEAR && settings.drawSplines)
+				{
+					glm::vec3 bbMin(it.second->bbMin, 0);
+					glm::vec3 bbMax(it.second->bbMax, 512);
+
+					if (intersect(camPosMin, camPosMax, bbMin, bbMax)) {
+
+						for (auto& spline : it.second->hiResSplines) {
+							if (settings.drawSplines)
+								spline->draw(renderInterface.g_pd3dDeviceContext.Get());
+						}
+					}
 				}
 
 				if ((it.second->wluType == wluFile::WLU_NEAR && settings.displayNear) || (it.second->wluType == wluFile::WLU_FAR && settings.displayFar)) {
@@ -245,16 +406,13 @@ int main(int argc, char **argv) {
 						char name[50];
 						snprintf(name, sizeof(name), "%u", it.second->sectorID);
 						dd::projectedText(name, &pos.x, isIn ? blue : red, &renderInterface.sceneCB.ViewProjection[0][0], 0, 0, renderInterface.sceneCB.windowSize.x, renderInterface.sceneCB.windowSize.y, 0.5f);
-
-						for (auto& it : it.second->hiResSplines) {
-							it->draw(renderInterface.g_pd3dDeviceContext.Get());
-						}
 					}
 				}
 			}
-
-			//WorldRenderer::draw(renderInterface.g_pd3dDeviceContext.Get());
-			WorldRenderer::drawModel(renderInterface.g_pd3dDeviceContext.Get());
+			if (world.drawModelsOnly)
+			    WorldRenderer::drawModel(renderInterface.g_pd3dDeviceContext.Get());
+			else
+				WorldRenderer::draw(renderInterface.g_pd3dDeviceContext.Get());
 		}
 
 		renderProgressBar();
@@ -263,10 +421,12 @@ int main(int argc, char **argv) {
 
 		world.mutex.unlock();
 
-		if (!ImGui::IsAnyWindowHovered())
+		if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
 			camera.update(delta);
 
 		RenderInterface::instance().endFrame();
+
+		//if (rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
 	}
 
 	worldLoaderThread.join();

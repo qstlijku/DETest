@@ -83,7 +83,7 @@ SDL_RWops * FH::openFile(const char *path, bool byPassPatch) {
 	//Check if file in patch dir exists
 	if (!byPassPatch) {
 		char fullPath[512];
-		snprintf(fullPath, sizeof(fullPath), "%s%s", settings.patchDir.c_str(), path);
+		snprintf(fullPath, sizeof(fullPath), "%s\\%s", settings.patchDir.c_str(), path);
 		if (std::filesystem::exists(fullPath))
 			return SDL_RWFromFile(fullPath, "rb");
 	}

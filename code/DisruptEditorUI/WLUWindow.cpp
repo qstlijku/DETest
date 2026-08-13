@@ -28,7 +28,7 @@ void UI::displayWLU() {
 		ImVec2 size = ImGui::GetWindowContentRegionMax();
 		size.y -= 75;
 		size.x -= 5;
-		if (ImGui::ListBoxHeader("##WLU List")) {
+		if (ImGui::BeginListBox("##WLU List")) {
 			for (auto it = world.wlus.begin(); it != world.wlus.end(); ++it) {
 				if (it->first.find(searchWluBuffer) != std::string::npos) {
 					bool selected = currentWlu == it->second;
@@ -36,7 +36,7 @@ void UI::displayWLU() {
 						currentWlu = it->second;
 				}
 			}
-			ImGui::ListBoxFooter();
+			ImGui::EndListBox();
 		}
 		ImGui::PopItemWidth();
 

@@ -353,6 +353,12 @@ void Node::serializeXML(tinyxml2::XMLPrinter &printer) {
 	printer.CloseElement();
 }
 
+Node* Node::findFirstChildStr(const char *name)
+{
+	CStringID hash(name);
+	return findFirstChild(hash);
+}
+
 Node* Node::findFirstChild(CStringID hash) {
 	for (auto &child : children) {
 		if (child.name == hash)
@@ -416,7 +422,7 @@ void readFCB(IBinaryArchive & fp, Node &root) {
 	if (head.version == 16389) {
 		root.deserializeB(fp.fp, fp.bigEndian);
 	}
-	else if (head.version == 3) {
+	else if (head.version == 3 || head.version == 2) {
 		Vector<Node*> list;
 		root.deserializeA(fp.fp, list, fp.bigEndian);
 	}

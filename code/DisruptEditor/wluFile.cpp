@@ -233,9 +233,9 @@ void EditTransform(const float *cameraView, float *cameraProjection, float* matr
 	static bool useSnap = false;
 	static float snap[3] = { 1.f, 1.f, 1.f };
 
-	if (ImGui::IsKeyPressed(90))
+	if (ImGui::IsKeyPressed(ImGuiKey_Z))
 		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-	if (ImGui::IsKeyPressed(69))
+	if (ImGui::IsKeyPressed(ImGuiKey_E))
 		mCurrentGizmoOperation = ImGuizmo::ROTATE;
 	if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
 		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
@@ -250,7 +250,7 @@ void EditTransform(const float *cameraView, float *cameraProjection, float* matr
 		if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
 			mCurrentGizmoMode = ImGuizmo::WORLD;
 	}
-	if (ImGui::IsKeyPressed(83))
+	if (ImGui::IsKeyPressed(ImGuiKey_S))
 		useSnap = !useSnap;
 	ImGui::Checkbox("", &useSnap);
 	ImGui::SameLine();
@@ -277,7 +277,7 @@ void wluFile::draw(bool drawImgui) {
 	static char searchWluBuffer[255] = { 0 };
 	ImGui::InputText("##Search", searchWluBuffer, sizeof(searchWluBuffer));
 	bool foundSelectedEntity = false;
-	if (ImGui::ListBoxHeader("##Entity List")) {
+	if (ImGui::BeginListBox("##Entity List")) {
 		for (Node& entity : Entities->children) {
 			Attribute* hidName = entity.getAttribute("hidName");
 
@@ -301,7 +301,7 @@ void wluFile::draw(bool drawImgui) {
 			if (&entity == selectedEntity)
 				foundSelectedEntity = true;
 		}
-		ImGui::ListBoxFooter();
+		ImGui::EndListBox();
 	}
 	ImGui::PopItemWidth();
 

@@ -102,6 +102,9 @@ void DB::reinit() {
 		handleCRCFile((base + "res/exeStrings.txt").c_str(), "etc");
 		handleCRCFile((base + "res/strings.txt").c_str(), "etc");
 		handleCRCFile((base + "res/materialNames.txt").c_str(), "Material");
+		handleCRCFile((base + "res/bones1.txt").c_str(), "bones");
+		handleCRCFile((base + "res/bones2.txt").c_str(), "bones");
+		handleCRCFile((base + "res/bones3.txt").c_str(), "bones");
 	});
 
 	//Load Dare

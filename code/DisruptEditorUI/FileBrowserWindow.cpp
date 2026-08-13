@@ -152,11 +152,11 @@ void UI::displayFileBrowser() {
 							std::vector<FbxVector4> verticies;
 							std::vector<FbxVector4> uvs;
 
-							UINT offset = mesh.drawCall.unk1;
+							UINT offset = mesh.drawCall.vertexBufferByteOffset;
 							UINT stride = mesh.vertexStride;
 							uint8_t* vPtr = xbg->buffers[count].vertexData.data() + offset;
-							uint16_t* iPtr = (uint16_t*)(xbg->buffers[count].indexData.data() + (mesh.drawCall.unk4 * 2));
-							lMesh->InitControlPoints(mesh.drawCall.primitiveCount);
+							uint16_t* iPtr = (uint16_t*)(xbg->buffers[count].indexData.data() + (mesh.drawCall.indexBufferStartIndex * 2));
+							lMesh->InitControlPoints(mesh.drawCall.indexCount);
 							FbxVector4* lControlPoints = lMesh->GetControlPoints();
 
 							// Create UV for Diffuse channel
@@ -165,7 +165,7 @@ void UI::displayFileBrowser() {
 							lUVDiffuseElement->SetMappingMode(FbxGeometryElement::eByPolygonVertex);
 							lUVDiffuseElement->SetReferenceMode(FbxGeometryElement::eIndexToDirect);
 
-							for (int i = 0; i < mesh.drawCall.primitiveCount; ++i) {
+							for (int i = 0; i < mesh.drawCall.indexCount; ++i) {
 								uint16_t index = iPtr[i];
 
 								uint8_t* ptr = vPtr + (stride * index);
@@ -185,9 +185,9 @@ void UI::displayFileBrowser() {
 								lControlPoints[i] = FbxVector4(fv.x, fv.y, fv.z);
 								lUVDiffuseElement->GetDirectArray().Add(FbxVector2(fu.x, fu.y));
 							}
-							lUVDiffuseElement->GetIndexArray().SetCount(mesh.drawCall.primitiveCount);
+							lUVDiffuseElement->GetIndexArray().SetCount(mesh.drawCall.indexCount);
 
-							for (int i = 0; i < mesh.drawCall.primitiveCount / 3; i++) {
+							for (int i = 0; i < mesh.drawCall.indexCount / 3; i++) {
 								//we won't use the default way of assigning textures, as we have
 								//textures on more than just the default (diffuse) channel.
 								lMesh->BeginPolygon(-1, -1, false);

@@ -8,6 +8,7 @@
 #include "DDRenderInterface.h"
 
 namespace WorldRenderer {
+
     struct Instance {
         bool enabled = true;
         CPathID xbgFile;

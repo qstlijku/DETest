@@ -91,8 +91,8 @@ public:
 		ID3D10Blob* pShaderBlob = NULL;
 		ID3D11PixelShader* pPixelShader = NULL;
 	};
-	Shader lines, tex, model, terrain, spline;
-	Shader loadShader(const std::string& name);
+	Shader lines, tex, model, model3, terrain, spline;
+	Shader loadShader(std::wstring name);
 
 	Camera camera;
 
@@ -106,6 +106,32 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> dsBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> dsBufferCPU;
+
+	struct LightBufferType
+	{
+		glm::vec4 ambientColor;
+		glm::vec4 diffuseColor;
+		glm::vec3 lightDirection;
+		float specularPower;
+		glm::vec4 specularColor;
+		float detail;
+		glm::vec3 padding;
+	} lightCB;
+	ID3D11Buffer* lightCBB;
+
+	struct CameraBufferType
+	{
+		glm::vec3 cameraPosition;
+		float angle;
+	} cameraCB;
+	ID3D11Buffer* cameraCBB;
+
+	struct OffsetBufferType
+	{
+		glm::uvec4 boneIndices[12];
+		glm::mat4 offsets[500];
+	} offsetsCB;
+	ID3D11Buffer* offsetsCBB;
 
 	struct SceneConstantBuffer {
 		glm::mat4 View;
