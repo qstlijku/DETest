@@ -7,11 +7,11 @@ project "DisruptEditorUI"
 	libdirs { 
 		"$(SolutionDir)../code/vendor/SDL2",
 	}
-	configuration "Debug"
+	filter "configurations:Debug"
 		libdirs { "C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/lib/vs2015/x64/debug" }
-	configuration "Release"
+	filter "configurations:Release"
 		libdirs { "C:/Program Files/Autodesk/FBX/FBX SDK/2019.0/lib/vs2015/x64/release" }
-	configuration {}
+	filter {}
 	debugdir "%{cfg.targetdir}"
 
 	vpaths

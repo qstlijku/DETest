@@ -12,7 +12,7 @@ workspace "DisruptEditor"
     end
 
     -- multi threaded compilation
-    flags "MultiProcessorCompile"
+    multiprocessorcompile "On"
 
     symbols "On"
 	pic "On"
