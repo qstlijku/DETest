@@ -5,9 +5,15 @@
 #include <SDL_video.h>
 #include <SDL_mutex.h>
 #include "Camera.h"
+#include <vector>
+
+// Everything down to the Frustum helpers is Direct3D 11, so it is Windows-only.
+// Elsewhere these types are declared but not defined, which is all that holding
+// a VertexBuffer or Texture pointer needs; code that actually calls into D3D
+// has to sit behind _WIN32 itself.
+#ifdef _WIN32
 #include <d3d11.h>
 #include <wrl.h>
-#include <vector>
 
 class VertexBuffer {
 public:
@@ -164,6 +170,38 @@ public:
 
 	static RenderInterface& instance();
 };
+
+#else
+// The buffer and texture types keep their shape so that classes deriving from
+// them still compile: a pointer to an incomplete interface is legal, and the
+// destructors are dropped because Release() needs the real definitions. Nothing
+// off Windows constructs one. RenderInterface has no portable form, so it is
+// only declared -- every caller is behind _WIN32.
+struct ID3D11Buffer;
+struct ID3D11Resource;
+struct ID3D11DeviceContext;
+struct ID3D11ShaderResourceView;
+
+class VertexBuffer {
+public:
+	ID3D11Buffer* pVertexBuffer = nullptr;
+	unsigned int stride = 0;
+};
+
+class IndexBuffer {
+public:
+	ID3D11Buffer* pIndexBuffer = nullptr;
+	unsigned int size = 0;
+};
+
+class Texture {
+public:
+	ID3D11Resource* pTexture = nullptr;
+	ID3D11ShaderResourceView* pResource = nullptr;
+};
+
+class RenderInterface;
+#endif
 
 //From https://gist.github.com/podgorskiy/e698d18879588ada9014768e3e82a644
 
