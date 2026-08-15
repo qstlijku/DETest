@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 			printf("Converting to XML: %s\n", outFilename.c_str());
 			convertXBGToXML(filename, outFilename);
 		} else {
-			wprintf(L"I'm not sure what to do with this file based on it's file extension ¯\_(ツ)_/¯");
+			wprintf(L"I'm not sure what to do with this file based on its file extension");
 		}
 
 		printf("\n");

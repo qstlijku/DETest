@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
-#include <d3d11.h>
 #include "DDRenderInterface.h"
 
 namespace WorldRenderer {

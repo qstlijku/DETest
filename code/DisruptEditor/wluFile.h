@@ -6,7 +6,6 @@
 #include <string>
 #include "Vector.h"
 #include "NBCF.h"
-#include <d3d11.h>
 #include "DDRenderInterface.h"
 #include <CLODictionary.h>
 #include <WorldRenderer.h>
