@@ -47,6 +47,9 @@ void materialFile::deleteCommand(CStringID name) {
 	}
 }
 
+// Binds the material for drawing, so Direct3D only. Reading a .material does
+// not go through it.
+#ifdef _WIN32
 void materialFile::bind(ID3D11DeviceContext* context) {
 	auto diffuse = loadTexture(getCommandPath("DiffuseTexture1").c_str());
 
@@ -55,6 +58,7 @@ void materialFile::bind(ID3D11DeviceContext* context) {
 	};
 	context->PSSetShaderResources(0, 1, views);
 }
+#endif
 
 bool materialFile::open(IBinaryArchive &fp) {
 	fp.serialize(magic);

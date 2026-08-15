@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 std::string toHexString(const void *ptr, size_t size);
 std::vector<uint8_t> fromHexString(const std::string &str);

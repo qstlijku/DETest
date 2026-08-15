@@ -891,12 +891,16 @@ void xbgFile::registerMembers(MemberStructure& ms) {
 	REGISTER_MEMBER(clothWrinkleControlPatchBundles);
 }
 
+// The four functions below drive Direct3D directly, so they are Windows-only.
+// Parsing an .xbg does not go through any of them.
+#ifdef _WIN32
 // TODO: do we need multiple matrices?
 void xbgFile::draw(ID3D11DeviceContext* context, int lodNum) {
 	std::vector<glm::mat4> mats(1);
 	mats[0] = RenderInterface::instance().objectCB.Model;
 	draw(context, mats, lodNum);
 }
+#endif
 
 std::list<std::string> xbgFile::getDiffuseTexture(int lodNum)
 {
@@ -941,6 +945,7 @@ void xbgFile::SGfxBuffers::read(IBinaryArchive & fp) {
 	//Device3D::CBuffer::Create(Device3D::EBufferType, Device3D::EBufferUsage, unsigned long elementSize, unsigned long elementCount, const void * ptr, bool)
 }
 
+#ifdef _WIN32
 void xbgFile::SGfxBuffers::createBuffers() {
 	vertex = std::make_shared<VertexBuffer>();
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -962,6 +967,7 @@ void xbgFile::SGfxBuffers::createBuffers() {
 		&index->pIndexBuffer);
 	index->size = indexData.size();
 }
+#endif
 
 // Convert normalized float to signed 16 bit integer
 // signed 8 bit: -128 to 127 (uint8_t from 0 to 255)
@@ -1083,6 +1089,7 @@ Binormal
 	MeshFVF_NormalModifiedComp = 0x8000,
 */
 
+#ifdef _WIN32
 std::shared_ptr<VertexBuffer> xbgFile::createVertexBuffer(std::vector<uint8_t> vertexData, int start, int count, int stride, int format, glm::vec4 offset) {
 	auto vertex = std::make_shared<VertexBuffer>();
 	std::vector<xbgFile::VertexType> newData;
@@ -1256,6 +1263,7 @@ std::shared_ptr<VertexBuffer> xbgFile::createVertexBuffer(std::vector<uint8_t> v
 
 	return vertex;
 }
+#endif
 
 xbgFile::SkelResources::SkelResource xbgFile::getSkelResAtIndex(uint16_t index)
 {
@@ -1356,6 +1364,7 @@ glm::mat4 xbgFile::calculateLocalMatrix(xbgFile::SkelResources::SkelResource ske
 // scaled float uv = uvPos * unk5 + unk4 (e.g. unk5 = 1 / 32766, unk4 = 0)
 // scaled float4 pos = input.Pos * unk2 + unk1 or just try * unk2
 
+#ifdef _WIN32
 void xbgFile::draw(ID3D11DeviceContext* context, const std::vector<glm::mat4>& mats, int lodNum) {
 	if (lodNum >= lods.size())
 		return;
@@ -1681,3 +1690,4 @@ WD is not very PBR so it darkens the specular if you reduce specularpower, inste
 		++srvI;
 	}
 }
+#endif
