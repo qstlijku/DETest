@@ -17,7 +17,7 @@
 #include "DB.h"
 #include "Types.h"
 #include "IBinaryArchive.h"
-#include <glm\gtx\euler_angles.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 bool wluFile::open(SDL_RWops* fp) {
 	if (!fp)

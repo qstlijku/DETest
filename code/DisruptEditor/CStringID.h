@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "Compat.h"
 
 class MemberStructure;
 class IBinaryArchive;

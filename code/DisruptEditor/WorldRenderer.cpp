@@ -6,7 +6,7 @@
 #include <fstream>
 #include <ResourceLoader.h>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm\gtx\norm.hpp>
+#include <glm/gtx/norm.hpp>
 #include <Common.h>
 #include <FileHandler.h>
 #include <IBinaryArchive.h>

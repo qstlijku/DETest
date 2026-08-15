@@ -26,9 +26,9 @@ You may not use this file without permission
 #include <DDRenderInterface.h>
 #include <unordered_map>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtx\rotate_vector.hpp>
-#include <glm\gtx\string_cast.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <Common.h>
 #include <glm/gtc/quaternion.hpp>
 #include <World.h>

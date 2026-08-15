@@ -25,7 +25,7 @@ You may not use this file without permission
 #include <DDRenderInterface.h>
 #include <unordered_map>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm\gtc\matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <Common.h>
 #include <material3File.h>
 

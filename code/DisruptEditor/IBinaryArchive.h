@@ -6,6 +6,7 @@ class IBinaryArchive;
 #include "glm/glm.hpp"
 #include <string>
 #include <memory>
+#include "Compat.h"
 #include "Vector.h"
 #include "CStringID.h"
 

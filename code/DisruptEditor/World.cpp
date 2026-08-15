@@ -8,13 +8,13 @@
 #include <RML.h>
 #include "Entity.h"
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtx\euler_angles.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include <Hash.h>
 #include <ResourceLoader.h>
 #include <xbgFile.h>
 #include <SplineLoft.h>
-#include <glm\gtx\quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <buildingBatchFile.h>
 #include <realTreeFile.h>
 #include <unordered_set>

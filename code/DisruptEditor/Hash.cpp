@@ -282,7 +282,7 @@ uint32_t Hash::gearDobbsHash(const unsigned char * ptr, size_t size) {
 		do {
 			v9 = *(_BYTE *)(v5 + 6);
 			v10 = *(_BYTE *)(v5 + 7);
-			v5 += 12i64;
+			v5 += 12LL;
 			v6 -= 12;
 			v11 = ((*(_BYTE *)(v5 - 7) + ((v9 + (v10 << 8)) << 8)) << 8) + *(_BYTE *)(v5 - 8) + v2;
 			v12 = ((*(_BYTE *)(v5 - 3) + ((*(_BYTE *)(v5 - 2) + (*(_BYTE *)(v5 - 1) << 8)) << 8)) << 8)

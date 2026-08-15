@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "Compat.h"
 
 namespace Hash {
 	uint32_t crcHash(const void* data, size_t size);
